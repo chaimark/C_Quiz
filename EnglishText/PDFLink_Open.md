@@ -1,1 +1,1 @@
-<a href="username.github.io/folder/document.pdf" target="_blank">PDF.</a>
+<a href="[username.github.io/folder/document.pdf](https://github.com/chaimark/chaimark.github.com/blob/chaimark/EnglishText/2005.pdf)https://github.com/chaimark/chaimark.github.com/blob/chaimark/EnglishText/2005.pdf" target="_blank">PDF.</a>
