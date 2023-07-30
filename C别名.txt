@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+
+//计算数组元素个数（数组长度）
+#define ARR_SIZE(ArrName) sizeof(ArrName)/sizeof(ArrName[0])
+#define NEW_NAME(ArrName) otherName(ArrName, ARR_SIZE(ArrName))
+//别名结构体类型
+typedef struct New_Arr {
+    void* Name;
+    int Len;
+}strnew; // 添加分号
+
+//别名初始化函数（返回一个结构体数据）
+strnew otherName(void* Master, int SizeNum) {
+    strnew newArray;
+    newArray.Len = SizeNum;
+    newArray.Name = Master;
+    return newArray;
+}
+
+int main() {
+    int AA[10] = { 1,2,3,4,5,6,7,8,9,0 };
+    double BB[5] = { 1.1,2.2,3.3,4.4,5.5 };
+    int CC = 0;
+    int i = 0;
+	strnew A; // 声明别名结构体变量A
+	strnew B; // 声明别名结构体变量B
+    //测试A
+    printf("\n=======================\n");
+    A = NEW_NAME(AA);
+    printf("Len = %d\n", A.Len);
+    for (i = 0; i < A.Len; i++) {
+        printf("%d\n", ((int*)(A.Name))[i]);
+    }
+    printf("\n=======================\n");
+    //测试B
+    B = NEW_NAME(BB);
+    printf("Len = %d\n", B.Len);
+    for (i = 0; i < B.Len; i++) {
+        printf("%lf\n", ((double*)(B.Name))[i]); // 修改为%lf，或将BB改为float数组
+    }
+	getch();
+    return 0;
+}
