@@ -1,4 +1,4 @@
-// ==UserScript==
+// ==UserScript== 
 // @name              拒绝打开傻逼百度题库+单词翻译
 // @namespace         http://tampermonkey.net/
 // @version           0.1
