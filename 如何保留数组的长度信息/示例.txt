@@ -9,7 +9,7 @@
 typedef struct New_Arr {
     void* Name;
     int Len;
-}strnew; // 添加分号
+}strnew;
 
 //别名初始化函数（返回一个结构体数据）
 strnew otherName(void* Master, int SizeNum) {
@@ -24,8 +24,8 @@ int main() {
     double BB[5] = { 1.1,2.2,3.3,4.4,5.5 };
     int CC = 0;
     int i = 0;
-	strnew A; // 声明别名结构体变量A
-	strnew B; // 声明别名结构体变量B
+    strnew A; // 声明别名结构体变量A
+    strnew B; // 声明别名结构体变量B
     //测试A
     printf("\n=======================\n");
     A = NEW_NAME(AA);
