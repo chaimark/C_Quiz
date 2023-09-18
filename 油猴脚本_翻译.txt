@@ -67,7 +67,7 @@ let selectedText = null;
             }
             const selection = window.getSelection();
             selectedText = selection.toString().trim();
-            translateWord(selectedText);
+            translateText(selectedText);
         });
 
         // 监听鼠标按下事件
@@ -100,7 +100,7 @@ let selectedText = null;
         document.addEventListener('dblclick', function (event) {
             const selection = window.getSelection();
             selectedText = selection.toString().trim();
-            translateWord(selectedText);
+            translateText(selectedText);
         });
 
         // 监听键盘按下事件 shift+enter
@@ -109,51 +109,35 @@ let selectedText = null;
             if (event.shiftKey && event.key === 'Enter') {
                 const selection = window.getSelection();
                 selectedText = selection.toString().trim();
-                translateWord(selectedText);
+                translateText(selectedText);
             }
         });
 
-        function translateWord(word) {
-            textBox.value = ""
-            let apiUrl = null;
-            if (Fanyi_Flag == true){
-                apiUrl = `http://fanyi.youdao.com/translate?doctype=xml&type=EN2ZH_CN&version&i=${encodeURIComponent(word)}`;
-            } else {
-                apiUrl = `http://fanyi.youdao.com/translate?doctype=xml&type=ZH_CN2EN&version&i=${encodeURIComponent(word)}`;
-            }
-
-            // 设置超时定时器
-            const delayTimer = setTimeout(function() {
-                if(textBox.value == ""){
-                    textBox.value = '请求超时';
-                }
-            }, 2000); // 延时时间设置为 50 毫秒
-
-            //发送数据
+        // 调用有道翻译API并显示翻译结果
+        function translateText(text) {
             GM_xmlhttpRequest({
-                method: 'GET',
-                url: apiUrl,
+                method: "GET",
+                url: `https://dict.youdao.com/w/eng/${encodeURIComponent(text)}`,
                 onload: function(response) {
-                    clearTimeout(delayTimer); // 清除延时定时器
+                    if (response.status === 200) {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(response.responseText, "text/html");
+                        const translationElement = doc.querySelector('.trans-container ul');
+                        const translationText = translationElement ? translationElement.textContent : "未找到翻译";
 
-                    const xmlData = response.responseText;
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlData, 'text/xml');
-                    const translationNode = xmlDoc.querySelector('translation');
-                    if (translationNode) {
-                        const translation = translationNode.textContent.trim();
-                        // 判断字符串是否包含空格
-                        if (word.includes(' ')) {
-                            textBox.value = translation;//字符串包含空格，判断为一句话
-                        } else {
-                            textBox.value = word + ": " + translation;// 字符串不包含空格，判断为一个单词
-                        }
+                        showTranslationResult(text, translationText);
                     } else {
-                        textBox.value = '翻译失败';
+                        showTranslationResult(text, "翻译请求失败");
                     }
                 }
             });
-        };
+        }
+
+        // 显示翻译结果
+        function showTranslationResult(originalText, translationText) {
+            textBox.value="";
+            textBox.value = originalText + '\n' + translationText.replace(/[\n ]/g, ''); // 替换换行符为空格
+        }
 
         // 定义拖动事件处理函数
         function handleDragStart(event) {
@@ -180,31 +164,5 @@ let selectedText = null;
         textBox.addEventListener('dragstart', handleDragStart);
         textBox.addEventListener('drag', handleDrag);
         textBox.addEventListener('dragend', handleDragEnd);
-
-        // 定义全局CSS样式
-        GM_addStyle(`
-            #myTextBox.my-extension-style {
-                position: fixed;
-                top: 10px;
-                right: 10px;
-                width: 200px;
-                height: 50px;
-                color: black;
-                border: 1px solid #ccc;
-                /* 其他文本框样式 */
-            }
-
-            #myButton.my-extension-style {
-                position: fixed;
-                top: 10px;
-                right: 220px;
-                width: 120px;
-                height: 50px;
-                color: black;
-                background-color: rgb(204, 210, 210);
-                border: 1px solid #ccc;
-                /* 其他按钮样式 */
-            }
-        `);
     }
 })();
