@@ -32,7 +32,7 @@ let selectedText = null;
         textBox.style.top = '10px';
         textBox.style.left = '95px';
         textBox.style.width = '200px';
-        textBox.style.height = '55px';
+        textBox.style.height = '80px';
         textBox.style.zIndex = '9999';
         textBox.style.color = 'black';
         textBox.style.border = '1px solid #ccc';
@@ -48,12 +48,12 @@ let selectedText = null;
         button.style.top = '10px';
         button.style.left = '40px';
         button.style.width = '50px';
-        button.style.height = '55px';
+        button.style.height = '80px';
         button.style.zIndex = '9999';
         button.style.color = 'black';
         button.style.border = '1px solid #ccc';
-
-        button.innerHTML = 'EN-<br>ZH-';
+        button.style.background = 'gray';
+        button.innerHTML = '翻译';
         // 创建文本框和按钮
         document.body.appendChild(textBox);
         document.body.appendChild(button);
@@ -61,9 +61,9 @@ let selectedText = null;
         button.addEventListener('click', function() {
             Fanyi_Flag = !Fanyi_Flag;
             if (Fanyi_Flag == true){
-                button.innerHTML = 'EN-<br>ZH-';
+                button.innerHTML = '翻译';
             } else {
-                button.innerHTML = 'ZH-<br>EN-';
+                button.innerHTML = '翻译';
             }
             const selection = window.getSelection();
             selectedText = selection.toString().trim();
@@ -136,7 +136,30 @@ let selectedText = null;
         // 显示翻译结果
         function showTranslationResult(originalText, translationText) {
             textBox.value="";
-            textBox.value = originalText + '\n' + translationText.replace(/[\n ]/g, ''); // 替换换行符为空格
+
+            // 第一步：在结尾是 "." 的单词前加上 "%"
+            var step1Text = translationText.replace(/(\S+)\.\s+/g, '%$1.@');
+
+            // 第二步：替换所有的 "\n" 为 ""
+            var step2Text = step1Text.replace(/\n/g, '');
+
+            // 第三步：将连续超过两个空格的空格替换为 ""
+            var step3Text = step2Text.replace(/\s{2,}/g, ' ');
+
+            // 第四步：将所有的 "@" 替换为回车
+            var step4Text = step3Text.replace(/@/g, '\n--');
+
+            // 第五步：将所有的 "%" 替换为回车
+            var step5Text = step4Text.replace(/%/g, '\n');
+
+            // 第六步：将所有的 ";" 替换为回车
+            var step6Text = step5Text.replace(/;/g, '\n--');
+
+            // 第六步：将所有的 ";" 替换为回车
+            translationText = step6Text.replace(/-- /g, '\--');
+
+            // 输出替换后的文本
+            textBox.value = originalText + translationText;
         }
 
         // 定义拖动事件处理函数
