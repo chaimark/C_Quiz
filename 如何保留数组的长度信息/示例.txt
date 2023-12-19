@@ -40,6 +40,6 @@ int main() {
     for (i = 0; i < B.Len; i++) {
         printf("%lf\n", ((double*)(B.Name))[i]); // 修改为%lf，或将BB改为float数组
     }
-	getch();
+    getch();
     return 0;
 }
