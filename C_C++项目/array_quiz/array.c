@@ -16,14 +16,14 @@ int main() {
         for (int i = 0; i < Len; i++) {
             AA[i] = i;
         }
-        strnew A;  // 声明别名结构体变量A
+        strnew A;  // 澹版槑鍒悕缁撴瀯浣撳彉閲廇
         A = NEW_NAME(AA);
         A.Len = Len;
         printf("Len = %d\n", A.Len);
         for (int i = 0; i < A.Len; i++) {
             printf("%d\n", A.Name._int[i]);
         }
-        printf("按任意键继续");
+        printf("鎸変换鎰忛敭缁х画");
         getchar();
         free(AA);
     } while (1);

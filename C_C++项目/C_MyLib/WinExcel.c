@@ -1,25 +1,25 @@
-/*-----------------------------------±ê×¼¿â------------------------------------*/
+/*-----------------------------------æ ‡å‡†åº“------------------------------------*/
 #include <stdio.h>
 #include <stdbool.h>
 #include "WinExcel.h"
-/*-----------------------------------»ù´¡¶¨Òå----------------------------------*/
-#define EXCEL_MAX_LEN 300 //excel Ã¿ĞĞ×î´ó³¤¶È
-// ÉùÃ÷Ò»¸ö·µ»ØÖµÎªbool£¬²ÎÊıÎªFILE *µÄº¯ÊıÖ¸ÕëÀàĞÍ
+/*-----------------------------------åŸºç¡€å®šä¹‰----------------------------------*/
+#define EXCEL_MAX_LEN 300 //excel æ¯è¡Œæœ€å¤§é•¿åº¦
+// å£°æ˜ä¸€ä¸ªè¿”å›å€¼ä¸ºboolï¼Œå‚æ•°ä¸ºFILE *çš„å‡½æ•°æŒ‡é’ˆç±»å‹
 typedef bool (* funNamePtr1)(FILE *Fp);
 typedef bool (* funNamePtr2)(char ReadExcel[][EXCEL_MAX_LEN]);
 char Read_Excel[1000][EXCEL_MAX_LEN];
 
-/*-----------------------------------º¯ÊıËµÃ÷----------------------------------*/
-//È¡¾ø¶ÔÖµ
+/*-----------------------------------å‡½æ•°è¯´æ˜----------------------------------*/
+//å–ç»å¯¹å€¼
 int resAbsoluteVar(int Input);
-//Ğ´Èë±í¸ñ
+//å†™å…¥è¡¨æ ¼
 bool excelWriteCsv(char FileName[],bool funNamePtr1(FILE *fp));
-//¶ÁÈ¡±í¸ñ
+//è¯»å–è¡¨æ ¼
 bool excelReadCsv(char FileName[],bool funNamePtr2(char ReadExcel[][EXCEL_MAX_LEN]));
 
 
-/*-----------------------------------º¯Êı¶¨Òå----------------------------------*/
-//È¡¾ø¶ÔÖµ
+/*-----------------------------------å‡½æ•°å®šä¹‰----------------------------------*/
+//å–ç»å¯¹å€¼
 int resAbsoluteVar(int Input) {
 	if(Input >= 0) {
 		return Input;
@@ -27,47 +27,47 @@ int resAbsoluteVar(int Input) {
 		return 0-Input;
 	}
 }
-//°ÑÊı¾İĞ´ÈëCsvÎÄ¼ş
+//æŠŠæ•°æ®å†™å…¥Csvæ–‡ä»¶
 bool excelWriteCsv(char FileName[], funNamePtr1 CallFun) {
 	bool ResData = false;
-    FILE *Fp = fopen(FileName, "w");	// ´ò¿ªcsvÎÄ¼ş
+    FILE *Fp = fopen(FileName, "w");	// æ‰“å¼€csvæ–‡ä»¶
     if (Fp == NULL) {
-        printf("ÎŞ·¨´ò¿ªÎÄ¼ş\n");
-		Fp = fopen(FileName, "w");		// Çå¿ÕÊı¾İ£¬ĞÂ½¨csvÎÄ¼ş
+        printf("æ— æ³•æ‰“å¼€æ–‡ä»¶\n");
+		Fp = fopen(FileName, "w");		// æ¸…ç©ºæ•°æ®ï¼Œæ–°å»ºcsvæ–‡ä»¶
         ResData = false;
     } else {
 		if(CallFun(Fp) == true) {
 			ResData = true;
-			printf("Ğ´Èë³É¹¦\n");
+			printf("å†™å…¥æˆåŠŸ\n");
 		} else {
-			printf("Ğ´ÈëÊ§°Ü\n");
-			fclose(Fp);							// ¹Ø±ÕÎÄ¼ş 
-			FILE *Fp = fopen(FileName, "w");	// Çå¿ÕÊı¾İ£¬ĞÂ½¨csvÎÄ¼ş
+			printf("å†™å…¥å¤±è´¥\n");
+			fclose(Fp);							// å…³é—­æ–‡ä»¶ 
+			FILE *Fp = fopen(FileName, "w");	// æ¸…ç©ºæ•°æ®ï¼Œæ–°å»ºcsvæ–‡ä»¶
 			ResData = false;
 		}
 	}
-	fclose(Fp);		// ¹Ø±ÕÎÄ¼ş 
+	fclose(Fp);		// å…³é—­æ–‡ä»¶ 
 	return ResData;
 }
-//¶ÁÈ¡CsvÎÄ¼ş
+//è¯»å–Csvæ–‡ä»¶
 bool excelReadCsv(char FileName[], funNamePtr2 CallFun) {
 	bool ResData = false;
-    FILE *Fp = fopen(FileName, "r"); 	// ´ò¿ªcsvÎÄ¼ş
+    FILE *Fp = fopen(FileName, "r"); 	// æ‰“å¼€csvæ–‡ä»¶
     if (Fp == NULL) {
-        printf("ÎŞ·¨´ò¿ªÎÄ¼ş\n");
-		Fp = fopen(FileName, "w");		// Çå¿ÕÊı¾İ£¬ĞÂ½¨csvÎÄ¼ş
+        printf("æ— æ³•æ‰“å¼€æ–‡ä»¶\n");
+		Fp = fopen(FileName, "w");		// æ¸…ç©ºæ•°æ®ï¼Œæ–°å»ºcsvæ–‡ä»¶
         ResData = false;
     } else {
 		if(CallFun(Read_Excel) == true) {
 			ResData = true;
-			printf("¶ÁÈ¡³É¹¦\n");
+			printf("è¯»å–æˆåŠŸ\n");
 		} else {
-			printf("¶ÁÈ¡Ê§°Ü\n");
-			fclose(Fp);							// ¹Ø±ÕÎÄ¼ş 
-			FILE *Fp = fopen(FileName, "w");	// Çå¿ÕÊı¾İ£¬ĞÂ½¨csvÎÄ¼ş
+			printf("è¯»å–å¤±è´¥\n");
+			fclose(Fp);							// å…³é—­æ–‡ä»¶ 
+			FILE *Fp = fopen(FileName, "w");	// æ¸…ç©ºæ•°æ®ï¼Œæ–°å»ºcsvæ–‡ä»¶
 			ResData = false;
 		}
 	}
-    fclose(Fp); // ¹Ø±ÕÎÄ¼ş
+    fclose(Fp); // å…³é—­æ–‡ä»¶
     return ResData;
 }

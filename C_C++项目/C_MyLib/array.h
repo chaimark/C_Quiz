@@ -1,44 +1,44 @@
 /*
-XXXX_XXX <==> ºê¶¨Òå
-Xxxx_Xxxx <==> È«¾Ö±äÁ¿£¬¶ÔÏóÃû
-_Xxxx_Xxx <==> ÀàÃû
-XxxxXxxxx <==> ¾Ö²¿±äÁ¿
-xxxxXxxx() <==> º¯Êı
-xxxxx_xxxx <==> typedef(Êı¾İÀàĞÍ)
+XXXX_XXX <==> å®å®šä¹‰
+Xxxx_Xxxx <==> å…¨å±€å˜é‡ï¼Œå¯¹è±¡å
+_Xxxx_Xxx <==> ç±»å
+XxxxXxxxx <==> å±€éƒ¨å˜é‡
+xxxxXxxx() <==> å‡½æ•°
+xxxxx_xxxx <==> typedef(æ•°æ®ç±»å‹)
 */
-#ifndef MY_ARRAY_H  // Èç¹û MY_HEADER_FILE_H Î´¶¨Òå
-#define MY_ARRAY_H  // ¶¨Òå MY_HEADER_FILE_H
-/*-----------------------------------±ê×¼¿â------------------------------------*/
+#ifndef MY_ARRAY_H  // å¦‚æœ MY_HEADER_FILE_H æœªå®šä¹‰
+#define MY_ARRAY_H  // å®šä¹‰ MY_HEADER_FILE_H
+/*-----------------------------------æ ‡å‡†åº“------------------------------------*/
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 
-/*-----------------------------------»ù´¡¶¨Òå----------------------------------*/
-// ¼ÆËãÊı×éÔªËØ¸öÊı
+/*-----------------------------------åŸºç¡€å®šä¹‰----------------------------------*/
+// è®¡ç®—æ•°ç»„å…ƒç´ ä¸ªæ•°
 #define ARR_SIZE(ArrName) sizeof(ArrName) / sizeof(ArrName[0])
 #define NEW_NAME(ArrName) otherName(ArrName, ARR_SIZE(ArrName))
-// ¶¨ÒåÒ»ÀàĞÍÁªºÏÌåÀà Data_Class£¬ÓÃÓÚ´æ´¢²»Í¬ÀàĞÍµÄÖ¸ÕëÊı¾İ
+// å®šä¹‰ä¸€ç±»å‹è”åˆä½“ç±» Data_Classï¼Œç”¨äºå­˜å‚¨ä¸åŒç±»å‹çš„æŒ‡é’ˆæ•°æ®
 typedef union Data_Class {
-    void *_void;            // ÎŞ¶¨ÒåĞÎÖ¸Õë
-    char *_char;            // ×Ö·ûĞÍÖ¸Õë
-    short *_short;          // ¶ÌÕûĞÍÖ¸Õë
-    int *_int;              // ÕûĞÍÖ¸Õë
-    long *_long;            // ³¤ÕûĞÍÖ¸Õë
-    long long *_LLong;      // ³¤³¤ÕûĞÍÖ¸Õë
-    float *_float;          // µ¥¾«¶È¸¡µãĞÍÖ¸Õë
-    double *_double;        // Ë«¾«¶È¸¡µãĞÍÖ¸Õë
-    long double *_Ldouble;  // À©Õ¹¾«¶È¸¡µãĞÍÖ¸Õë
+    void *_void;            // æ— å®šä¹‰å½¢æŒ‡é’ˆ
+    char *_char;            // å­—ç¬¦å‹æŒ‡é’ˆ
+    short *_short;          // çŸ­æ•´å‹æŒ‡é’ˆ
+    int *_int;              // æ•´å‹æŒ‡é’ˆ
+    long *_long;            // é•¿æ•´å‹æŒ‡é’ˆ
+    long long *_LLong;      // é•¿é•¿æ•´å‹æŒ‡é’ˆ
+    float *_float;          // å•ç²¾åº¦æµ®ç‚¹å‹æŒ‡é’ˆ
+    double *_double;        // åŒç²¾åº¦æµ®ç‚¹å‹æŒ‡é’ˆ
+    long double *_Ldouble;  // æ‰©å±•ç²¾åº¦æµ®ç‚¹å‹æŒ‡é’ˆ
 } _newclass;
-// ±ğÃû½á¹¹ÌåÀàĞÍ
+// åˆ«åç»“æ„ä½“ç±»å‹
 typedef struct New_Arr {
     _newclass Name;
     int Len;
 } strnew;
 
-/*-----------------------------------º¯Êı½Ó¿Ú----------------------------------*/
-// ±ğÃû³õÊ¼»¯º¯Êı£¨·µ»ØÒ»¸ö½á¹¹ÌåÊı¾İ£©
+/*-----------------------------------å‡½æ•°æ¥å£----------------------------------*/
+// åˆ«ååˆå§‹åŒ–å‡½æ•°ï¼ˆè¿”å›ä¸€ä¸ªç»“æ„ä½“æ•°æ®ï¼‰
 extern strnew otherName(void *Master, int SizeNum);
-//Éú³ÉËæ»úÊı×é
+//ç”Ÿæˆéšæœºæ•°ç»„
 extern void srandArray(int Num[], int MaxVar);
 
 #endif  // MY_ARRAY_H

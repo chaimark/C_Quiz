@@ -1,30 +1,30 @@
 /*
-XXXX_XXX <==> ºê¶¨Òå
-Xxxx_Xxxx <==> È«¾Ö±äÁ¿£¬¶ÔÏóÃû
-_Xxxx_Xxx <==> ÀàÃû
-XxxxXxxxx <==> ¾Ö²¿±äÁ¿
-xxxxXxxx() <==> º¯Êý
-xxxxx_xxxx <==> typedef(Êý¾ÝÀàÐÍ)
+XXXX_XXX <==> å®å®šä¹‰
+Xxxx_Xxxx <==> å…¨å±€å˜é‡ï¼Œå¯¹è±¡å
+_Xxxx_Xxx <==> ç±»å
+XxxxXxxxx <==> å±€éƒ¨å˜é‡
+xxxxXxxx() <==> å‡½æ•°
+xxxxx_xxxx <==> typedef(æ•°æ®ç±»åž‹)
 */
-#ifndef WINEXCEL_H  // Èç¹û MY_HEADER_FILE_H Î´¶¨Òå
-#define WINEXCEL_H  // ¶¨Òå MY_HEADER_FILE_H
-/*-----------------------------------±ê×¼¿â------------------------------------*/
+#ifndef WINEXCEL_H  // å¦‚æžœ MY_HEADER_FILE_H æœªå®šä¹‰
+#define WINEXCEL_H  // å®šä¹‰ MY_HEADER_FILE_H
+/*-----------------------------------æ ‡å‡†åº“------------------------------------*/
 #include <stdio.h>
 #include <stdbool.h>
 
-/*-----------------------------------»ù´¡¶¨Òå----------------------------------*/
-#define EXCEL_MAX_LEN 300 //excel Ã¿ÐÐ×î´ó³¤¶È
-// ÉùÃ÷Ò»¸ö·µ»ØÖµÎªbool£¬²ÎÊýÎªFILE *µÄº¯ÊýÖ¸ÕëÀàÐÍ
+/*-----------------------------------åŸºç¡€å®šä¹‰----------------------------------*/
+#define EXCEL_MAX_LEN 300 //excel æ¯è¡Œæœ€å¤§é•¿åº¦
+// å£°æ˜Žä¸€ä¸ªè¿”å›žå€¼ä¸ºboolï¼Œå‚æ•°ä¸ºFILE *çš„å‡½æ•°æŒ‡é’ˆç±»åž‹
 typedef bool (* funNamePtr1)(FILE *Fp);
 typedef bool (* funNamePtr2)(char ReadExcel[][EXCEL_MAX_LEN]);
 char Read_Excel[1000][EXCEL_MAX_LEN];
 
-/*-----------------------------------º¯ÊýËµÃ÷----------------------------------*/
-//È¡¾ø¶ÔÖµ
+/*-----------------------------------å‡½æ•°è¯´æ˜Ž----------------------------------*/
+//å–ç»å¯¹å€¼
 extern int resAbsoluteVar(int Input);
-//Ð´Èë±í¸ñ
+//å†™å…¥è¡¨æ ¼
 extern bool excelWriteCsv(char FileName[],bool funNamePtr1(FILE *fp));
-//¶ÁÈ¡±í¸ñ
+//è¯»å–è¡¨æ ¼
 extern bool excelReadCsv(char FileName[],bool funNamePtr2(char ReadExcel[][EXCEL_MAX_LEN]));
 
 
