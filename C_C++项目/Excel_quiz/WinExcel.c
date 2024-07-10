@@ -1,34 +1,34 @@
 /*
-XXXX_XXX <==> ºê¶¨Òå
-Xxxx_Xxxx <==> È«¾Ö±äÁ¿£¬¶ÔÏóÃû
-_Xxxx_Xxx <==> ÀàÃû
-XxxxXxxxx <==> ¾Ö²¿±äÁ¿
-xxxxXxxx() <==> º¯Êý
-xxxxx_xxxx <==> typedef(Êý¾ÝÀàÐÍ)
+XXXX_XXX <==> å®å®šä¹‰
+Xxxx_Xxxx <==> å…¨å±€å˜é‡ï¼Œå¯¹è±¡å
+_Xxxx_Xxx <==> ç±»å
+XxxxXxxxx <==> å±€éƒ¨å˜é‡
+xxxxXxxx() <==> å‡½æ•°
+xxxxx_xxxx <==> typedef(æ•°æ®ç±»åž‹)
 */
-#include "../C_MyLib/StrFunLib.h"
+#include "../C_MyLib/StrLib.h"
 #include "../C_MyLib/WinExcel.h"
 #include <stdio.h>
 
-/*-----------------------------------»ù´¡¶¨Òå----------------------------------*/
+/*-----------------------------------åŸºç¡€å®šä¹‰----------------------------------*/
 #define N 300
-/*-----------------------------------º¯ÊýËµÃ÷----------------------------------*/
-//°´Ò»¶¨¹æÔòÐ´ÈëEXCEL
+/*-----------------------------------å‡½æ•°è¯´æ˜Ž----------------------------------*/
+//æŒ‰ä¸€å®šè§„åˆ™å†™å…¥EXCEL
 bool excelWirt(FILE *fp);
-//¶ÁÈ¡EXCEL£¬²¢¹æÕûµ½ReadExcel[][]
+//è¯»å–EXCELï¼Œå¹¶è§„æ•´åˆ°ReadExcel[][]
 void excelRead(char ReadExcel[][N]);
-/*-----------------------------------º¯Êý¶¨Òå----------------------------------*/
+/*-----------------------------------å‡½æ•°å®šä¹‰----------------------------------*/
 bool excelWirt(FILE *Fp) {	
 	/*
-	Ð´Èëcode
+	å†™å…¥code
 	*/
-	save_file();	//±£´æÎÄ¼þ
+	save_file();	//ä¿å­˜æ–‡ä»¶
 }
 void excelRead(char ReadExcel[][N]) {
 	/*
-	ÕûÀícode
+	æ•´ç†code
 	*/
-	save_file();	//±£´æÎÄ¼þ
+	save_file();	//ä¿å­˜æ–‡ä»¶
 }
 void main() {
 	excelReadCsv("Flag_No.csv",excelRead);
