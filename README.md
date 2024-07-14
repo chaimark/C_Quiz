@@ -22,6 +22,8 @@ git branch -m master main <br>
 git remote add WorkSpace https://github.com/chaimark/WorkSpace.git <br>
 ### 拉取 github 仓库的文件
 git pull WorkSpace main:main <br>
+### 查看当前分支的所有文件
+git status <br>
 ### 添加文件到暂存区
 git add * <br>
 ### 提交到本地仓库
@@ -34,4 +36,6 @@ git branch master <br>
 git checkout master <br>
 ### 删除分区
 git branch -d master <br>
+### 查看当前分支
+git branch <br>
 
