@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 /*-----------------------------------定义数组类----------------------------------*/
-// #define ThisObj &##ThisObj
+
 #define This (*this)
 #define ARR_SIZE(ArrName) sizeof(ArrName) / sizeof(ArrName[0]) // 计算数组元素个数
 #define WIFI_BUFF_MAXLEN 1024								   // 接收缓存空间
