@@ -24,6 +24,7 @@ bool _AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _WTMqttJsonData This) {
 
 // 装载当前 json 数据到某数组
 int setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
+    static char Front_JsonItemLevel = 0;
     char ItemLine[50] = {0};
     strnew NowItemLine = NEW_NAME(ItemLine);
     switch (TempNowNode->KeyType) {
@@ -46,27 +47,41 @@ int setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
             sprintf(NowItemLine.Name._char, "\"%s\": \"%s\"", TempNowNode->key, TempNowNode->var._char);
             break;
         case 'p': // %p：指针地址。 对象数组
-            sprintf(NowItemLine.Name._char, "\"%s\": [{}]", TempNowNode->key);
-            break;
-        case 'J': // %p：指针地址。 对象
             sprintf(NowItemLine.Name._char, "\"%s\": {}", TempNowNode->key);
             break;
+        case 'P': // %p：指针地址。 对象
+            sprintf(NowItemLine.Name._char, "\"%s\": [{}]", TempNowNode->key);
+            break;
     }
-    char TempEndSing[10] = {0};
-    int TempEndSingLen = 0;
-    int OutputStrLen = strlen(OutputStr.Name._char) - 1;
-    while (OutputStr.Name._char[OutputStrLen] == ']' || OutputStr.Name._char[OutputStrLen] == '}') {
-        TempEndSing[TempEndSingLen++] = OutputStr.Name._char[OutputStrLen];
-        OutputStr.Name._char[OutputStrLen] = 0;
-        OutputStrLen--;
-    }
-    if ((OutputStr.Name._char[OutputStrLen] != '{') && (OutputStr.Name._char[OutputStrLen] != '[')) {
+
+    int OutputStrLen = 0;
+    if (Front_JsonItemLevel < TempNowNode->JsonItemLevel) { // 前一个 jsonitem 的层级大于当前 jsonitem 的层级
+        // 前一个 json 类或数组已经结束
         catString(OutputStr.Name._char, ",", OutputStr.MaxLen, 1);
+        OutputStrLen = catString(OutputStr.Name._char, NowItemLine.Name._char, OutputStr.MaxLen, strlen(NowItemLine.Name._char));
+    } else {
+        char TempEndSing[10] = {0};
+        int TempEndSingLen = 0;
+        OutputStrLen = strlen(OutputStr.Name._char) - 1;
+        while (OutputStr.Name._char[OutputStrLen] == ']' || OutputStr.Name._char[OutputStrLen] == '}') {
+            TempEndSing[TempEndSingLen++] = OutputStr.Name._char[OutputStrLen];
+            OutputStr.Name._char[OutputStrLen] = 0;
+            OutputStrLen--;
+        }
+        if ((OutputStr.Name._char[OutputStrLen] != '{') && (OutputStr.Name._char[OutputStrLen] != '[')) {
+            catString(OutputStr.Name._char, ",", OutputStr.MaxLen, 1);
+        }
+        OutputStrLen = catString(OutputStr.Name._char, NowItemLine.Name._char, OutputStr.MaxLen, strlen(NowItemLine.Name._char));
+        if (TempEndSingLen != 0) {
+            swapStr(TempEndSing, TempEndSingLen);
+            OutputStrLen = catString(OutputStr.Name._char, TempEndSing, OutputStr.MaxLen, TempEndSingLen);
+        }
     }
-    OutputStrLen = catString(OutputStr.Name._char, NowItemLine.Name._char, OutputStr.MaxLen, strlen(NowItemLine.Name._char));
-    if (TempEndSingLen != 0) {
-        swapStr(TempEndSing, TempEndSingLen);
-        OutputStrLen = catString(OutputStr.Name._char, TempEndSing, OutputStr.MaxLen, TempEndSingLen);
+
+    if (TempNowNode->next == NULL) {
+        Front_JsonItemLevel = 0;
+    } else {
+        Front_JsonItemLevel = TempNowNode->JsonItemLevel;
     }
     return OutputStrLen;
 }
@@ -86,10 +101,10 @@ bool _OutPushJsonString(strnew OutputStr, struct _WTMqttJsonData This) {
 // 建立对象的函数
 WTMqttJson New_WT_Json_Obj(WTMqttJson * DataInit) {
     _JsonData = DataInit;
-    (* DataInit).Head_WTjsonDataNote = NULL;
-    (* DataInit).AddPullWTJsonKeyAndVer = _AddPullWTJsonKeyAndVer;
-    (* DataInit).OutPushJsonString = _OutPushJsonString;
-    return (* DataInit);
+    (*DataInit).Head_WTjsonDataNote = NULL;
+    (*DataInit).AddPullWTJsonKeyAndVer = _AddPullWTJsonKeyAndVer;
+    (*DataInit).OutPushJsonString = _OutPushJsonString;
+    return (*DataInit);
 }
 
 void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
@@ -107,7 +122,7 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
             fmt++;
             if (*fmt == 'l') {
                 fmt++;
-                fmtChr = (*fmt == 'f' ? 'F' : (*fmt == 'd' ? 'D' : 'p'));
+                fmtChr = (*fmt == 'f' ? 'F' : (*fmt == 'd' ? 'D' : (*fmt == 'p' ? 'P' : 'p')));
             } else {
                 fmtChr = *fmt;
             }
@@ -140,15 +155,17 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
                     ItemData->KeyType = 'p';
                     ItemData->var._JsonItem = va_arg(args, void *);
                     break;
-                case 'J': // %p：指针地址。
-                    ItemData->KeyType = 'J';
+                case 'P': // %p：指针地址。
+                    ItemData->KeyType = 'P';
                     ItemData->var._JsonItem = va_arg(args, void *);
                     break;
             }
+            break;
         } else {
             fmt++;
         }
     }
+    ItemData->JsonItemLevel = va_arg(args, int);
     ItemData->next = NULL; // 设置 ItemData 结构体中的指针
     va_end(args);          // 结束对 args 的访问
 

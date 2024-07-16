@@ -29,15 +29,29 @@ int main(int argc, char * argv[]) {
     InputMainMeter_Manager.MeterVoltageUnit = 'V';
     InputMainMeter_Manager.MeterVar = 6586.25488;
 
-    setJsonItemData(&QuizItemData[0], "Type:%d", 2);    // 将关键字Type 与 值 填入 QuizItemData 空间 ，并连接到 JSONDATA 链表
-    setJsonItemData(&QuizItemData[1], "Type:%s", InputMainMeter_Manager.MeterID);
-    setJsonItemData(&QuizItemData[2], "Type:%f", InputMainMeter_Manager.MeterVoltage);
-    setJsonItemData(&QuizItemData[3], "Type:%c", InputMainMeter_Manager.MeterVoltageUnit);
-    setJsonItemData(&QuizItemData[4], "Type:%lf", InputMainMeter_Manager.MeterVar);
+    setJsonItemData(&QuizItemData[1], "MeterID:%s;%d", InputMainMeter_Manager.MeterID,0);
+    setJsonItemData(&QuizItemData[0], "MeterType:%d;%d", InputMainMeter_Manager.MeterType,0);    // 将关键字Type 与 值 填入 QuizItemData 空间 ，并连接到 JSONDATA 链表
+    setJsonItemData(&QuizItemData[2], "MeterVoltage:%f;%d", InputMainMeter_Manager.MeterVoltage,0);
+    setJsonItemData(&QuizItemData[3], "MeterVoltageUnit:%c;%d", InputMainMeter_Manager.MeterVoltageUnit,0);
+    setJsonItemData(&QuizItemData[4], "MeterVar:%lf;%d", InputMainMeter_Manager.MeterVar,0);
 
-    char OutSting[1000];
+    JsonItem VarDataList[3] = {0};
+    JsonItem ListData = {0};
+    setJsonItemData(&ListData, "List:%lp;%d", VarDataList,0);
+    setJsonItemData(&VarDataList[0], "A1:%lf;%d", 1.1,1);
+    setJsonItemData(&VarDataList[1], "A2:%lf;%d", 2.2,1);
+    setJsonItemData(&VarDataList[2], "A3:%lf;%d", 3.3,1);
+
+    JsonItem VarDataClass[3] = {0};
+    JsonItem ClassData = {0};
+    setJsonItemData(&ClassData, "Class:%p;%d", VarDataClass,0);
+    setJsonItemData(&VarDataClass[0], "B1:%d;%d", 1,1);
+    setJsonItemData(&VarDataClass[1], "B2:%d;%d", 2,1);
+    setJsonItemData(&VarDataClass[2], "B3:%d;%d", 3,1);
+
+    char OutSting[1000] = {0};
     strnew OutputStr = NEW_NAME(OutSting);
     JSONDATA.OutPushJsonString(OutputStr, &JSONDATA);
-    printf("%s",OutSting);
+    printf("%s", OutSting);
 }
 

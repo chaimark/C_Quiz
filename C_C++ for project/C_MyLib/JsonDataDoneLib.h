@@ -18,6 +18,7 @@ typedef struct __JsonItem {
         void * _void;                  // 无定义形指针
         struct __JsonItem * _JsonItem; // 结构体指针
     } var;
+    char JsonItemLevel;     // json数据层级
     struct __JsonItem * next;
 } JsonItem;
 // 类定义
