@@ -2,10 +2,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-WTMqttJson * _JsonData = NULL;
+newJsonList * _JsonData = NULL;
 #define JSON_DATA (*_JsonData)
 
-bool _AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _WTMqttJsonData This) {
+bool _AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _JsonData This) {
     if (This.Head_WTjsonDataNote == NULL) {
         This.Head_WTjsonDataNote = ItemData;
         return true;
@@ -25,13 +25,13 @@ bool _AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _WTMqttJsonData This) {
 // 装载当前 json 数据到某数组
 void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
     static char Front_JsonItemLevel = 0;
-    static char TempStr[50] = {0};  // 先进后出的栈区，用户缓存 {{}}
+    static char TempStr[50] = {0}; // 先进后出的栈区，用户缓存 {{}}
     char ItemLine[50] = {0};
     strnew NowItemLine = NEW_NAME(ItemLine);
 
     if ((Front_JsonItemLevel - TempNowNode->JsonItemLevel) > 0) {
         for (int i = 0; i < (Front_JsonItemLevel - TempNowNode->JsonItemLevel); i++) {
-            OutputStr.Name._char[strlen(OutputStr.Name._char)] = TempStr[strlen(TempStr) - 1];  // 括号出栈
+            OutputStr.Name._char[strlen(OutputStr.Name._char)] = TempStr[strlen(TempStr) - 1]; // 括号出栈
             TempStr[strlen(TempStr) - 1] = 0;
         }
         catString(OutputStr.Name._char, ",", OutputStr.MaxLen, 1);
@@ -48,35 +48,35 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
             if (strcmp(TempNowNode->key, "") != 0) {
                 sprintf(NowItemLine.Name._char, "\"%s\": %ld", TempNowNode->key, TempNowNode->var.Datalong);
             } else {
-                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Datalong);
+                sprintf(NowItemLine.Name._char, "%ld", TempNowNode->var.Datalong);
             }
             break;
         case 'f': // %f：浮点数。
             if (strcmp(TempNowNode->key, "") != 0) {
                 sprintf(NowItemLine.Name._char, "\"%s\": %f", TempNowNode->key, TempNowNode->var.Datafloat);
             } else {
-                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Datafloat);
+                sprintf(NowItemLine.Name._char, "%f", TempNowNode->var.Datafloat);
             }
             break;
         case 'F': // %lf：双精度浮点数。
             if (strcmp(TempNowNode->key, "") != 0) {
                 sprintf(NowItemLine.Name._char, "\"%s\": %lf", TempNowNode->key, TempNowNode->var.Datadouble);
             } else {
-                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Datadouble);
+                sprintf(NowItemLine.Name._char, "%lf", TempNowNode->var.Datadouble);
             }
             break;
         case 'c': // %c：单个字符。
             if (strcmp(TempNowNode->key, "") != 0) {
                 sprintf(NowItemLine.Name._char, "\"%s\": \"%c\"", TempNowNode->key, TempNowNode->var.Datachar);
             } else {
-                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Datachar);
+                sprintf(NowItemLine.Name._char, "%c", TempNowNode->var.Datachar);
             }
             break;
         case 's': // %s：字符串。
             if (strcmp(TempNowNode->key, "") != 0) {
                 sprintf(NowItemLine.Name._char, "\"%s\": \"%s\"", TempNowNode->key, TempNowNode->var._char);
             } else {
-                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var._char);
+                sprintf(NowItemLine.Name._char, "%s", TempNowNode->var._char);
             }
             break;
         case 'p': // %p：指针地址。 对象数组
@@ -84,14 +84,14 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
                 sprintf(NowItemLine.Name._char, "\"%s\":", TempNowNode->key);
             }
             catString(NowItemLine.Name._char, "[", NowItemLine.MaxLen, 1);
-            catString(TempStr, "]", ARR_SIZE(TempStr), 1);  // 括号入栈区
+            catString(TempStr, "]", ARR_SIZE(TempStr), 1); // 括号入栈区
             break;
         case 'J': // %p：指针地址。 对象
             if (strcmp(TempNowNode->key, "") != 0) {
                 sprintf(NowItemLine.Name._char, "\"%s\":", TempNowNode->key);
             }
             catString(NowItemLine.Name._char, "{", NowItemLine.MaxLen, 1);
-            catString(TempStr, "}", ARR_SIZE(TempStr), 1);  // 括号入栈区
+            catString(TempStr, "}", ARR_SIZE(TempStr), 1); // 括号入栈区
             break;
     }
 
@@ -102,16 +102,17 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
     }
     Front_JsonItemLevel = TempNowNode->JsonItemLevel;
     catString(OutputStr.Name._char, NowItemLine.Name._char, OutputStr.MaxLen, strlen(NowItemLine.Name._char));
-    if (TempNowNode->next == NULL) {    // 无下一个节点，推出栈区所有括号
-        for (int i = 0; i < strlen(TempStr); i++) {
-            OutputStr.Name._char[strlen(OutputStr.Name._char)] = TempStr[strlen(TempStr) - 1];  // 括号出栈
+    if (TempNowNode->next == NULL) { // 无下一个节点，推出栈区所有括号
+        int TempStr_OverLen = strlen(TempStr);
+        for (int i = 0; i < TempStr_OverLen; i++) {
+            OutputStr.Name._char[strlen(OutputStr.Name._char)] = TempStr[strlen(TempStr) - 1]; // 括号出栈
             TempStr[strlen(TempStr) - 1] = 0;
         }
     }
     return;
 }
 
-bool _OutPushJsonString(strnew OutputStr, struct _WTMqttJsonData This) {
+bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
     JsonItem * TempNowNode = This.Head_WTjsonDataNote;
     memset(OutputStr.Name._char, 0, OutputStr.MaxLen); // 清空 OutputStr
     catString(OutputStr.Name._char, "{", OutputStr.MaxLen, 1);
@@ -124,7 +125,7 @@ bool _OutPushJsonString(strnew OutputStr, struct _WTMqttJsonData This) {
 }
 
 // 建立对象的函数
-WTMqttJson New_WT_Json_Obj(WTMqttJson * DataInit) {
+newJsonList New_Json_Obj(newJsonList * DataInit) {
     _JsonData = DataInit;
     (*DataInit).Head_WTjsonDataNote = NULL;
     (*DataInit).AddPullWTJsonKeyAndVer = _AddPullWTJsonKeyAndVer;
@@ -195,9 +196,7 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
     }
     ItemData->JsonItemLevel = va_arg(args, int);
     ItemData->next = TempNext; // 设置 ItemData 结构体中的指针
-    va_end(args);          // 结束对 args 的访问
+    va_end(args);              // 结束对 args 的访问
 
     JSON_DATA.AddPullWTJsonKeyAndVer(ItemData, _JsonData); // 向 WTMqttJson 中添加关键字与值
 }
-
-
