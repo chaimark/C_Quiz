@@ -14,9 +14,8 @@ typedef struct __JsonItem {
         double Datadouble; // 双精度浮点型指针
         char Datachar;     // 字符型指针
 
-        char * _char;                  // 字符型指针
-        void * _void;                  // 无定义形指针
-        struct __JsonItem * _JsonItem; // 结构体指针
+        char * _char;       // 字符型指针
+        void * _void;       // 无定义形指针
     } var;
     char JsonItemLevel;     // json数据层级
     struct __JsonItem * next;
