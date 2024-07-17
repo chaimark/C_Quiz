@@ -36,8 +36,8 @@ int main(int argc, char * argv[]) {
         char Name[30];                 // 固定字段
     } InputCopyMeter_Manager = {0};
 
-    WTMqttJson WTMqttJsonData = {0};
-    WTMqttJsonData = NEW_WT_JSON(&WTMqttJsonData);
+    newJsonList WTMqttJsonData = {0};
+    WTMqttJsonData = NEW_JSON_LIST(&WTMqttJsonData);
     char ArrayID[14] = {"02345678903"};
 
     JsonItem WTRequestData[4] = {0};
