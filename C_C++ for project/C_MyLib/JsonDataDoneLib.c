@@ -23,7 +23,7 @@ bool _AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _WTMqttJsonData This) {
 }
 
 // 装载当前 json 数据到某数组
-int setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
+void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
     static char Front_JsonItemLevel = 0;
     static char TempStr[50] = {0};  // 先进后出的栈区，用户缓存 {{}}
     char ItemLine[50] = {0};
@@ -38,22 +38,46 @@ int setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
     }
     switch (TempNowNode->KeyType) {
         case 'd': // %d 或 %i：有符号十进制整数。
-            sprintf(NowItemLine.Name._char, "\"%s\": %d", TempNowNode->key, TempNowNode->var.Dataint);
+            if (strcmp(TempNowNode->key, "") != 0) {
+                sprintf(NowItemLine.Name._char, "\"%s\": %d", TempNowNode->key, TempNowNode->var.Dataint);
+            } else {
+                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Dataint);
+            }
             break;
         case 'D': // %ld：有符号十进制长整数。
-            sprintf(NowItemLine.Name._char, "\"%s\": %ld", TempNowNode->key, TempNowNode->var.Datalong);
+            if (strcmp(TempNowNode->key, "") != 0) {
+                sprintf(NowItemLine.Name._char, "\"%s\": %ld", TempNowNode->key, TempNowNode->var.Datalong);
+            } else {
+                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Datalong);
+            }
             break;
         case 'f': // %f：浮点数。
-            sprintf(NowItemLine.Name._char, "\"%s\": %f", TempNowNode->key, TempNowNode->var.Datafloat);
+            if (strcmp(TempNowNode->key, "") != 0) {
+                sprintf(NowItemLine.Name._char, "\"%s\": %f", TempNowNode->key, TempNowNode->var.Datafloat);
+            } else {
+                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Datafloat);
+            }
             break;
         case 'F': // %lf：双精度浮点数。
-            sprintf(NowItemLine.Name._char, "\"%s\": %lf", TempNowNode->key, TempNowNode->var.Datadouble);
+            if (strcmp(TempNowNode->key, "") != 0) {
+                sprintf(NowItemLine.Name._char, "\"%s\": %lf", TempNowNode->key, TempNowNode->var.Datadouble);
+            } else {
+                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Datadouble);
+            }
             break;
         case 'c': // %c：单个字符。
-            sprintf(NowItemLine.Name._char, "\"%s\": \"%c\"", TempNowNode->key, TempNowNode->var.Datachar);
+            if (strcmp(TempNowNode->key, "") != 0) {
+                sprintf(NowItemLine.Name._char, "\"%s\": \"%c\"", TempNowNode->key, TempNowNode->var.Datachar);
+            } else {
+                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Datachar);
+            }
             break;
         case 's': // %s：字符串。
-            sprintf(NowItemLine.Name._char, "\"%s\": \"%s\"", TempNowNode->key, TempNowNode->var._char);
+            if (strcmp(TempNowNode->key, "") != 0) {
+                sprintf(NowItemLine.Name._char, "\"%s\": \"%s\"", TempNowNode->key, TempNowNode->var._char);
+            } else {
+                sprintf(NowItemLine.Name._char, "%d", TempNowNode->var._char);
+            }
             break;
         case 'p': // %p：指针地址。 对象数组
             if (strcmp(TempNowNode->key, "") != 0) {
@@ -77,13 +101,14 @@ int setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
         }
     }
     Front_JsonItemLevel = TempNowNode->JsonItemLevel;
+    catString(OutputStr.Name._char, NowItemLine.Name._char, OutputStr.MaxLen, strlen(NowItemLine.Name._char));
     if (TempNowNode->next == NULL) {    // 无下一个节点，推出栈区所有括号
         for (int i = 0; i < strlen(TempStr); i++) {
             OutputStr.Name._char[strlen(OutputStr.Name._char)] = TempStr[strlen(TempStr) - 1];  // 括号出栈
             TempStr[strlen(TempStr) - 1] = 0;
         }
     }
-    return catString(OutputStr.Name._char, NowItemLine.Name._char, OutputStr.MaxLen, strlen(NowItemLine.Name._char));;
+    return;
 }
 
 bool _OutPushJsonString(strnew OutputStr, struct _WTMqttJsonData This) {

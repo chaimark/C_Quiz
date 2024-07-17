@@ -1,0 +1,30 @@
+{
+    "MeterType": 1000,
+    "MeterID": "AAAABBB",
+    "MeterVoltage": 3.600000,
+    "MeterVoltageUnit": "V",
+    "MeterVar": 6586.254880,
+    "Class": {
+        "B1": 1,
+        "B2": 2,
+        "B3": 3
+    },
+    "List1": [
+        {
+            "B1": 1,
+            "B2": 2,
+            "B3": 3
+        },
+        {
+            "B1": 1,
+            "B2": 2,
+            "B3": 3
+        }
+    ],
+    "quiz": 0.100000,
+    "List2": [
+        1,
+        2,
+        3
+    ]
+}

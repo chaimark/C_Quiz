@@ -36,13 +36,21 @@ int main(int argc, char * argv[]) {
     setJsonItemData(&QuizItemData[3], "MeterVoltageUnit:%c;%d", InputMainMeter_Manager.MeterVoltageUnit, 0);
     setJsonItemData(&QuizItemData[4], "MeterVar:%lf;%d", InputMainMeter_Manager.MeterVar, 0);
 
-    JsonItem ListData = {0};
+
+    JsonItem VarDataClass[3] = {0};
+    JsonItem ClassData = {0};
+    setJsonItemData(&ClassData, "Class:%lp;%d", &VarDataClass, 0);    // Class:{}
+    setJsonItemData(&VarDataClass[0], "B1:%d;%d", 1, 1);
+    setJsonItemData(&VarDataClass[1], "B2:%d;%d", 2, 1);
+    setJsonItemData(&VarDataClass[2], "B3:%d;%d", 3, 1);
+
+    JsonItem List1Data = {0};
     JsonItem ClassDataA = {0};
     JsonItem VarDataListA[3] = {0};
     JsonItem ClassDataB = {0};
     JsonItem VarDataListB[3] = {0};
 
-    setJsonItemData(&ListData, "List1:%p;%d", &ClassDataA, 0); // List1:[]
+    setJsonItemData(&List1Data, "List1:%p;%d", &ClassDataA, 0); // List1:[]
     setJsonItemData(&ClassDataA, ":%lp;%d", &VarDataListA, 1);// NULL{}
     setJsonItemData(&VarDataListA[0], "B1:%d;%d", 1, 2);
     setJsonItemData(&VarDataListA[1], "B2:%d;%d", 2, 2);
@@ -55,12 +63,15 @@ int main(int argc, char * argv[]) {
     JsonItem QuizData = {0};
     setJsonItemData(&QuizData, "quiz:%lf;%d", 0.1, 0);
 
-    JsonItem VarDataClass[3] = {0};
-    JsonItem ClassData = {0};
-    setJsonItemData(&ClassData, "Class:%lp;%d", &VarDataClass, 0);    // Class:{}
-    setJsonItemData(&VarDataClass[0], "B1:%d;%d", 1, 1);
-    setJsonItemData(&VarDataClass[1], "B2:%d;%d", 2, 1);
-    setJsonItemData(&VarDataClass[2], "B3:%d;%d", 3, 1);
+    JsonItem List2Data = {0};
+    JsonItem VarDataListC[3] = {0};
+
+    setJsonItemData(&List2Data, "List2:%p;%d", &VarDataListC, 0); // List2:[]
+    setJsonItemData(&VarDataListC[0], ":%d;%d", 1, 2);
+    setJsonItemData(&VarDataListC[1], ":%d;%d", 2, 2);
+    setJsonItemData(&VarDataListC[2], ":%d;%d", 3, 2);
+
+
     strnew OutputStr = NEW_NAME(OutSting);
     JSONDATA.OutPushJsonString(OutputStr, &JSONDATA);
     printf("%s", OutSting);
