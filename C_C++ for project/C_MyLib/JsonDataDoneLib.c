@@ -108,6 +108,7 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
             OutputStr.Name._char[strlen(OutputStr.Name._char)] = TempStr[strlen(TempStr) - 1]; // 括号出栈
             TempStr[strlen(TempStr) - 1] = 0;
         }
+        Front_JsonItemLevel = 0;
     }
     return;
 }
