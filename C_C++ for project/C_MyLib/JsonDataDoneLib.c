@@ -79,6 +79,13 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
                 sprintf(NowItemLine.Name._char, "%s", TempNowNode->var._char);
             }
             break;
+        case 'S': // %ls：不含引号的字符串，如 bool:null、true、false。
+            if (strcmp(TempNowNode->key, "") != 0) {
+                sprintf(NowItemLine.Name._char, "\"%s\": %s", TempNowNode->key, TempNowNode->var._char);
+            } else {
+                sprintf(NowItemLine.Name._char, "%s", TempNowNode->var._char);
+            }
+            break;
         case 'p': // %p：指针地址。 对象数组
             if (strcmp(TempNowNode->key, "") != 0) {
                 sprintf(NowItemLine.Name._char, "\"%s\":", TempNowNode->key);
@@ -150,7 +157,7 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
             fmt++;
             if (*fmt == 'l') {
                 fmt++;
-                fmtChr = (*fmt == 'f' ? 'F' : (*fmt == 'd' ? 'D' : (*fmt == 'p' ? 'J' : 'J')));
+                fmtChr = (*fmt == 'f' ? 'F' : (*fmt == 'd' ? 'D' : (*fmt == 'p' ? 'J' : (*fmt == 's' ? 'S' : ' '))));
             } else {
                 fmtChr = *fmt;
             }
@@ -177,6 +184,10 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
                     break;
                 case 's': // %s：字符串。
                     ItemData->KeyType = 's';
+                    ItemData->var._char = va_arg(args, char *);
+                    break;
+                case 'S': // %s：字符串。
+                    ItemData->KeyType = 'S';
                     ItemData->var._char = va_arg(args, char *);
                     break;
                 case 'p': // %p：指针地址。
