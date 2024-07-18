@@ -26,7 +26,7 @@ bool _AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _JsonData This) {
 void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
     static char Front_JsonItemLevel = 0;
     static char TempStr[50] = {0}; // 先进后出的栈区，用户缓存 {{}}
-    char ItemLine[50] = {0};
+    char ItemLine[300] = {0};
     strnew NowItemLine = NEW_NAME(ItemLine);
 
     if ((Front_JsonItemLevel - TempNowNode->JsonItemLevel) > 0) {
