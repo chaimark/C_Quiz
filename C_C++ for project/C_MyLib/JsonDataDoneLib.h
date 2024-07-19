@@ -1,5 +1,5 @@
-#ifndef _JSON_DATA_H
-#define _JSON_DATA_H
+#ifndef _JSON_DATA_DONELIB_H
+#define _JSON_DATA_DONELIB_H
 
 #include "StrLib.h"
 
