@@ -12,6 +12,7 @@ echo 已获取管理员权限
 
 echo "git 网络配置清理...""
 git config --global --unset http.proxy
+git config --global --unset https.proxy
 echo "git DNS清理..."
 ipconfig /flushdns
 echo "请先打开梯子, 然后按下任意键"
@@ -49,3 +50,6 @@ copy "%SystemRoot%\TEMP\a.txt" "C:\Windows\System32\drivers\etc\hosts"
 cd "%SystemRoot%\TEMP"
 del "%SystemRoot%\TEMP\a.txt"
 pause
+
+git config --global http.proxy 127.0.0.1:7890
+git config --global https.proxy 127.0.0.1:7890
