@@ -5,13 +5,14 @@
 #include <stdbool.h>
 #include "StrLib.h"
 #include "All.h"
+
 char UART0Ddata[100];
 // 外部引入
 #define REBOOT_DEV_OFF  //NET_RST_OFF                // 重启模块标记置高
 #define REBOOT_DEV_ON   //NET_RST_ON                  // 重启模块标记置低
 #define UartDisableIRQ  //NVIC_DisableIRQ(UART0_IRQn)  // 关闭中断使能
 #define UartEnableIRQ   //NVIC_EnableIRQ(UART0_IRQn)   // 开启中断使能
-#define UART_DATA_BUFF  UART0Ddata       //接收缓冲区
+#define UART_DATA_BUFF  UART0Ddata //UART0Ddata.RxBuf       //接收缓冲区
 
 
 // 内部定义

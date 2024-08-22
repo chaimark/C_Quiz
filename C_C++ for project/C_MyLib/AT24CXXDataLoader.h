@@ -40,7 +40,8 @@ typedef struct AT24CXX_MANAGER_S {
     char porjectId[20];
     char productkey[20];
 } AT24CXX_MANAGER_T;
-
+extern AT24CXX_MANAGER_T AT24CXX_Manager;
+AT24CXX_MANAGER_T AT24CXX_Manager;
 #endif
 
 // public

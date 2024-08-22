@@ -1,11 +1,9 @@
 #include "NetProt_Module.h"
 #include "ATCmd_FunctionSum.h"
 #include "NumberBaseLib.h"
-#include "Gpio.h"
 #include "StrLib.h"
 #include "AT24CXXDataLoader.h"
 #include "SetTime.h"
-
 
 strnew UartBuff = {0};    // Uart接收缓冲区
 NetDevParameter Now_NetDevParameter;    // 网络状态标记与下行指令表
@@ -224,41 +222,26 @@ char copyComputerDownData(void) {
             Now_NetDevParameter.CmdTable.pushListStr(&Now_NetDevParameter.CmdTable, NEW_NAME(Now_NetDevParameter.NetDataBuff));
             ClearNetDataBuff(); // 释放 HTTPBuff_p
             return true;
-        } else if (strstr(Now_NetDevParameter.NetDataBuff, "[{") != NULL) {
-            if (NULL == (AddrStart = strstr(Now_NetDevParameter.NetDataBuff, "[{"))) {
-                ClearNetDataBuff();
-                return false;
-            }
-            if (NULL == strstr(AddrStart, "}]")) {
-                return false;
-            }
-            if (Now_NetDevParameter.CmdTable.NowListNum >= CmdListMax) {
-                Now_NetDevParameter.CmdTable.popUpListStr(&Now_NetDevParameter.CmdTable);  // 弹出队列 List
-            }
-            // 将下行指令推入队列 List
-            Now_NetDevParameter.CmdTable.pushListStr(&Now_NetDevParameter.CmdTable, NEW_NAME(Now_NetDevParameter.NetDataBuff));
-            ClearNetDataBuff(); // 释放 HTTPBuff_p
-            return true;
         }
     }
     return false;
 }
 // 检查时间任务
 void check_time_task(void) {
-    if (SetTime.Task[0].RTC_Task_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
+    if (SetTime.Task[checkNet].RTC_Task_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
     // 初始化创建定时任务
-        SetTime.InitSetTimeTask(0, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
+        SetTime.InitSetTimeTask(checkNet, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
         Now_NetDevParameter.CheckOnlineFlag = true;  // 检查网络在线标记
         Now_NetDevParameter.CheckTCPLinkFlag = true; // 检查TCP连接标记
     }
-    // 长连接时 每 10ms 计数一次
-    if ((Now_NetDevParameter.isLongLinkModeFlag) && (SetTime.Task[1].RTC_Task_Falge)) {   // 任务0 用于判断什么时候检查网络在线标记
-        SetTime.InitSetTimeTask(1, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
+    // 长连接时 每 70ms 计数一次
+    if ((Now_NetDevParameter.isLongLinkModeFlag) && (SetTime.Task[CopyDMA].RTC_Task_Falge)) {   // 任务0 用于判断什么时候Copy DMA
+        SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
         Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
     }
 }
 void MOTT_Net_Task(void) {
-    check_time_task();  // 检查时间任务
+    check_time_task();      // 检查时间任务
     AT24CXXLoader_Init();   // 载入AT24CXX参数
 
     if (Now_NetDevParameter.CheckTCPLinkFlag == true) { // 检查当前设备 TCP 是否连接
@@ -318,6 +301,7 @@ void MOTT_Net_Task(void) {
                 Now_NetDevParameter.ReBootCount = 0;         // 连接成功，重器计数清零
                 JSON_Send_GW_Infor((Now_NetDevParameter.ReBootCount > 0 ? true : false));
                 printf("Now the gateway is online\r\n");
+                JSON_Send_GW_Infor(0);//汇云上线需要先发一包心跳
             }
             Now_NetDevParameter.ReBootCount = 0; // 复位重启计数器
         }
@@ -327,7 +311,7 @@ void MOTT_Net_Task(void) {
         Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
         if (Now_NetDevParameter.SendData != NULL) {
             Now_NetDevParameter.SendData(); // 发送数据
-            ClearNetDataBuff();
+            ClearNetDataBuff(); // 清空数据
         }
         Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
     }
@@ -353,21 +337,13 @@ void UserDoneCmd(void) {
     if (Now_NetDevParameter.CmdTable.NowListNum > 0) {
         strnew OnceLineListStr = Now_NetDevParameter.CmdTable.popUpListStr(&Now_NetDevParameter.CmdTable);   // 弹出一行数据
         memcpy(Now_NetDevParameter.NetDataBuff, OnceLineListStr.Name._char, OnceLineListStr.MaxLen);
-        char * AddrStart = NULL;
-        if (strstr(Now_NetDevParameter.NetDataBuff, "{\"gw\":") != NULL) {
-            AddrStart = strstr(Now_NetDevParameter.NetDataBuff, "{\"gw\":");
-            MQTT_JSON_Analysis(AddrStart);
-            printf("Received Command of HuiYun\r\n");
-        } else if (strstr(Now_NetDevParameter.NetDataBuff, "[{") != NULL) {
-            AddrStart = strstr(Now_NetDevParameter.NetDataBuff, "[{");
-            WT_MQTT_JSON_Analysis(AddrStart);
-            printf("Received Command of WT\r\n");
-        }
+        char * AddrStart = strstr(Now_NetDevParameter.NetDataBuff, "{\"gw\":");
+        MQTT_JSON_Analysis(AddrStart);
+        printf("Received Command of HuiYun\r\n");
     }
 }
 // AT 参数初始化
 void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
-
     // 初始化 Now_NetDevParameter
     Now_NetDevParameter.LineCheckTime = 60;  // 60 秒后，判断你是否处于连接状态
     Now_NetDevParameter.ShowdownNowDev = UserShowdownNowDev;
@@ -383,4 +359,3 @@ void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     SetTime.InitSetTimeTask(1, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
     return;
 }
-
