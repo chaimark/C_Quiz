@@ -18,10 +18,10 @@ typedef struct _BSTIM_USER_SET_TASK {
         bool isTaskStart;       // 当前计时任务是否开启
         uint64_t CountNumOnce10Ms;
         uint64_t Max10MsNum;
-    } setTime_Task[SetTimeTaskMAX];
+    } Task[SetTimeTaskMAX];
     void (*InitSetTimeTask)(int TaskAddr, uint64_t SetMax10MsNum);
 }BSTIM_USER_SET_TASK;
-extern BSTIM_USER_SET_TASK SetTime_Task;
+extern BSTIM_USER_SET_TASK SetTime;
 extern void InitSetTimeTask(void);
 extern void CountSetTimeTask(void);
 #endif 

@@ -245,15 +245,15 @@ char copyComputerDownData(void) {
 }
 // 检查时间任务
 void check_time_task(void) {
-    if (SetTime_Task.setTime_Task[0].RTC_Task_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
+    if (SetTime.Task[0].RTC_Task_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
     // 初始化创建定时任务
-        SetTime_Task.InitSetTimeTask(0, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
+        SetTime.InitSetTimeTask(0, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
         Now_NetDevParameter.CheckOnlineFlag = true;  // 检查网络在线标记
         Now_NetDevParameter.CheckTCPLinkFlag = true; // 检查TCP连接标记
     }
     // 长连接时 每 10ms 计数一次
-    if ((Now_NetDevParameter.isLongLinkModeFlag) && (SetTime_Task.setTime_Task[1].RTC_Task_Falge)) {   // 任务0 用于判断什么时候检查网络在线标记
-        SetTime_Task.InitSetTimeTask(1, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
+    if ((Now_NetDevParameter.isLongLinkModeFlag) && (SetTime.Task[1].RTC_Task_Falge)) {   // 任务0 用于判断什么时候检查网络在线标记
+        SetTime.InitSetTimeTask(1, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
         Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
     }
 }
@@ -379,8 +379,8 @@ void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     AT24CXXLoader_Init();                       // 读取 AT 参数
     UartBuff = NEW_NAME(UART_DATA_BUFF);        // 初始化缓存 UartBuff
     // 初始化创建定时任务
-    SetTime_Task.InitSetTimeTask(0, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
-    SetTime_Task.InitSetTimeTask(1, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
+    SetTime.InitSetTimeTask(0, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
+    SetTime.InitSetTimeTask(1, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
     return;
 }
 
