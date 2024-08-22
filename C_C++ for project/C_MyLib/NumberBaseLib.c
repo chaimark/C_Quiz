@@ -186,7 +186,6 @@ int doubleChStrToShortChStr(strnew inputArray, strnew OutputArray) {
 
 // 字符串转 任意进制数
 int64_t doneAsciiStrToAnyBaseNumberData(char AscArray[], int NumStrNowLen, int OutputBase) {
-    swapStr(AscArray, NumStrNowLen);                                                   // 先将数组从从大端模式改为小端
     strArrayToNumberArray(AscArray, AscArray, NumStrNowLen);                           // 去掉 0x30
     int NumTemp = anyBaseArrayToAnyBaseNumber(AscArray, NumStrNowLen, 10, OutputBase); // 组合成 任意进制数
     numberArrayToStrArray(AscArray, AscArray, NumStrNowLen);                           // 复原 0x30
@@ -257,7 +256,7 @@ int HEX2ToASCII(char * hex, int hex_len, char * asc, int asc_len) {
 
 // 外用接口（支持原地转换）
 int ASCIIToHEX2(char * asc, int asc_len, char * hex, int hex_len) {
-    if (hex_len < asc_len/2) {    // hex_len 太小，不够
+    if (hex_len < asc_len / 2) {    // hex_len 太小，不够
         return 0;
     }
     // STR TO HEX-------------------

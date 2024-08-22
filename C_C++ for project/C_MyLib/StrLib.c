@@ -1,6 +1,5 @@
 #include "StrLib.h"
 
-
 /*-----------------------------------函数说明----------------------------------*/
 int catString(char * OutStr, char * IntStr, int MaxSize, int IntSize);
 bool copyString(char * OutStr, char * IntStr, int MaxSize, int IntSize);
