@@ -26,7 +26,7 @@ typedef struct AT24CXX_MANAGER_S {
     char NET_Local_MASK[30];
     char NET_Local_GATEWAY[30];
     char NET_4G_Remote_Url[42];
-    int NET_4G_Remote_Port;
+    short int NET_4G_Remote_Port;
 
     short int main_interval;
     short int copy_interval;
@@ -34,8 +34,7 @@ typedef struct AT24CXX_MANAGER_S {
     unsigned int not_intimer_interval;
     unsigned char Save_Working_Mode;
 
-    char MQTTCheckENableFlag; // MQTT 使能标志
-    char TCPCheckENableFlag;  // TCP 查询使能标志
+    char NetCheckENableFlag; // MQTT 使能标志
 
     char porjectId[20];
     char productkey[20];

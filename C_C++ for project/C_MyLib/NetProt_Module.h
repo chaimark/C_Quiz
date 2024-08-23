@@ -39,8 +39,6 @@ typedef struct _NetDevParameter {
     uint16_t LineCheckTime;     // 检查网络在线的间隔时间
     bool NowNetOnlineFlag;      // 网络在线标记
     bool CheckOnlineFlag;       // 检查网络在线标记
-    bool NowTCPLinkFlag;        // TCP连接标记
-    bool CheckTCPLinkFlag;      // 检查TCP连接标记
     bool isLongLinkModeFlag;    // 是否是长连接标记
     uint8_t ReBootCount;        // 重启次数
 
