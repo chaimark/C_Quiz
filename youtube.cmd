@@ -15,7 +15,15 @@ set MaxLen=20
 set NowLen=0
 set NextLen=0
 set Clash=1
+set delayClashFlag=1
 goto Main
+:delayClashStart  
+REM 检查软件是否正在运行  
+TASKLIST /nh|find /i "Clash for Windows.exe" >nul & if ERRORLEVEL 1 (set delayClashFlag=0)
+if %delayClashFlag% neq 1 (
+    set NextLen=20 & call :showProcess
+)
+exit /b 0
 :showProcess
 set NeedLen=0
 if %NextLen% leq %MaxLen% (
@@ -41,12 +49,13 @@ if %Clash%==1 (
     git config --global --unset https.proxy
     start ms-settings:network-proxy
 ) else (  
-    echo Clash for Windows 未运行。  
-    set NextLen=20
-    call :showProcess
-    start "" "D:\Program Files\Clash for Windows\Clash for Windows.exe" 
-    start "" "https://www.youtube.com"
     git config --global http.proxy 127.0.0.1:7890
     git config --global https.proxy 127.0.0.1:7890
+    echo Clash for Windows 未运行。
+    start "" "D:\Program Files\Clash for Windows\Clash for Windows.exe"
+    for /L %%i in (1,1,30) do (
+        call :delayClashStart
+        if %delayClashFlag% == 1 (start "" "https://www.youtube.com" & exit)
+    )
 )
 exit
