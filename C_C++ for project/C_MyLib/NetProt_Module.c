@@ -166,8 +166,7 @@ bool doingATCmdResult(NetDevATCmd NowATCmd) {
 }
 // 发送ATCmd
 bool sendATCmdData(NetDevATCmd NowATCmd) {
-    char Temp[500] = {0};
-    strnew ATCmd_SendBUFF = NEW_NAME(Temp);
+    newString(ATCmd_SendBUFF, 500);
     // 清理接收缓存
     ClearNetDataBuff();
     // 装载指令

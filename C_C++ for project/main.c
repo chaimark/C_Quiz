@@ -5,17 +5,12 @@
 #include "./C_MyLib/WinExcel.h"
 #include "./C_MyLib/JsonDataDoneLib.h"
 
-#define NewString(name, Len)  \
-    char Str##name[Len] = {0}; \
-    strnew OutputStrA = NEW_NAME(Str##name)
-
 int main() {
-    NewString(OutputStrA, 1000);
-    StrOutputStrA;
-    strcpy(OutputStrA.Name._char, "Hello ");
-    printf("%s\n", OutputStrA.Name._char);
-    strcat(OutputStrA.Name._char, "World!");
-    printf("%s\n", OutputStrA.Name._char);
+    strnew OutputStrC;
+    char Str[1000] = {0};
+    strnew OutputStrB = NEW_NAME(Str);
+    strnew OutputStrB = NEW_NAME("Hello World!");
+    newString(OutputStrA, 1000);
 }
 
 

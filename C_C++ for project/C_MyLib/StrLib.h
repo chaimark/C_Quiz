@@ -38,6 +38,10 @@ typedef struct New_Arr {
 // 建立对象
 #define NEW_NAME(ArrName) New_Str_Obj(ArrName, ARR_SIZE(ArrName))
 extern strnew New_Str_Obj(void * Master, int SizeNum); // 建立对象的函数
+#define newString(name, Len)  \
+    char Str##name[Len] = {0}; \
+    strnew name = NEW_NAME(Str##name)
+
 extern char TempBuff[WIFI_BUFF_MAXLEN];
 
 /*-----------------------------------外部接口----------------------------------*/

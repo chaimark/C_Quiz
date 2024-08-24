@@ -1,3 +1,7 @@
 {
-    "C_Cpp.formatting": "vcFormat"
+    "C_Cpp.formatting": "vcFormat",
+    "files.associations": {
+        "typeinfo": "c",
+        "jsondatadonelib.h": "c"
+    }
 }
