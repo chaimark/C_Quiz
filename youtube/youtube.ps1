@@ -1,9 +1,9 @@
 # 检查是否以管理员身份运行
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    # 重新启动脚本为管理员模式
-    Start-Process powershell -Verb runAs -ArgumentList "-File `"$PSCommandPath`""
-    exit
-}
+# if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+#     # 重新启动脚本为管理员模式
+#     Start-Process powershell -Verb runAs -ArgumentList "-File `"$PSCommandPath`""
+#     exit
+# }
 
 # 设置工作目录为脚本所在目录
 $scriptDir = Split-Path $MyInvocation.MyCommand.Definition
@@ -12,6 +12,9 @@ Set-Location $scriptDir
 # 显示当前工作目录
 Write-Host "当前运行路径是：$scriptDir"
 Write-Host "已获取管理员权限"
+
+$host.UI.RawUI.WindowSize = New-Object System.Management.Automation.Host.Size(80, 25)
+$host.UI.RawUI.BufferSize = New-Object System.Management.Automation.Host.Size(132, 30)
 
 function ShowProcess {
     param (
@@ -29,7 +32,7 @@ function ShowProcess {
     for ($i = 1; $i -le $NeedLen; $i++) {
         # 使用循环来显示进度条
         Write-Host "■" -NoNewline
-        Start-Sleep -Milliseconds 100 # 类似于ping /n 1 127.0.0.1>nul的延时效果
+        Start-Sleep -Milliseconds 50 # 类似于ping /n 1 127.0.0.1>nul的延时效果
     }
     $NowLen += $NeedLen  # 更新当前长度
     if ($NowLen -eq $MaxLen) {
@@ -67,34 +70,17 @@ if ($ClashRunning) {
             $NextLen = 0
         }
     }
-    Start-Process ms-settings:network-proxy 
+    # Start-Process ms-settings:network-proxy 
 }
 else {
+    Write-Host "Clash for Windows 未运行。"
     # 设置 Git 代理
     git config --global http.proxy http://127.0.0.1:7890
     git config --global https.proxy https://127.0.0.1:7890
-    Write-Host "Clash for Windows 未运行。"
-
+    
+    # 打开 youtube
+    Start-Process "https://www.youtube.com"
     # 启动 Clash for Windows
-    Start-Process "D:\Program Files\Clash for Windows\Clash for Windows.exe"
-
-    $MaxLen = 20
-    $NowLen = 0
-    # 等待 Clash 启动
-    for ($i = 0; $i -lt 30; $i++) {
-        # 检查 Clash 是否启动
-        $clashProcess = Get-Process | Where-Object { $_.ProcessName -eq "Clash for Windows" }
-        if ($clashProcess) {
-            # Clash 已启动 打开 YouTube
-            # Start-Process "https://www.youtube.com"
-            break
-        }
-        Start-Sleep -Seconds 2
-        $NextLen += 10;
-        $NowLen = ShowProcess -NextLen $NextLen -MaxLen $MaxLen -NowLen $NowLen
-        if ($NextLen -ge $MaxLen) {
-            $NextLen = 0
-        }
-    }
+    Start-Process -Filepath "D:\Program Files\Clash for Windows\Clash for Windows.exe"
 }
 exit
