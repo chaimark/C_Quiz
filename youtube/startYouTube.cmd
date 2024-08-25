@@ -10,5 +10,7 @@ cd /d "%~dp0"
 echo 当前运行路径是：%CD%
 echo 已获取管理员权限
 
-start "" "powershell" Set-ExecutionPolicy RemoteSigned
+TITLE youtube或恢复代理设置
+Set-ExecutionPolicy RemoteSigned
 start "" "powershell" youtube.ps1
+exit
