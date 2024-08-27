@@ -25,6 +25,6 @@ void CountSetTimeTask(void) {
     }
 }
 // 定时任务结构体初始化
-void InitSetTimeTask(void) {
+void InitSetTime(void) {
     SetTime.InitSetTimeTask = _InitSetTimeTask;
 }
