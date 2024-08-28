@@ -163,7 +163,7 @@ bool easyATCmdDataDoing(NetDevATCmd NowATCmd) {
 // 重启指令特殊处理
 bool ReBootDevATCmdDoing(NetDevATCmd NowATCmd) {
     bool ReFalg = easyATCmdDataDoing(NowATCmd);
-    FL_DelayMs(1000); // 延时等待重启结束
+    IncludeDelayMs(1000); // 延时等待重启结束
     return ReFalg;
 }
 #warning "增加网口 ATCmd 处理函数";

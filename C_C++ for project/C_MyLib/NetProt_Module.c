@@ -60,9 +60,9 @@ void ClearNetDataBuff(void) {
 bool SetDevATCMDModel_ThroughSendData(void) {
     // 先复位模组 ==========
     REBOOT_DEV_OFF;
-    FL_DelayMs(500); // 拉低 500 ms
+    IncludeDelayMs(500); // 拉低 500 ms
     REBOOT_DEV_ON;
-    FL_DelayMs(2000); // 延时等待重启结束
+    IncludeDelayMs(2000); // 延时等待重启结束
     copyDataForUART();
     bool ATConfig_Flag = true;
     // 进入AT模式 ==========
@@ -71,7 +71,7 @@ bool SetDevATCMDModel_ThroughSendData(void) {
     for (int i = 0; i < 2; i++) {
         ClearNetDataBuff(); // 释放 HTTPBuff_p
         sendDataByNetProt((unsigned char *)cmdStr[i][0], strlen(cmdStr[i][0]));
-        FL_DelayMs(500);
+        IncludeDelayMs(500);
         if (copyDataForUART()) {
             if (myStrstr(Now_NetDevParameter.NetDataBuff, cmdStr[i][1], Now_NetDevParameter.NetDataBuff_NowLen) != NULL) {
                 ATConfig_Flag = true;
@@ -83,7 +83,7 @@ bool SetDevATCMDModel_ThroughSendData(void) {
         } else {
             if (i == 0) {
                 sendDataByNetProt("\r\n", strlen("\r\n"));
-                FL_DelayMs(500);
+                IncludeDelayMs(500);
                 sendDataByNetProt("AT+ENTM\r\n", strlen("AT+ENTM\r\n"));
                 ATConfig_Flag = false; // 无法进入AT模式，直接退出，等待下一次重启
             }
@@ -92,7 +92,7 @@ bool SetDevATCMDModel_ThroughSendData(void) {
     }
     if (ATConfig_Flag) {
         sendDataByNetProt("AT+VER\r\n", strlen("AT+VER\r\n"));
-        FL_DelayMs(500);
+        IncludeDelayMs(500);
         ATConfig_Flag = copyDataForUART();
         printf("Successfully entered the AT mode\r\n");
     } else {
@@ -104,10 +104,29 @@ void clearUartBuff(void) {
     memset(UartBuff.Name._char, 0, UartBuff.MaxLen);
     // UART0Ddata.RxLen = 0;   // 需要把外部传入的buff标记或长度复位才算清空
 }
+int IsOverTimeOfUart(void) {
+    int NowRxLen = getNowLenUartBuff();
+    int TempNowRxLen = NowRxLen;
+    SetTime.InitSetTimeTask(UartIRQOverTime, 3);    // 初始化创建定时任务
+    while (1) {
+        if (!SetTime.Task[UartIRQOverTime].TimeTask_Falge) {
+            continue;
+        }
+        // 定时任务结束重新获取 NowRxLen
+        NowRxLen = getNowLenUartBuff();
+        if (TempNowRxLen == NowRxLen) { // 没有新的数据
+            SetTime.Task[UartIRQOverTime].isTaskStart = false;  // 关闭定时任务
+            break;
+        }
+        TempNowRxLen = NowRxLen;    // 有新的数据
+        SetTime.InitSetTimeTask(UartIRQOverTime, 3);   //重载定时任务
+    }
+    return getNowLenUartBuff();
+}
 // 搬运串口数据
 bool copyDataForUART(void) {
-    int NowRxLen = strlen(UartBuff.Name._char);
-    if (NowRxLen != 0) {
+    if (getNowLenUartBuff() != 0) {
+        int NowRxLen = IsOverTimeOfUart();  // 返回接收完全的数据长度
         UartDisableIRQ;
         if (Now_NetDevParameter.NetDataBuff_NowLen + NowRxLen <= ARR_SIZE(Now_NetDevParameter.NetDataBuff)) {                                                                                                                                 // 追加到 Now_NetDevParameter.NetDataBuff
             memcpy(&Now_NetDevParameter.NetDataBuff[Now_NetDevParameter.NetDataBuff_NowLen], UartBuff.Name._char, NowRxLen); // 接收数据
@@ -173,7 +192,7 @@ bool sendATCmdData(NetDevATCmd NowATCmd) {
     NowATCmd.DataInstallation(ATCmd_SendBUFF, &NowATCmd);
     // 发送指令
     sendDataByNetProt((unsigned char *)ATCmd_SendBUFF.Name._char, strlen(ATCmd_SendBUFF.Name._char));
-    FL_DelayMs(500);
+    IncludeDelayMs(500);
     for (int ResCount_i = 0; ResCount_i <= NowATCmd.CmsResCount; ResCount_i++) {
         // 模组是否回复
         if (!copyDataForUART()) {
@@ -220,13 +239,13 @@ char copyComputerDownData(void) {
 }
 // 检查时间任务
 void check_time_task(void) {
-    if (SetTime.Task[checkNet].RTC_Task_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
+    if (SetTime.Task[checkNet].TimeTask_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
     // 初始化创建定时任务
         SetTime.InitSetTimeTask(checkNet, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
         Now_NetDevParameter.CheckOnlineFlag = true;  // 检查网络在线标记
     }
     // 长连接时 每 70ms 计数一次
-    if ((Now_NetDevParameter.isLongLinkModeFlag) && (SetTime.Task[CopyDMA].RTC_Task_Falge)) {   // 任务0 用于判断什么时候Copy DMA
+    if ((Now_NetDevParameter.isLongLinkModeFlag) && (SetTime.Task[CopyDMA].TimeTask_Falge)) {   // 任务0 用于判断什么时候Copy DMA
         SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
         Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
     }

@@ -6,7 +6,7 @@ void _InitSetTimeTask(int TaskAddr, uint64_t SetMax10MsNum) {
     if ((TaskAddr < 0) || (TaskAddr >= SetTimeTaskMAX)) {
         return;
     }
-    SetTime.Task[TaskAddr].RTC_Task_Falge = false; // 初始化标记
+    SetTime.Task[TaskAddr].TimeTask_Falge = false; // 初始化标记
     SetTime.Task[TaskAddr].isTaskStart = true;     // 开启
     SetTime.Task[TaskAddr].Max10MsNum = SetMax10MsNum; // 定时任务点
     SetTime.Task[TaskAddr].CountNumOnce10Ms = 0; // 复位初始
@@ -20,7 +20,7 @@ void CountSetTimeTask(void) {
         if (SetTime.Task[i].CountNumOnce10Ms < SetTime.Task[i].Max10MsNum) {
             SetTime.Task[i].CountNumOnce10Ms++;
         } else {
-            SetTime.Task[i].RTC_Task_Falge = true;
+            SetTime.Task[i].TimeTask_Falge = true;
         }
     }
 }

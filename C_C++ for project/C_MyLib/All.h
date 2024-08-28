@@ -11,5 +11,7 @@
 // #include "Gpio.h"
 // #include "WT_MQTT_JSON.h"
 
+#define IncludeDelayMs FL_DelayMs
+
 #endif
 
