@@ -13,5 +13,17 @@
 
 #define IncludeDelayMs FL_DelayMs
 
+#define IMSI_liantong
+#ifdef IMSI_liantong
+// 联通
+#define IMSI_BAND 3
+#elif defined IMSI_dianxing
+// 电信
+#define IMSI_BAND 5
+#else
+// 移动
+#define IMSI_BAND 8
+#endif
+
 #endif
 
