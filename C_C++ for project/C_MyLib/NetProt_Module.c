@@ -105,6 +105,7 @@ void clearUartBuff(void) {
     // UART0Ddata.RxLen = 0;   // 需要把外部传入的buff标记或长度复位才算清空
 }
 int IsOverTimeOfUart(void) {
+    IncludeDelayMs(30);    // 等待 30ms 接收数据，避免短数据占用太多时间
     int NowRxLen = getNowLenUartBuff();
     int TempNowRxLen = NowRxLen;
     SetTime.InitSetTimeTask(UartIRQOverTime, 3);    // 初始化创建定时任务
