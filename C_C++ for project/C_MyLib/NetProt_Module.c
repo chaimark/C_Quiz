@@ -185,6 +185,7 @@ bool doingATCmdResult(NetDevATCmd NowATCmd) {
 }
 // 发送ATCmd
 bool sendATCmdData(NetDevATCmd NowATCmd) {
+#define MaxOverTime 500
     newString(ATCmd_SendBUFF, 500);
     // 清理接收缓存
     ClearNetDataBuff();
@@ -192,7 +193,9 @@ bool sendATCmdData(NetDevATCmd NowATCmd) {
     NowATCmd.DataInstallation(ATCmd_SendBUFF, &NowATCmd);
     // 发送指令
     sendDataByNetProt((unsigned char *)ATCmd_SendBUFF.Name._char, strlen(ATCmd_SendBUFF.Name._char));
-    IncludeDelayMs(500);
+    for (int i = 0; ((i < MaxOverTime) && (getNowLenUartBuff() == 0)); i++) {
+        IncludeDelayMs(1);
+    }
     for (int ResCount_i = 0; ResCount_i <= NowATCmd.CmsResCount; ResCount_i++) {
         // 模组是否回复
         if (!copyDataForUART()) {
