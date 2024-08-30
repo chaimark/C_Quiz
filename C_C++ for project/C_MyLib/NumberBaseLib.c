@@ -208,7 +208,7 @@ void doneDoubleToAscii(char AscArray[], double InputData) {
     sprintf(AscArray, "%lf", InputData);
 }
 // 读取某位 返回对应位的 bool 值
-bool readDataBit(uint64_t InputNumber, int BitNumber) {
+bool readDataBit(uint64_t InputNumber, int8_t BitNumber) {
     if (BitNumber < 0 || BitNumber >= 64) {
         return false;
     }
@@ -217,7 +217,7 @@ bool readDataBit(uint64_t InputNumber, int BitNumber) {
 }
 
 // 设置某位 返回是否设置成功
-bool setDataBit(uint64_t * InputNumber, int BitNumber, bool Value) {
+bool setDataBit(uint64_t * InputNumber, int8_t BitNumber, bool Value) {
     if (BitNumber < 0 || BitNumber >= 64) {
         return false;
     }

@@ -46,10 +46,10 @@ extern double doneAsciiToDouble(char AscArray[]);
 extern void doneDoubleToAscii(char AscArray[], double InputData);
 
 // 读取某位 返回对应位的 bool 值
-extern bool readDataBit(uint64_t InputNumber, int BitNumber);
+extern bool readDataBit(uint64_t InputNumber, int8_t BitNumber);
 
 // 设置某位 返回是否设置成功
-extern bool setDataBit(uint64_t * InputNumber, int BitNumber, bool Value);
+extern bool setDataBit(uint64_t * InputNumber, int8_t BitNumber, bool Value);
 
 // 外部接口
 extern int HEX2ToASCII(char * hex, int hex_len, char * asc, int asc_len);
