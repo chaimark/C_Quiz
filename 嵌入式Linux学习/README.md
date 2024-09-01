@@ -28,13 +28,39 @@
     了解正则表达式
     购买开发板，了解如何烧录程序
     了解并安装开发板卖方提供的交叉编译器，可能需要安装某些扩展库或其他支持
-    简单了解交叉编译工具集合（readeif size nm strip strings objdump objcopy add2line）
-    
+    简单了解交叉编译工具集合 {
+        readeif
+        size
+        nm
+        strip
+        strings
+        objdump
+        objcopy
+        add2line
+    }
+    在 windows 的 Linux 子系统上重新安装交叉编译链
+    安装 sudo tar -zxvf arm-linux-gcc -C /
+    下载 wsl_update_x64.msi 运行
+    sudo apt-get install build-essential
+    gcc AddPat.c -o AddPath
+    配置全局 PATH 修改:{ 
+        etc/environment; 
+        /home/username/.bashrc; 
+        /home/username/.bash_profile;
+    }
+    安装 32 位支持库
+    sudo apt-get install lib32z1
+    sudo apt-get install libc6-i386
+    sudo apt-get install qemu-user-static
+    sudo apt-get update
+    sudo apt-get upgrade
+    增加 Liunx 原生头文件
+    sudo update-binfmts --install i386 /usr/bin/qemu-i386-static --magic '\x7fELF\x01\x01\x01\x03\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x03\x00\x01\x00\x00\x00' --mask '\xff\xff\xff\xff\xff\xff\xff\xfc\xff\xff\xff\xff\xff\xff\xff\xff\xf8\xff\xff\xff\xff\xff\xff\xff'
+    sudo apt-get update
+    sudo apt-get upgrade
 ## 2024.9-2024.10
 
-
 ## 还未执行
-
     学习如何使用交叉编译器编译程序
     学习如何使用 menuconfig 配置内核,并使用 zImage 编译内核
     学习如何使用 busybox 配置根文件系统
