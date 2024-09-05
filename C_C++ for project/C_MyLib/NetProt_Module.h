@@ -6,13 +6,17 @@
 #include "StrLib.h"
 #include "All.h"
 
-char UART0Ddata[100];
+struct {
+    unsigned char RxBuf[10];
+    uint16_t RxLen;
+}UART0Ddata;
 // 外部引入
-#define REBOOT_DEV_OFF  //NET_RST_OFF                // 重启模块标记置高
-#define REBOOT_DEV_ON   //NET_RST_ON                  // 重启模块标记置低
-#define UartDisableIRQ  //NVIC_DisableIRQ(UART0_IRQn)  // 关闭中断使能
-#define UartEnableIRQ   //NVIC_EnableIRQ(UART0_IRQn)   // 开启中断使能
-#define UART_DATA_BUFF  UART0Ddata //UART0Ddata.RxBuf       //接收缓冲区
+#define REBOOT_DEV_OFF      //NET_RST_OFF                // 重启模块标记置高
+#define REBOOT_DEV_ON       //NET_RST_ON                  // 重启模块标记置低
+#define UartDisableIRQ      //NVIC_DisableIRQ(UART0_IRQn)  // 关闭中断使能
+#define UartEnableIRQ       //NVIC_EnableIRQ(UART0_IRQn)   // 开启中断使能
+#define UART_DATABUFF       UART0Ddata.RxBuf            //接收缓冲区
+#define NowLenOfUartBuff    UART0Ddata.RxLen            //接收缓冲区长度
 
 
 // 内部定义

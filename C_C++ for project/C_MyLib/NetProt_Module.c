@@ -102,11 +102,11 @@ bool SetDevATCMDModel_ThroughSendData(void) {
 }
 void clearUartBuff(void) {
     memset(UartBuff.Name._char, 0, UartBuff.MaxLen);
-    // UART0Ddata.RxLen = 0;   // 需要把外部传入的buff标记或长度复位才算清空
+    NowLenOfUartBuff = 0;   // 需要把外部传入的buff标记或长度复位才算清空
 }
 int IsOverTimeOfUart(void) {
     IncludeDelayMs(30);    // 等待 30ms 接收数据，避免短数据占用太多时间
-    int NowRxLen = getNowLenUartBuff();
+    int NowRxLen = NowLenOfUartBuff;
     int TempNowRxLen = NowRxLen;
     SetTime.InitSetTimeTask(UartIRQOverTime, 3);    // 初始化创建定时任务
     while (1) {
@@ -114,7 +114,7 @@ int IsOverTimeOfUart(void) {
             continue;
         }
         // 定时任务结束重新获取 NowRxLen
-        NowRxLen = getNowLenUartBuff();
+        NowRxLen = NowLenOfUartBuff;
         if (TempNowRxLen == NowRxLen) { // 没有新的数据
             SetTime.Task[UartIRQOverTime].isTaskStart = false;  // 关闭定时任务
             break;
@@ -122,11 +122,11 @@ int IsOverTimeOfUart(void) {
         TempNowRxLen = NowRxLen;    // 有新的数据
         SetTime.InitSetTimeTask(UartIRQOverTime, 3);   //重载定时任务
     }
-    return getNowLenUartBuff();
+    return NowLenOfUartBuff;
 }
 // 搬运串口数据
 bool copyDataForUART(void) {
-    if (getNowLenUartBuff() != 0) {
+    if (NowLenOfUartBuff != 0) {
         int NowRxLen = IsOverTimeOfUart();  // 返回接收完全的数据长度
         UartDisableIRQ;
         if (Now_NetDevParameter.NetDataBuff_NowLen + NowRxLen <= ARR_SIZE(Now_NetDevParameter.NetDataBuff)) {                                                                                                                                 // 追加到 Now_NetDevParameter.NetDataBuff
@@ -192,9 +192,10 @@ bool sendATCmdData(NetDevATCmd NowATCmd) {
     ClearNetDataBuff();
     // 装载指令
     NowATCmd.DataInstallation(ATCmd_SendBUFF, &NowATCmd);
+    clearUartBuff();
     // 发送指令
     sendDataByNetProt((unsigned char *)ATCmd_SendBUFF.Name._char, strlen(ATCmd_SendBUFF.Name._char));
-    for (int i = 0; ((i < MaxOverTime) && (getNowLenUartBuff() == 0)); i++) {
+    for (int i = 0; ((i < MaxOverTime) && (NowLenOfUartBuff == 0)); i++) {
         IncludeDelayMs(1);
     }
     for (int ResCount_i = 0; ResCount_i <= NowATCmd.CmsResCount; ResCount_i++) {
@@ -351,9 +352,11 @@ void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     Now_NetDevParameter.DoneCmd = UserDoneCmd;  // 处理指令
     TableOfCmdTaskInit();                       // 指令表初始化
     AT24CXXLoader_Init();                       // 读取 AT 参数
-    UartBuff = NEW_NAME(UART_DATA_BUFF);        // 初始化缓存 UartBuff
+    UartBuff = NEW_NAME(UART_DATABUFF);         // 初始化缓存 UartBuff
     // 初始化创建定时任务
-    SetTime.InitSetTimeTask(0, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
+    if (Now_NetDevParameter.isLongLinkModeFlag == true) {
+        SetTime.InitSetTimeTask(checkNet, SecTo250Ms(Now_NetDevParameter.LineCheckTime));
+    }
     SetTime.InitSetTimeTask(1, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
     return;
 }
