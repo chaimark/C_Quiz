@@ -5,31 +5,33 @@
 #include "./C_MyLib/WinExcel.h"
 #include "./C_MyLib/JsonDataDoneLib.h"
 
+const char JsonStrDown[1000] = {\
+    "{\
+        \"string\": \"Hello, world!\",\
+        \"number\": 42,\
+        \"boolean\": true,\
+        \"nullValue\": null,\
+        \"array\": [1, 2, 3, \"four\", true, null],\
+        \"object\": {\
+        \"key1\": \"value1\",\
+        \"key2\": 100,\
+        \"key3\": {\"nestedKey1\": \"nestedValue1\",\
+        \"nestedKey2\": [10, 20, 30]},\
+        \"key4\": [\"a\", \"b\", \"c\"]},\
+        \"nestedArray\": [\
+            {\"id\": 1, \"name\": \"Item 1\"},\
+            {\"id\": 2, \"name\": \"Item 2\"}\
+        ]\
+    }"
+};
 
-void IPstrToHexArray(strnew IpHex, const char * Ipstr) { //IP字符串转16进制
-    char IP_String[] = {"255.255.255.255."};
-    memset(IP_String, 0, strlen("255.255.255.255."));
-    memcpy(IP_String, Ipstr, strlen(Ipstr));
-    catString(IP_String, ".", strlen("255.255.255.255."), 1); //字符串拼接
-    char Str[4] = {0};
-    char * P_piont = NULL;
-    char * Head = IP_String;
-    int temp = 0;
-    for (int i = 0; i < 4; i++) {
-        memset(Str, 0, 3);
-        if ((P_piont = strchr(Head, '.')) != NULL) {
-            *P_piont = '\0';
-            memcpy(Str, Head, strlen(Head));
-            *P_piont = '.';
-            Head = P_piont + 1;
-            temp = doneAsciiStrToAnyBaseNumberData(Str, strlen(Str), 16);  //字符串转任意进制数
-            IpHex.Name._char[i] = (unsigned char)temp;
-        }
-    }
+
+// 处理 WT的JSON 指令
+bool WT_MQTT_JSON_Analysis(void) {
+    return true;
 }
 
+
 int main() {
-    unsigned char IpHex[4] = {0};
-    IPstrToHexArray(NEW_NAME(IpHex), "192.168.1.1");
-    return 0;
+
 }
