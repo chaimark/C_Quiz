@@ -254,7 +254,7 @@ int HEX2ToASCII(char * hex, int hex_len, char * asc, int asc_len) {
     // HEX TO STR-------------------
 }
 
-// 外用接口（支持原地转换）
+// 外用接口（支持原地转换：注，非原地转换时输入的字符串会被破坏）
 int ASCIIToHEX2(char * asc, int asc_len, char * hex, int hex_len) {
     if (hex_len < asc_len / 2) {    // hex_len 太小，不够
         return 0;
