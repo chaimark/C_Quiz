@@ -4,8 +4,9 @@
 #include "./C_MyLib/StrLib.h"
 #include "./C_MyLib/WinExcel.h"
 #include "./C_MyLib/JsonDataDoneLib.h"
+#include "./C_MyLib/JsonDataAnalyzeLib.h"
 
-const char JsonStrDown[1000] = {\
+char JsonStrDown[1000] = {
     "{\
         \"string\": \"Hello, world!\",\
         \"number\": 42,\
@@ -22,16 +23,21 @@ const char JsonStrDown[1000] = {\
             {\"id\": 1, \"name\": \"Item 1\"},\
             {\"id\": 2, \"name\": \"Item 2\"}\
         ]\
-    }"
-};
-
+    }"};
 
 // 处理 WT的JSON 指令
-bool WT_MQTT_JSON_Analysis(void) {
+bool WT_MQTT_JSON_Analysis(void)
+{
     return true;
 }
 
-
-int main() {
+int main()
+{
+    JsonObject JsonObj = newJsonObjectByString(NEW_NAME(JsonStrDown));
+    newString(TempStr, 100);
+    JsonObj.getString(&JsonObj, "string", TempStr);
+    int number = JsonObj.getInt(&JsonObj, "number");
+    bool boolean = JsonObj.getBool(&JsonObj, "boolean");
+    
 
 }
