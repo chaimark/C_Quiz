@@ -1,5 +1,9 @@
 #include "JsonDataAnalyzeLib.h"
 
+bool Arr_isJsonNull(JsonArray This, const char Key[])
+{
+    return false;
+}
 int Arr_getInt(JsonArray This, int ItemNum)
 {
     return 0;
@@ -29,6 +33,13 @@ JsonArray newJsonArrayByString(strnew DataInit)
 {
     JsonArray Temp;
     Temp.JsonString = DataInit;
+    Temp.isJsonNull = Arr_isJsonNull;
+    Temp.getInt = Arr_getInt;
+    Temp.getDouble = Arr_getDouble;
+    Temp.getBool = Arr_getBool;
+    Temp.getString = Arr_getString;
+    Temp.getArray = Arr_getArray;
+    Temp.getObject = Arr_getObject;
     return Temp;
 }
 
@@ -37,7 +48,10 @@ JsonArray newJsonArrayByString(strnew DataInit)
 //==========================================================================================//
 //==========================================================================================//
 //==========================================================================================//
-
+bool Obj_isJsonNull(JsonArray This, const char Key[])
+{
+    return false;
+}
 int Obj_getInt(JsonObject This, const char Key[])
 {
     return 0;
@@ -67,5 +81,12 @@ JsonObject newJsonObjectByString(strnew DataInit)
 {
     JsonObject Temp;
     Temp.JsonString = DataInit;
+    Temp.isJsonNull = Obj_isJsonNull;
+    Temp.getInt = Obj_getInt;
+    Temp.getDouble = Obj_getDouble;
+    Temp.getBool = Obj_getBool;
+    Temp.getString = Obj_getString;
+    Temp.getArray = Obj_getArray;
+    Temp.getObject = Obj_getObject;
     return Temp;
 }

@@ -14,11 +14,14 @@ char JsonStrDown[1000] = {
         \"nullValue\": null,\
         \"array\": [1, 2, 3, \"four\", true, null],\
         \"object\": {\
-        \"key1\": \"value1\",\
-        \"key2\": 100,\
-        \"key3\": {\"nestedKey1\": \"nestedValue1\",\
-        \"nestedKey2\": [10, 20, 30]},\
-        \"key4\": [\"a\", \"b\", \"c\"]},\
+            \"key1\": \"value1\",\
+            \"key2\": 100,\
+            \"key3\": {\
+                \"nestedKey1\": \"nestedValue1\",\
+                \"nestedKey2\": [10, 20, 30]\
+            },\
+            \"key4\": [\"a\", \"b\", \"c\"]\
+        },\
         \"nestedArray\": [\
             {\"id\": 1, \"name\": \"Item 1\"},\
             {\"id\": 2, \"name\": \"Item 2\"}\
@@ -26,18 +29,18 @@ char JsonStrDown[1000] = {
     }"};
 
 // 处理 WT的JSON 指令
-bool WT_MQTT_JSON_Analysis(void)
-{
+bool WT_MQTT_JSON_Analysis(void) {
     return true;
 }
 
-int main()
-{
+int main() {
     JsonObject JsonObj = newJsonObjectByString(NEW_NAME(JsonStrDown));
     newString(TempStr, 100);
     JsonObj.getString(&JsonObj, "string", TempStr);
     int number = JsonObj.getInt(&JsonObj, "number");
     bool boolean = JsonObj.getBool(&JsonObj, "boolean");
-    
-
+    bool IsNull = JsonObj.isJsonNull(&JsonObj, "nullValue");
+    JsonArray jsonArr = JsonObj.getArray(&JsonObj, "array");
+    JsonObject jsonObj = JsonObj.getObject(&JsonObj, "object");
+    JsonArray jsonArr = JsonObj.getArray(&JsonObj, "nestedArray");
 }

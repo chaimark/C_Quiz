@@ -6,6 +6,7 @@
 typedef struct _JsonArray
 {
     strnew JsonString;
+    bool (*isJsonNull)(JsonArray This, int ItemNum);                       // 判断Json是否为空
     int (*getInt)(struct _JsonArray This, int ItemNum);                    // 获取Json int
     double (*getDouble)(struct _JsonArray This, int ItemNum);              // 获取Json double
     bool (*getBool)(struct _JsonArray This, int ItemNum);                  // 获取Json bool
@@ -14,6 +15,7 @@ typedef struct _JsonArray
     struct _JsonObject (*getObject)(struct _JsonArray This, int ItemNum);  // 获取Json Object
 } JsonArray;
 // 方法
+bool Arr_isJsonNull(JsonArray This, int ItemNum);
 int Arr_getInt(JsonArray This, int ItemNum);
 double Arr_getDouble(JsonArray This, int ItemNum);
 bool Arr_getBool(JsonArray This, int ItemNum);
@@ -33,6 +35,7 @@ extern JsonArray newJsonArrayByString(strnew DataInit); // 建立对象数组的
 typedef struct _JsonObject
 {
     strnew JsonString;
+    bool (*isJsonNull)(struct _JsonObject This, const char Key[]);               // 判断Json是否为空
     int (*getInt)(struct _JsonObject This, const char Key[]);                    // 获取Json int
     double (*getDouble)(struct _JsonObject This, const char Key[]);              // 获取Json double
     bool (*getBool)(struct _JsonObject This, const char Key[]);                  // 获取Json bool
@@ -41,6 +44,7 @@ typedef struct _JsonObject
     struct _JsonObject (*getObject)(struct _JsonObject This, const char Key[]);  // 获取Json object
 } JsonObject;
 // 方法
+bool Obj_isJsonNull(JsonArray This, const char Key[]);
 int Obj_getInt(JsonObject This, const char Key[]);
 double Obj_getDouble(JsonObject This, const char Key[]);
 bool Obj_getBool(JsonObject This, const char Key[]);

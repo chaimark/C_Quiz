@@ -1,8 +1,9 @@
 {
-    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.formatting": "vcFormat",
     "files.associations": {
         "typeinfo": "c",
         "jsondatadonelib.h": "c",
         "strlib.h": "c"
-    }
+    },
+    "C_Cpp.vcFormat.indent.preserveComments": false
 }
