@@ -3,7 +3,8 @@
     "files.associations": {
         "typeinfo": "c",
         "jsondatadonelib.h": "c",
-        "strlib.h": "c"
+        "strlib.h": "c",
+        "jsondataanalyzelib.h": "c"
     },
     "C_Cpp.vcFormat.indent.preserveComments": false
 }

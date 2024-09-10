@@ -13,6 +13,7 @@
                 "${fileDirname}/MyCmdDos/CsvSplit.c",
                 "${fileDirname}/C_MyLib/JsonDataDoneLib.c",
                 "${fileDirname}/C_MyLib/NumberBaseLib.c",
+                "${fileDirname}/C_MyLib/JsonDataAnalyzeLib.c",
                 "${fileDirname}/C_MyLib/StrLib.c",
                 "${fileDirname}/C_MyLib/WinExcel.c",
                 "-o",
@@ -30,3 +31,4 @@
     ],
     "version": "2.0.0"
 }
+
