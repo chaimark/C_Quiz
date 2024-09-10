@@ -132,7 +132,7 @@ bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
 }
 
 // 建立对象的函数
-newJsonList New_Json_Obj(newJsonList * DataInit) {
+newJsonList NEW_JSON_LIST(newJsonList * DataInit) {
     _JsonData = DataInit;
     (*DataInit).Head_WTjsonDataNote = NULL;
     (*DataInit).AddPullWTJsonKeyAndVer = _AddPullWTJsonKeyAndVer;
@@ -211,3 +211,4 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
 
     JSON_DATA.AddPullWTJsonKeyAndVer(ItemData, _JsonData); // 向 WTMqttJson 中添加关键字与值
 }
+

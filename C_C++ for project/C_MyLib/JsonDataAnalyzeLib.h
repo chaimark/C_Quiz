@@ -13,6 +13,7 @@ typedef struct _JsonArray
     void (*getString)(struct _JsonArray This, int ItemNum, strnew OutStr); // 获取Json String
     struct _JsonArray (*getArray)(struct _JsonArray This, int ItemNum);    // 获取Json array
     struct _JsonObject (*getObject)(struct _JsonArray This, int ItemNum);  // 获取Json Object
+    
 } JsonArray;
 // 方法
 bool Arr_isJsonNull(JsonArray This, int ItemNum);

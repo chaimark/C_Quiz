@@ -1,36 +1,28 @@
 #include "JsonDataAnalyzeLib.h"
 
-bool Arr_isJsonNull(JsonArray This, const char Key[])
-{
+bool Arr_isJsonNull(JsonArray This, int ItemNum) {
     return false;
 }
-int Arr_getInt(JsonArray This, int ItemNum)
-{
+int Arr_getInt(JsonArray This, int ItemNum) {
     return 0;
 }
-double Arr_getDouble(JsonArray This, int ItemNum)
-{
+double Arr_getDouble(JsonArray This, int ItemNum) {
     return 0.0;
 }
-bool Arr_getBool(JsonArray This, int ItemNum)
-{
+bool Arr_getBool(JsonArray This, int ItemNum) {
     return false;
 }
-void Arr_getString(JsonArray This, int ItemNum, strnew OutStr)
-{
+void Arr_getString(JsonArray This, int ItemNum, strnew OutStr) {
     return;
 }
-struct _JsonArray Arr_getArray(JsonArray This, int ItemNum)
-{
-    return (JsonArray){0};
+struct _JsonArray Arr_getArray(JsonArray This, int ItemNum) {
+    return (JsonArray) { 0 };
 }
-struct _JsonObject Arr_getObject(JsonArray This, int ItemNum)
-{
-    return (JsonObject){0};
+struct _JsonObject Arr_getObject(JsonArray This, int ItemNum) {
+    return (JsonObject) { 0 };
 }
 
-JsonArray newJsonArrayByString(strnew DataInit)
-{
+JsonArray newJsonArrayByString(strnew DataInit) {
     JsonArray Temp;
     Temp.JsonString = DataInit;
     Temp.isJsonNull = Arr_isJsonNull;
@@ -48,37 +40,29 @@ JsonArray newJsonArrayByString(strnew DataInit)
 //==========================================================================================//
 //==========================================================================================//
 //==========================================================================================//
-bool Obj_isJsonNull(JsonArray This, const char Key[])
-{
+bool Obj_isJsonNull(JsonArray This, const char Key[]) {
     return false;
 }
-int Obj_getInt(JsonObject This, const char Key[])
-{
+int Obj_getInt(JsonObject This, const char Key[]) {
     return 0;
 }
-double Obj_getDouble(JsonObject This, const char Key[])
-{
+double Obj_getDouble(JsonObject This, const char Key[]) {
     return 0.0;
 }
-bool Obj_getBool(JsonObject This, const char Key[])
-{
+bool Obj_getBool(JsonObject This, const char Key[]) {
     return false;
 }
-void Obj_getString(JsonObject This, const char Key[], strnew OutStr)
-{
+void Obj_getString(JsonObject This, const char Key[], strnew OutStr) {
     return;
 }
-struct _JsonArray Obj_getArray(JsonObject This, const char Key[])
-{
-    return (JsonArray){0};
+struct _JsonArray Obj_getArray(JsonObject This, const char Key[]) {
+    return (JsonArray) { 0 };
 }
-struct _JsonObject Obj_getObject(JsonObject This, const char Key[])
-{
-    return (JsonObject){0};
+struct _JsonObject Obj_getObject(JsonObject This, const char Key[]) {
+    return (JsonObject) { 0 };
 }
 
-JsonObject newJsonObjectByString(strnew DataInit)
-{
+JsonObject newJsonObjectByString(strnew DataInit) {
     JsonObject Temp;
     Temp.JsonString = DataInit;
     Temp.isJsonNull = Obj_isJsonNull;
@@ -88,5 +72,6 @@ JsonObject newJsonObjectByString(strnew DataInit)
     Temp.getString = Obj_getString;
     Temp.getArray = Obj_getArray;
     Temp.getObject = Obj_getObject;
+    
     return Temp;
 }

@@ -29,8 +29,6 @@ typedef struct _JsonData {
 bool _AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _JsonData This); // 向 JsonList 中添加关键字与值
 bool _OutPushJsonString(strnew OutputStr, struct _JsonData This);        // 输出 json 字符串
 // 建立对象
-#define NEW_JSON_LIST(DataInit) New_Json_Obj(DataInit)
-extern newJsonList New_Json_Obj(newJsonList * DataInit); // 建立对象的函数
+extern newJsonList NEW_JSON_LIST(newJsonList * DataInit); // 建立对象的函数
 extern void setJsonItemData(JsonItem * ItemData, char * fmt, ...);
-
 #endif
