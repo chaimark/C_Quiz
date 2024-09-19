@@ -9,6 +9,7 @@ void _SetCloseTask(int TaskAddr) {
     SetTime.Task[TaskAddr].isTaskStart = false; // 初始化标记
     SetTime.Task[TaskAddr].TimeTask_Falge = false;
     SetTime.Task[TaskAddr].CountNumOnce10Ms = 0; // 复位初始
+    SetTime.Task[TaskAddr].TaskFunc = NULL;
 }
 void _InitSetTimeTask(int TaskAddr, uint64_t SetMax10MsNum, void (*TaskFunc)(void)) {
     if ((TaskAddr < 0) || (TaskAddr >= SetTimeTaskMAX)) {

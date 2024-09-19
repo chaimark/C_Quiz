@@ -55,9 +55,9 @@ typedef struct _NetDevParameter {
     void (*SendData)(void);             // 发送数据
     void (*DoneCmd)(void);              // 解析数据
     char isCmdResFlag;                  // 是否收到下行
-    bool isWriteEEprom;         // 是否写eeprom
-
-    unsigned char isSendOk;     // 是否发送成功
+    bool isWriteEEprom;                 // 是否写eeprom
+    unsigned char isSendOk;             // 是否发送成功
+    unsigned char isCheckDownCmd;       // 是否监控串口下行指令
 } NetDevParameter;
 extern NetDevParameter Now_NetDevParameter;
 

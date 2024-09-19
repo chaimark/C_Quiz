@@ -6,13 +6,14 @@
 #include <stdint.h>
 
 typedef enum _TimeTaskName {	// 发送AT指令时调用什么函数发送，对应的函数名
-    checkNet = 0,           // 用于判断什么时候检查网络在线标记
-    CopyDMA = 1,            // 用于判断什么时候 copy DMA 中的数据
-    UartIRQOverTime = 2,    // 用于判断什么时候 uart 中断是否超时
+    checkNet,           // 用于判断什么时候检查网络在线标记
+    CopyDMA,            // 用于判断什么时候 copy DMA 中的数据
+    UartIRQOverTime,    // 用于判断什么时候 uart 中断是否超时
+    CheckDownCmd,       // 用于监控短链接磨下的下行指令
 } TimeTaskName;
 
 #define SecTo10Ms(sec) (uint64_t)(sec * 100)
-#define SetTimeTaskMAX 3
+#define SetTimeTaskMAX 4
 typedef struct _BSTIM_USER_SET_TASK {
     struct _setTime_Task {
         bool TimeTask_Falge;    // 当前计时任务是否完成

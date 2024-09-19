@@ -354,6 +354,7 @@ void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     Now_NetDevParameter.isLongLinkModeFlag = true;
     Now_NetDevParameter.SendData = NULL;        // 长连接不需要发送函数
     Now_NetDevParameter.DoneCmd = UserDoneCmd;  // 处理指令
+    Now_NetDevParameter.isCheckDownCmd = false;   // 是否需要监控下行指令
     TableOfCmdTaskInit();                       // 指令表初始化
     AT24CXXLoader_Init();                       // 读取 AT 参数
     UartBuff = NEW_NAME(UART_DATABUFF);         // 初始化缓存 UartBuff
