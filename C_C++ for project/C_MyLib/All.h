@@ -1,6 +1,8 @@
 #ifndef __ALL_H
 #define __ALL_H
 
+//#define OPEN_AT_CMD_DEBUG_LEN 255
+
 // #include "main.h"
 // #include "AT24C0256.h"
 // #include "Define.h"

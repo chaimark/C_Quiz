@@ -115,6 +115,7 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
             TempStr[strlen(TempStr) - 1] = 0;
         }
         Front_JsonItemLevel = 0;
+        memset(TempStr, 0, ARR_SIZE(TempStr));
     }
     return;
 }

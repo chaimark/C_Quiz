@@ -1,9 +1,16 @@
 #include "RTC_SetTime.h"
 
 USER_SET_TASK RTC_TASK;
-
+void _RTCCloseTask(int TaskAddr) {
+    if ((TaskAddr < 0) || (TaskAddr >= RTCTimeTaskMAX)) {
+        return;
+    }
+    RTC_TASK.Task[TaskAddr].isTaskStart = false; // 初始化标记
+    RTC_TASK.Task[TaskAddr].TimeTask_Falge = false;
+    RTC_TASK.Task[TaskAddr].CountNumOnceSec = 0; // 复位初始
+}
 void _InitRTCTask(int TaskAddr, uint64_t SetMaxSecNum) {
-    if ((TaskAddr < 0) || (TaskAddr >= 1)) {
+    if ((TaskAddr < 0) || (TaskAddr >= RTCTimeTaskMAX)) {
         return;
     }
     RTC_TASK.Task[TaskAddr].TimeTask_Falge = false; // 初始化标记
@@ -13,9 +20,9 @@ void _InitRTCTask(int TaskAddr, uint64_t SetMaxSecNum) {
 }
 // 计数函数
 void CountRTCTask(void) {
-    for (int TaskAddr = 0; TaskAddr < 1; TaskAddr++) {
+    for (int TaskAddr = 0; TaskAddr < RTCTimeTaskMAX; TaskAddr++) {
         if (RTC_TASK.Task[TaskAddr].isTaskStart == false) {
-            return;
+            continue;
         }
         if (RTC_TASK.Task[TaskAddr].CountNumOnceSec < RTC_TASK.Task[TaskAddr].MaxSecNum) {
             RTC_TASK.Task[TaskAddr].CountNumOnceSec++;
@@ -27,4 +34,5 @@ void CountRTCTask(void) {
 // 定时任务结构体初始化
 void InitRTC_TASK(void) {
     RTC_TASK.InitSetTimeTask = _InitRTCTask;
+    RTC_TASK.CloseTask = _RTCCloseTask;
 }

@@ -98,6 +98,10 @@ bool SetDevATCMDModel_ThroughSendData(void) {
     } else {
         printf("Fail to enter the AT mode\r\n");
     }
+#ifdef OPEN_AT_CMD_DEBUG_LEN
+    ATCmdDebugTask();
+    RTC_TASK.InitSetTimeTask(SendTimeOverTask, 1); // 超过 1 s，需要关闭 NB
+#endif
     return ATConfig_Flag;
 }
 void clearUartBuff(void) {
@@ -245,13 +249,13 @@ char copyComputerDownData(void) {
 // 检查时间任务
 void check_time_task(void) {
     if (SetTime.Task[checkNet].TimeTask_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
-    // 初始化创建定时任务
+        // 初始化创建定时任务
         SetTime.InitSetTimeTask(checkNet, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
         Now_NetDevParameter.CheckOnlineFlag = true;  // 检查网络在线标记
     }
     // 长连接时 每 70ms 计数一次
     if ((Now_NetDevParameter.isLongLinkModeFlag) && (SetTime.Task[CopyDMA].TimeTask_Falge)) {   // 任务0 用于判断什么时候Copy DMA
-        SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
+        SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.NET_Receive_checkTime);
         Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
     }
 }
@@ -346,7 +350,7 @@ void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     // 初始化 Now_NetDevParameter
     Now_NetDevParameter.LineCheckTime = 60;  // 60 秒后，判断你是否处于连接状态
     Now_NetDevParameter.ShowdownNowDev = UserShowdownNowDev;
-    Now_NetDevParameter.MQTT_NET_Receive_checkTime = BuffcheckTime10Ms;
+    Now_NetDevParameter.NET_Receive_checkTime = BuffcheckTime10Ms;
     Now_NetDevParameter.isLongLinkModeFlag = true;
     Now_NetDevParameter.SendData = NULL;        // 长连接不需要发送函数
     Now_NetDevParameter.DoneCmd = UserDoneCmd;  // 处理指令
@@ -356,7 +360,7 @@ void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     // 初始化创建定时任务
     if (Now_NetDevParameter.isLongLinkModeFlag == true) {
         SetTime.InitSetTimeTask(checkNet, SecTo250Ms(Now_NetDevParameter.LineCheckTime));
+        SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.NET_Receive_checkTime);
     }
-    SetTime.InitSetTimeTask(1, Now_NetDevParameter.MQTT_NET_Receive_checkTime);
     return;
 }
