@@ -112,7 +112,7 @@ int IsOverTimeOfUart(void) {
     IncludeDelayMs(30);    // 等待 30ms 接收数据，避免短数据占用太多时间
     int NowRxLen = NowLenOfUartBuff;
     int TempNowRxLen = NowRxLen;
-    SetTime.InitSetTimeTask(UartIRQOverTime, 3);    // 初始化创建定时任务
+    SetTime.InitSetTimeTask(UartIRQOverTime, 3, NULL);    // 初始化创建定时任务
     while (1) {
         if (!SetTime.Task[UartIRQOverTime].TimeTask_Falge) {
             continue;
@@ -120,11 +120,11 @@ int IsOverTimeOfUart(void) {
         // 定时任务结束重新获取 NowRxLen
         NowRxLen = NowLenOfUartBuff;
         if (TempNowRxLen == NowRxLen) { // 没有新的数据
-            SetTime.Task[UartIRQOverTime].isTaskStart = false;  // 关闭定时任务
+            SetTime.CloseTask(UartIRQOverTime);  // 关闭定时任务
             break;
         }
         TempNowRxLen = NowRxLen;    // 有新的数据
-        SetTime.InitSetTimeTask(UartIRQOverTime, 3);   //重载定时任务
+        SetTime.InitSetTimeTask(UartIRQOverTime, 3, NULL);   //重载定时任务
     }
     return NowLenOfUartBuff;
 }
@@ -250,12 +250,12 @@ char copyComputerDownData(void) {
 void check_time_task(void) {
     if (SetTime.Task[checkNet].TimeTask_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
         // 初始化创建定时任务
-        SetTime.InitSetTimeTask(checkNet, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime));
+        SetTime.InitSetTimeTask(checkNet, BSTSecTo10Ms(Now_NetDevParameter.LineCheckTime), NULL);
         Now_NetDevParameter.CheckOnlineFlag = true;  // 检查网络在线标记
     }
     // 长连接时 每 70ms 计数一次
     if ((Now_NetDevParameter.isLongLinkModeFlag) && (SetTime.Task[CopyDMA].TimeTask_Falge)) {   // 任务0 用于判断什么时候Copy DMA
-        SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.NET_Receive_checkTime);
+        SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.NET_Receive_checkTime, NULL);
         Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
     }
 }
@@ -359,8 +359,8 @@ void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     UartBuff = NEW_NAME(UART_DATABUFF);         // 初始化缓存 UartBuff
     // 初始化创建定时任务
     if (Now_NetDevParameter.isLongLinkModeFlag == true) {
-        SetTime.InitSetTimeTask(checkNet, SecTo250Ms(Now_NetDevParameter.LineCheckTime));
-        SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.NET_Receive_checkTime);
+        SetTime.InitSetTimeTask(checkNet, SecTo250Ms(Now_NetDevParameter.LineCheckTime), NULL);
+        SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.NET_Receive_checkTime, NULL);
     }
     return;
 }
