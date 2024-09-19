@@ -98,7 +98,7 @@ bool SetDevATCMDModel_ThroughSendData(void) {
     } else {
         printf("Fail to enter the AT mode\r\n");
     }
-#ifdef OPEN_AT_CMD_DEBUG_LEN
+#ifdef OPEN_AT_CMD_DEBUG
     ATCmdDebugTask();
     RTC_TASK.InitSetTimeTask(SendTimeOverTask, 1); // 超过 1 s，需要关闭 NB
 #endif

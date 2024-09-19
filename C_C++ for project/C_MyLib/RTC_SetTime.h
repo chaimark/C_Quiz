@@ -11,7 +11,7 @@
 // 将分钟转换为秒
 #define MinToSec(x) (x*60)
 
-#ifdef OPEN_AT_CMD_DEBUG_LEN
+#ifdef OPEN_AT_CMD_DEBUG
 typedef enum _RTCTaskName {
     ATDebug,
     SendIntervalTask,

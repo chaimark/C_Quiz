@@ -3,11 +3,10 @@
 #include "All.h"
 #include "NetProt_Module.h"
 
-#ifdef OPEN_AT_CMD_DEBUG_LEN
-char DebugBuf[OPEN_AT_CMD_DEBUG_LEN];
+#ifdef OPEN_AT_CMD_DEBUG
 int NowLen = 0;
-void SendDebug(unsigned char InputBuf[], unsigned char Len) {
-    copyString((char *)DebugBuf, (char *)InputBuf, OPEN_AT_CMD_DEBUG_LEN, (int)Len);
+void SendDebug(unsigned char InputBuf[], unsigned int Len) {
+    copyString(DebugBuff, (char *)InputBuf, ARR_SIZE(DebugBuff), Len);
     NowLen = Len;
 }
 void ATCmdDebugTask(void) {
@@ -29,9 +28,9 @@ void ATCmdDebugTask(void) {
         isSend_LPUART0();
         if (NowLen != 0) {
             // Send AT
-            sendDataByNetProt((unsigned char *)DebugBuf, strlen(DebugBuf));
+            sendDataByNetProt((unsigned char *)DebugBuff, strlen(DebugBuff));
             // 清空BUFF
-            memset(DebugBuf, 0, OPEN_AT_CMD_DEBUG_LEN);
+            memset(DebugBuff, 0, ARR_SIZE(DebugBuff));
             NowLen = 0;
             RTC_TASK.InitSetTimeTask(ATDebug, MinToSec(7)); // 10 min 后退出Debug模式
             RTC_TASK.InitSetTimeTask(IWDTClS, MinToSec(8)); // 8min 初始化喂狗定时器
