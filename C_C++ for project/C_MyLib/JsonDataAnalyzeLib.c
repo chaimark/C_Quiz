@@ -224,7 +224,7 @@ void Obj_getString(struct _JsonObject This, char Key[], strnew OutStr) {
         while ((*KeyP) == ' ') {
             KeyP++;
         }
-        char * EndP = strstr((KeyP + 1), "\"");
+        char * EndP = strstr((++KeyP), "\"");
         char Temp = *EndP;
         *EndP = '\0';
         memset(OutStr.Name._char, 0, OutStr.MaxLen);

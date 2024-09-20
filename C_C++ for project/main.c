@@ -7,37 +7,35 @@
 #include "./C_MyLib/JsonDataAnalyzeLib.h"
 #include <stdio.h>
 
-struct _NetDevParameter {
-    char NetDataBuff[1024];             // 接收数据或发送数据的缓存空间
-} NetDevParameter;
-char JsonStrDown[1000] = {"{\"string\": \"Hello!\",\"number\": 42a,\"boolean\": true,\"nullValue\": null,\"array\": [1, 2, 3, \"four\", true, null],\"object\": {\"key1\": \"value1\",\"key2\": 100,\"key3\": {\"nestedKey1\": \"nestedValue1\",\"nestedKey2\": [10, 20, 30]},\"key4\": [\"a\", \"b\", \"c\"]},\"nestedArray1\": [{\"id\": 1, \"name\": \"Item 1\"},{\"id\": 2, \"name\": \"Item 2\"}],\"nestedArray2\": []}"};
+char NetDataBuff[1024] = {
+    "\r\n{\"dev\": {\"msg_id\": 81,\"id\": \"12345678\"},\"data\": {\"IP\": \"192.168.1.1\",\"Prot\": \"5683\"}}",
+};
 
 // 处理 WT的JSON 指令
 bool WT_MQTT_JSON_Analysis(void) {
-    char ArrayID[8] = {0};
-    strnew JsonStr = NEW_NAME(Now_NetDevParameter.NetDataBuff);
+    char ArrayID[8] = {"12345678"};
+    strnew JsonStr = NEW_NAME(NetDataBuff);
     JsonObject JsonObjOfUserCmd = newJsonObjectByString(JsonStr);
     newString(TempStr, 100);
+    newString(IDStr, 100);
     JsonObject DevStrObj = JsonObjOfUserCmd.getObject(&JsonObjOfUserCmd, "dev", TempStr);
     if (DevStrObj.getInt(&DevStrObj, "msg_id") == 81) {
-        DevStrObj.getString(&DevStrObj, "id", TempStr);
-        if (memcmp(TempStr.Name._char, ArrayID, sizeof(ArrayID)) != 0) {
+        DevStrObj.getString(&DevStrObj, "id", IDStr);
+        if (memcmp(IDStr.Name._char, ArrayID, ARR_SIZE(ArrayID)) != 0) {
             return false;
         }
     }
     memset(TempStr.Name._char, 0, TempStr.MaxLen);
     JsonObject dataStrObj = JsonObjOfUserCmd.getObject(&JsonObjOfUserCmd, "data", TempStr);
-    strnew TempIP = NEW_NAME(AT24CXX_Manager_NET.NET_Remote_Url);
+    strnew TempIP = NEW_NAME("192.168.1.1");
     newString(TempProt, 100);
     dataStrObj.getString(&dataStrObj, "IP", TempIP);
     dataStrObj.getString(&dataStrObj, "Prot", TempProt);
-    AT24CXX_Manager_NET.NET_Remote_Port = atoi(TempProt.Name._char);
+    printf("%d", atoi(TempProt.Name._char));
     return true;
 }
 
 int main() {
-    JsonObject JsonObj = newJsonObjectByString(NEW_NAME(JsonStrDown));
-    newString(TempStr, 1000);
     WT_MQTT_JSON_Analysis();
 }
 
