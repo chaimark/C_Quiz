@@ -39,8 +39,9 @@ typedef struct _USER_SET_TASK {
         bool isTaskStart;       // 当前计时任务是否开启
         uint64_t CountNumOnceSec;
         uint64_t MaxSecNum;
+        void (*TaskFunc)(void);
     } Task[RTCTimeTaskMAX];
-    void (*InitSetTimeTask)(int TaskAddr, uint64_t SetMaxSecNum);
+    void (*InitSetTimeTask)(int TaskAddr, uint64_t SetMaxSecNum, void (*TaskFunc)(void));
     void (*CloseTask)(int TaskAddr);
 }USER_SET_TASK;
 extern USER_SET_TASK RTC_TASK;

@@ -18,10 +18,8 @@ struct {
 #define UART_DATABUFF       UART0Ddata.RxBuf            //接收缓冲区
 #define NowLenOfUartBuff    UART0Ddata.RxLen            //接收缓冲区长度
 
-
 // 内部定义
 #define BuffcheckTime10Ms 7 // 50ms 115200 == 11520字节/s
-#define sendDataByNetProt Uart0Send // Uart0Send(unsigned char *, unsigned short int)
 
 #define CmdListMax 5      // 最大队列数
 #define CmdStrLenMax 600  // 最大字符串长度
@@ -66,6 +64,7 @@ extern void setNetArgumentInit(void (*UserShowdownNowDev)(void));
 extern void MOTT_Net_Task(void);
 extern bool copyDataForUART(void);
 extern void ClearNetDataBuff(void);
+extern void sendDataByNetProt(char * SendCmd, int SendCmdLen);
 #endif
 
 

@@ -23,18 +23,18 @@ void _InitSetTimeTask(int TaskAddr, uint64_t SetMax10MsNum, void (*TaskFunc)(voi
 }
 // 计数函数
 void CountSetTimeTask(void) {
-    for (int i = 0; i < SetTimeTaskMAX; i++) {
-        if (SetTime.Task[i].isTaskStart == false) {
+    for (int TaskAddr = 0; TaskAddr < SetTimeTaskMAX; TaskAddr++) {
+        if (SetTime.Task[TaskAddr].isTaskStart == false) {
             continue;
         }
-        if (SetTime.Task[i].CountNumOnce10Ms < SetTime.Task[i].Max10MsNum) {
-            SetTime.Task[i].CountNumOnce10Ms++;
+        if (SetTime.Task[TaskAddr].CountNumOnce10Ms < SetTime.Task[TaskAddr].Max10MsNum) {
+            SetTime.Task[TaskAddr].CountNumOnce10Ms++;
         } else {
-            SetTime.Task[i].TimeTask_Falge = true;
+            SetTime.Task[TaskAddr].TimeTask_Falge = true;
         }
-        if (SetTime.Task[i].TimeTask_Falge == true) {
-            if (SetTime.Task[i].TaskFunc != NULL) {
-                SetTime.Task[i].TaskFunc();
+        if (SetTime.Task[TaskAddr].TimeTask_Falge == true) {
+            if (SetTime.Task[TaskAddr].TaskFunc != NULL) {
+                SetTime.Task[TaskAddr].TaskFunc(); // 注意:该函数，执行时不要太长，也不要启动同一个定时器的其他任务
             }
         }
     }

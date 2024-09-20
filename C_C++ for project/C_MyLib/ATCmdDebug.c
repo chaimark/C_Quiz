@@ -28,7 +28,7 @@ void ATCmdDebugTask(void) {
         isSend_LPUART0();
         if (NowLen != 0) {
             // Send AT
-            sendDataByNetProt((unsigned char *)DebugBuff, strlen(DebugBuff));
+            sendDataByNetProt(DebugBuff, strlen(DebugBuff));
             // 清空BUFF
             memset(DebugBuff, 0, ARR_SIZE(DebugBuff));
             NowLen = 0;
