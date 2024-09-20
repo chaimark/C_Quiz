@@ -7,51 +7,38 @@
 #include "./C_MyLib/JsonDataAnalyzeLib.h"
 #include <stdio.h>
 
-
+struct _NetDevParameter {
+    char NetDataBuff[1024];             // 接收数据或发送数据的缓存空间
+} NetDevParameter;
 char JsonStrDown[1000] = {"{\"string\": \"Hello!\",\"number\": 42a,\"boolean\": true,\"nullValue\": null,\"array\": [1, 2, 3, \"four\", true, null],\"object\": {\"key1\": \"value1\",\"key2\": 100,\"key3\": {\"nestedKey1\": \"nestedValue1\",\"nestedKey2\": [10, 20, 30]},\"key4\": [\"a\", \"b\", \"c\"]},\"nestedArray1\": [{\"id\": 1, \"name\": \"Item 1\"},{\"id\": 2, \"name\": \"Item 2\"}],\"nestedArray2\": []}"};
 
 // 处理 WT的JSON 指令
 bool WT_MQTT_JSON_Analysis(void) {
+    char ArrayID[8] = {0};
+    strnew JsonStr = NEW_NAME(Now_NetDevParameter.NetDataBuff);
+    JsonObject JsonObjOfUserCmd = newJsonObjectByString(JsonStr);
+    newString(TempStr, 100);
+    JsonObject DevStrObj = JsonObjOfUserCmd.getObject(&JsonObjOfUserCmd, "dev", TempStr);
+    if (DevStrObj.getInt(&DevStrObj, "msg_id") == 81) {
+        DevStrObj.getString(&DevStrObj, "id", TempStr);
+        if (memcmp(TempStr.Name._char, ArrayID, sizeof(ArrayID)) != 0) {
+            return false;
+        }
+    }
+    memset(TempStr.Name._char, 0, TempStr.MaxLen);
+    JsonObject dataStrObj = JsonObjOfUserCmd.getObject(&JsonObjOfUserCmd, "data", TempStr);
+    strnew TempIP = NEW_NAME(AT24CXX_Manager_NET.NET_Remote_Url);
+    newString(TempProt, 100);
+    dataStrObj.getString(&dataStrObj, "IP", TempIP);
+    dataStrObj.getString(&dataStrObj, "Prot", TempProt);
+    AT24CXX_Manager_NET.NET_Remote_Port = atoi(TempProt.Name._char);
     return true;
 }
 
 int main() {
     JsonObject JsonObj = newJsonObjectByString(NEW_NAME(JsonStrDown));
     newString(TempStr, 1000);
-    JsonObj.getString(&JsonObj, "string", TempStr);
-    printf("%s\n", TempStr.Name._char);
-    int number = JsonObj.getInt(&JsonObj, "number");
-    printf("%d\n", number);
-    bool boolean = JsonObj.getBool(&JsonObj, "boolean");
-    printf("%s\n", (boolean ? "true" : "false"));
-    bool IsNull = JsonObj.isJsonNull(&JsonObj, "nullValue");
-    printf("%s\n", (IsNull ? "true" : "false"));
-    JsonArray jsonArr = JsonObj.getArray(&JsonObj, "array", TempStr);
-    printf("%s\n", jsonArr.JsonString.Name._char);
-    JsonObject Son_JsonOBJ = JsonObj.getObject(&JsonObj, "object", TempStr);
-    printf("%s\n", Son_JsonOBJ.JsonString.Name._char);
-    printf("====================================\n");
-    printf("====================================\n");
-    newString(TempStrArr, 1000);
-    jsonArr = JsonObj.getArray(&JsonObj, "nestedArray1", TempStrArr);
-    printf("Array == %s\n", jsonArr.JsonString.Name._char);
-    jsonArr.get(&jsonArr, Son_JsonOBJ.JsonString, 0);
-    printf("%s\n", Son_JsonOBJ.JsonString.Name._char);
-    jsonArr.get(&jsonArr, Son_JsonOBJ.JsonString, 1);
-    printf("%s\n", Son_JsonOBJ.JsonString.Name._char);
-    printf("====================================\n");
-    printf("====================================\n");
-    jsonArr = JsonObj.getArray(&JsonObj, "nestedArray2", TempStrArr);
-    if (jsonArr.isJsonNull(&jsonArr)) {
-        printf("为空\n");
-    } else {
-        printf("非空\n");
-    }
-    printf("%d\n", jsonArr.sizeItemNum(&jsonArr));
-    printf("====================================\n");
-    printf("====================================\n");
-    jsonArr = JsonObj.getArray(&JsonObj, "nestedArray1", TempStrArr);
-    printf("%d\n", jsonArr.sizeItemNum(&jsonArr));
+    WT_MQTT_JSON_Analysis();
 }
 
 // char Data[] = {0x68,0x55,0x33,0x22,0x16,0x68,0x55,0x33,0x22,0x16};

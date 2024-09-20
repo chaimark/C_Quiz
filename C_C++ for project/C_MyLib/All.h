@@ -14,7 +14,8 @@
 // #include "WT_MQTT_JSON.h"
 
 #define IncludeDelayMs FL_DelayMs
-
+// #define WIFI_BUFF_MAXLEN 1024                                  // 接收缓存空间
+// #define ONCE_PACKAGE_LEN 1000                                  // http分块发送的单块size
 #define IMSI_liantong
 #ifdef IMSI_liantong
 // 联通

@@ -9,8 +9,6 @@
 // #define ThisObj &##ThisObj
 #define This (*this)
 #define ARR_SIZE(ArrName) sizeof(ArrName) / sizeof(ArrName[0]) // 计算数组元素个数
-#define WIFI_BUFF_MAXLEN 1024                                  // 接收缓存空间
-#define ONCE_PACKAGE_LEN 1000                                  // http分块发送的单块size
 /*
 数组类，包含数组指针和长度
 需要注意的是
@@ -41,8 +39,6 @@ extern strnew New_Str_Obj(void * Master, int SizeNum); // 建立对象的函数
 #define newString(name, Len)   \
     char Str##name[Len] = {0}; \
     strnew name = NEW_NAME(Str##name)
-
-extern char TempBuff[WIFI_BUFF_MAXLEN];
 
 /*-----------------------------------外部接口----------------------------------*/
 extern int catString(char * OutStr, char * IntStr, int MaxSize, int IntSize);
