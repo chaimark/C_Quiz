@@ -125,9 +125,9 @@ int IsOverTimeOfUart(int NowRxLen) {
     NowRxLen = NowLenOfUartBuff;
     int TempNowRxLen = NowRxLen;
     SetTime.InitSetTimeTask(UartIRQOverTime, 1, NULL);    // 初始化创建定时任务
-    for (int outtime = 0; outtime < 100; outtime++) {
+    for (int outtime = 0; outtime < 30; outtime++) {
         if (!SetTime.Task[UartIRQOverTime].TimeTask_Falge) {
-            IncludeDelayMs(1);
+            IncludeDelayMs(10);    // 等待 10ms
             continue;   // 如果定时任务机制卡死，强制 100ms 后退出
         }
         outtime = 0;    // 如果定时任务机制没有卡死，复位局部计数器
