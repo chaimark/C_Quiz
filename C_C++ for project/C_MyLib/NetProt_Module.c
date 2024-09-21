@@ -280,10 +280,6 @@ void check_time_task(void) {
             SetTime.InitSetTimeTask(checkNet, SecTo10Ms(Now_NetDevParameter.LineCheckTime), NULL);            // 初始化创建定时任务
             Now_NetDevParameter.CheckOnlineFlag = true;  // 检查网络在线标记
         }
-        if (SetTime.Task[CopyDMA].TimeTask_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
-            SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.NET_Receive_checkTime, NULL);
-            Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
-        }
     }
 }
 void CheckDownCmdFun(void) {
@@ -292,7 +288,7 @@ void CheckDownCmdFun(void) {
     SetTime.InitSetTimeTask(CheckDownCmd, SecTo10Ms(1), CheckDownCmdFun);
 }
 void Net_Task(void) {
-    if ((Now_NetDevParameter.isCheckDownCmd) && (!Now_NetDevParameter.isLongLinkModeFlag)) {
+    if (Now_NetDevParameter.isCheckDownCmd == true) {
         SetTime.InitSetTimeTask(CheckDownCmd, SecTo10Ms(1), CheckDownCmdFun); // 初始化定时监控下行指令
     }
     check_time_task();      // 检查时间任务
@@ -360,13 +356,14 @@ void Net_Task(void) {
         ClearNetDataBuff();
     }
     if (!Now_NetDevParameter.isLongLinkModeFlag) { // 短链接，需要查询下行指令
-        if ((Now_NetDevParameter.isCheckDownCmd) && (!Now_NetDevParameter.isLongLinkModeFlag)) {
+        if (Now_NetDevParameter.isCheckDownCmd == false) { // 非实时监控模式需要主动获取指令
             Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
-        }if (Now_NetDevParameter.SendData != NULL) {
+        }
+        if (Now_NetDevParameter.SendData != NULL) {
             Now_NetDevParameter.SendData(); // 发送数据
             ClearNetDataBuff(); // 清空数据
         }
-        if ((Now_NetDevParameter.isCheckDownCmd) && (!Now_NetDevParameter.isLongLinkModeFlag)) {
+        if (Now_NetDevParameter.isCheckDownCmd == false) { // 非实时监控模式需要主动获取指令
             Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
         }
     }
@@ -411,14 +408,13 @@ void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     Now_NetDevParameter.isLongLinkModeFlag = true;
     Now_NetDevParameter.SendData = UserSendData;    // 长连接不需要发送函数
     Now_NetDevParameter.DoneCmd = UserDoneCmd;  // 处理指令
-    Now_NetDevParameter.isCheckDownCmd = false;   // 是否需要监控下行指令
+    Now_NetDevParameter.isCheckDownCmd = true;   // 是否需要监控下行指令
     TableOfCmdTaskInit();                       // 指令表初始化
     AT24CXXLoader_Init();                       // 读取 AT 参数
     UartBuff = NEW_NAME(UART_DATABUFF);         // 初始化缓存 UartBuff
     // 初始化创建定时任务
     if (Now_NetDevParameter.isLongLinkModeFlag == true) {
         SetTime.InitSetTimeTask(checkNet, SecTo10Ms(Now_NetDevParameter.LineCheckTime), NULL);
-        SetTime.InitSetTimeTask(CopyDMA, Now_NetDevParameter.NET_Receive_checkTime, NULL);
     }
     return;
 }

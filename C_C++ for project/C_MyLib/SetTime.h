@@ -8,7 +8,6 @@
 typedef enum _TimeTaskName {	// 发送AT指令时调用什么函数发送，对应的函数名
     CheckDownCmd,       // 用于判断什么时候检查下行指令
     checkNet,           // 用于判断什么时候检查网络在线标记
-    CopyDMA,            // 用于判断什么时候 copy DMA 中的数据
     UartIRQOverTime,    // 用于判断什么时候 uart 中断是否超时
 } TimeTaskName;
 
