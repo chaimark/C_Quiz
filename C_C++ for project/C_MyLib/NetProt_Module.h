@@ -44,8 +44,8 @@ typedef struct _NetDevParameter {
     bool isLongLinkModeFlag;    // 是否是长连接标记
     uint8_t ReBootCount;        // 重启次数
 
-    uint8_t NET_Receive_checkTime; // 检查接收 buff 的间隔时间
-    char NetDataBuff[800];             // 接收数据或发送数据的缓存空间
+    uint8_t NET_Receive_checkTime;      // 检查接收 buff 的间隔时间
+    char NetDataBuff[800];              // 接收数据或发送数据的缓存空间
     uint16_t NetDataBuff_NowLen;        // 接收 Buff的实际长度
     TableOfCmdTask CmdTable;            // 已接收的任务表队列
 

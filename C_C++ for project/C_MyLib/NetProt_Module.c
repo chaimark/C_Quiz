@@ -117,29 +117,14 @@ void clearUartBuff(void) {
     memset(UartBuff.Name._char, 0, UartBuff.MaxLen);
     NowLenOfUartBuff = 0;   // 需要把外部传入的buff标记或长度复位才算清空
 }
-int IsOverTimeOfUart(int NowRxLen) {
-    IncludeDelayMs(30);    // 等待 30ms 接收数据，避免短数据占用太多时间
-    if ((NowRxLen == NowLenOfUartBuff) || (SetTime.Task[UartIRQOverTime].isTaskStart)) {
-        return NowLenOfUartBuff;
-    }
-    NowRxLen = NowLenOfUartBuff;
-    int TempNowRxLen = NowRxLen;
-    SetTime.InitSetTimeTask(UartIRQOverTime, 1, NULL);    // 初始化创建定时任务
-    for (int outtime = 0; outtime < 30; outtime++) {
-        if (!SetTime.Task[UartIRQOverTime].TimeTask_Falge) {
-            IncludeDelayMs(10);    // 等待 10ms
-            continue;   // 如果定时任务机制卡死，强制 100ms 后退出
+int IsOverTimeOfUart(int TempNowRxLen) {
+    while (1) {
+        IncludeDelayMs(30);    // 等待 30ms 接收数据，避免短数据占用太多时间
+        if (TempNowRxLen == NowLenOfUartBuff) {
+            return NowLenOfUartBuff;
         }
-        outtime = 0;    // 如果定时任务机制没有卡死，复位局部计数器
-        // 定时任务结束重新获取 NowRxLen
-        NowRxLen = NowLenOfUartBuff;
-        if (TempNowRxLen == NowRxLen) { // 没有新的数据
-            break;
-        }
-        TempNowRxLen = NowRxLen;    // 有新的数据
-        SetTime.InitSetTimeTask(UartIRQOverTime, 1, NULL);   //重载定时任务
+        TempNowRxLen = NowLenOfUartBuff;
     }
-    SetTime.CloseTask(UartIRQOverTime); // 关闭定时任务
     return NowLenOfUartBuff;
 }
 // 搬运串口数据

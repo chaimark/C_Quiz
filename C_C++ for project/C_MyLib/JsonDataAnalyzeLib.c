@@ -102,7 +102,7 @@ int Arr_sizeItemNum(struct _JsonArray This) {
     }
     return (This.isJsonNull(&This) ? 0 : ItemNum);
 }
-bool Arr_isJsonNull(struct _JsonArray This) {
+signed char Arr_isJsonNull(struct _JsonArray This) {
     return ((strcmp(This.JsonString.Name._char, "[]") == 0) ? true : false);
 }
 
@@ -156,11 +156,12 @@ JsonArray newJsonArrayByString(strnew DataInit) {
 int Obj_sizeStr(struct _JsonObject This) {
     return 0;
 }
-bool Obj_isJsonNull(struct _JsonObject This, char Key[]) {
-    bool ResBool = false;
+signed char Obj_isJsonNull(struct _JsonObject This, char Key[]) {
+    signed char ResOver = -1;
     getKeyName(SonStr, 50, Key);
     char * KeyP = NULL;
     if ((KeyP = strstr(This.JsonString.Name._char, SonStr)) != NULL) {
+        ResOver = false;
         KeyP += strlen(SonStr);
         while ((*KeyP) == ' ') {
             KeyP++;
@@ -168,11 +169,11 @@ bool Obj_isJsonNull(struct _JsonObject This, char Key[]) {
         char Temp = *(KeyP + 4);
         *(KeyP + 4) = '\0';
         if ((strcmp(KeyP, "null") == 0) || (strcmp(KeyP, "NULL") == 0) || (strcmp(KeyP, "Null") == 0)) {
-            ResBool = true;
+            ResOver = true;
         }
         *(KeyP + 4) = Temp;
     }
-    return ResBool;
+    return ResOver;
 }
 int Obj_getInt(struct _JsonObject This, char Key[]) {
     getKeyName(SonStr, 50, Key);
