@@ -1,4 +1,5 @@
 #include "JsonDataDoneLib.h"
+#include "JsonDataAnalyzeLib.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -6,12 +7,12 @@ newJsonList * _JsonData = NULL;
 #define JSON_DATA (*_JsonData)
 
 bool _AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _JsonData This) {
-    if (This.Head_WTjsonDataNote == NULL) {
-        This.Head_WTjsonDataNote = ItemData;
+    if (This.Head_JsonDataNote == NULL) {
+        This.Head_JsonDataNote = ItemData;
         return true;
     }
 
-    JsonItem * TempNode = This.Head_WTjsonDataNote;
+    JsonItem * TempNode = This.Head_JsonDataNote;
     while (TempNode->next != NULL) {
         TempNode = TempNode->next;
     }
@@ -115,13 +116,13 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
             TempStr[strlen(TempStr) - 1] = 0;
         }
         Front_JsonItemLevel = 0;
-        memset(TempStr, 0, ARR_SIZE(TempStr));
+        memset(TempStr, 0, ARR_SIZE(TempStr)); // 清空栈区
     }
     return;
 }
 
 bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
-    JsonItem * TempNowNode = This.Head_WTjsonDataNote;
+    JsonItem * TempNowNode = This.Head_JsonDataNote;
     memset(OutputStr.Name._char, 0, OutputStr.MaxLen); // 清空 OutputStr
     catString(OutputStr.Name._char, "{", OutputStr.MaxLen, 1);
     while (TempNowNode != NULL) {
@@ -129,13 +130,14 @@ bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
         TempNowNode = TempNowNode->next;
     }
     catString(OutputStr.Name._char, "}", OutputStr.MaxLen, 1);
+    _JsonData = NULL;
     return true;
 }
 
 // 建立对象的函数
 newJsonList NEW_JSON_LIST(newJsonList * DataInit) {
     _JsonData = DataInit;
-    (*DataInit).Head_WTjsonDataNote = NULL;
+    (*DataInit).Head_JsonDataNote = NULL;
     (*DataInit).AddPullWTJsonKeyAndVer = _AddPullWTJsonKeyAndVer;
     (*DataInit).OutPushJsonString = _OutPushJsonString;
     return (*DataInit);
