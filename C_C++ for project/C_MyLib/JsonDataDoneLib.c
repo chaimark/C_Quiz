@@ -5,20 +5,19 @@
 newJsonList * _JsonData = NULL;
 #define JSON_DATA (*_JsonData)
 
-bool _AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _JsonData This) {
+bool AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _JsonData This) {
     if (This.Head_WTjsonDataNote == NULL) {
         This.Head_WTjsonDataNote = ItemData;
         return true;
     }
 
     JsonItem * TempNode = This.Head_WTjsonDataNote;
-    while (TempNode->next != NULL) {
-        TempNode = TempNode->next;
+    while ((*TempNode).next != NULL) {
+        TempNode = (*TempNode).next;
     }
 
-    TempNode->next = ItemData;
-    ItemData->next = NULL;
-
+    (*ItemData).next = NULL;
+    (*TempNode).next = ItemData;
     return true;
 }
 
@@ -136,7 +135,6 @@ bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
 newJsonList NEW_JSON_LIST(newJsonList * DataInit) {
     _JsonData = DataInit;
     (*DataInit).Head_WTjsonDataNote = NULL;
-    (*DataInit).AddPullWTJsonKeyAndVer = _AddPullWTJsonKeyAndVer;
     (*DataInit).OutPushJsonString = _OutPushJsonString;
     return (*DataInit);
 }
@@ -192,13 +190,9 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
                     break;
                 case 'p': // %p：指针地址。
                     ItemData->KeyType = 'p';
-                    ItemData->var._void = va_arg(args, void *);
-                    TempNext = (JsonItem *)ItemData->var._void;
                     break;
                 case 'J': // %p：指针地址。
                     ItemData->KeyType = 'J';
-                    ItemData->var._void = va_arg(args, void *);
-                    TempNext = (JsonItem *)ItemData->var._void;
                     break;
             }
             break;
@@ -210,6 +204,6 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
     ItemData->next = TempNext; // 设置 ItemData 结构体中的指针
     va_end(args);              // 结束对 args 的访问
 
-    JSON_DATA.AddPullWTJsonKeyAndVer(ItemData, _JsonData); // 向 WTMqttJson 中添加关键字与值
+    AddPullWTJsonKeyAndVer(ItemData, _JsonData); // 向 WTMqttJson 中添加关键字与值
 }
 

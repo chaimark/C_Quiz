@@ -4,7 +4,9 @@
         "typeinfo": "c",
         "jsondatadonelib.h": "c",
         "strlib.h": "c",
-        "jsondataanalyzelib.h": "c"
+        "jsondataanalyzelib.h": "c",
+        "jsoncheckfun.h": "c",
+        "stdio.h": "c"
     },
     "C_Cpp.vcFormat.indent.preserveComments": false
 }

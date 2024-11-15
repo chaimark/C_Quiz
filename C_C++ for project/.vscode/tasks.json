@@ -16,6 +16,7 @@
                 "${fileDirname}/C_MyLib/JsonDataAnalyzeLib.c",
                 "${fileDirname}/C_MyLib/StrLib.c",
                 "${fileDirname}/C_MyLib/WinExcel.c",
+                "${fileDirname}/C_MyLib/JsonCheckFun.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}.exe"
             ],
