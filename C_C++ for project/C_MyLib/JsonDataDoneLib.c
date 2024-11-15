@@ -1,4 +1,5 @@
 #include "JsonDataDoneLib.h"
+#include "JsonDataAnalyzeLib.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -114,13 +115,13 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
             TempStr[strlen(TempStr) - 1] = 0;
         }
         Front_JsonItemLevel = 0;
-        memset(TempStr, 0, ARR_SIZE(TempStr));
+        memset(TempStr, 0, ARR_SIZE(TempStr)); // 清空栈区
     }
     return;
 }
 
 bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
-    JsonItem * TempNowNode = This.Head_WTjsonDataNote;
+    JsonItem * TempNowNode = This.Head_JsonDataNote;
     memset(OutputStr.Name._char, 0, OutputStr.MaxLen); // 清空 OutputStr
     catString(OutputStr.Name._char, "{", OutputStr.MaxLen, 1);
     while (TempNowNode != NULL) {
@@ -128,6 +129,7 @@ bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
         TempNowNode = TempNowNode->next;
     }
     catString(OutputStr.Name._char, "}", OutputStr.MaxLen, 1);
+    _JsonData = NULL;
     return true;
 }
 
