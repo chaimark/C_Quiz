@@ -7,12 +7,12 @@ newJsonList * _JsonData = NULL;
 #define JSON_DATA (*_JsonData)
 
 bool AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _JsonData This) {
-    if (This.Head_WTjsonDataNote == NULL) {
-        This.Head_WTjsonDataNote = ItemData;
+    if (This.Head_JsonDataNote == NULL) {
+        This.Head_JsonDataNote = ItemData;
         return true;
     }
 
-    JsonItem * TempNode = This.Head_WTjsonDataNote;
+    JsonItem * TempNode = This.Head_JsonDataNote;
     while ((*TempNode).next != NULL) {
         TempNode = (*TempNode).next;
     }
@@ -136,7 +136,7 @@ bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
 // 建立对象的函数
 newJsonList NEW_JSON_LIST(newJsonList * DataInit) {
     _JsonData = DataInit;
-    (*DataInit).Head_WTjsonDataNote = NULL;
+    (*DataInit).Head_JsonDataNote = NULL;
     (*DataInit).OutPushJsonString = _OutPushJsonString;
     return (*DataInit);
 }

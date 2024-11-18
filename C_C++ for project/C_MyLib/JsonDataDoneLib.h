@@ -20,7 +20,7 @@ typedef struct __JsonItem {
 } JsonItem;
 // 类定义
 typedef struct _JsonData {
-    JsonItem * Head_WTjsonDataNote;
+    JsonItem * Head_JsonDataNote;
     bool (*OutPushJsonString)(strnew OutputStr, struct _JsonData This);
 } newJsonList;
 // 类方法

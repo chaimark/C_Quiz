@@ -78,7 +78,7 @@ void WT_JSON_Send_Immediately_Main_Copy_Meter_Data(char * JSON_TTL_Buff, unsigne
     } CtrlCopyMeter_Manager;
     newString(OutputJsonStr, 300);
     newJsonList WTMqttJsonData = NEW_JSON_LIST(&WTMqttJsonData);
-    WTMqttJsonData.Head_WTjsonDataNote = NULL;
+    WTMqttJsonData.Head_JsonDataNote = NULL;
 
     setJsonItemData(&CtrlCopyMeter_Manager.List.ListP, "list:%p;%d", NULL, 0);          // List 数组
     setJsonItemData(&CtrlCopyMeter_Manager.List.Class.ClassP, ":%lp;%d", NULL, 1); // List 中的对象
