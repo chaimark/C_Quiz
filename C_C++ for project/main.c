@@ -107,10 +107,11 @@ void WT_JSON_Send_Immediately_Main_Copy_Meter_Data(char * JSON_TTL_Buff, unsigne
     return;
 }
 int main() {
-    char JSONOUT[1000] = {0};
-    WT_JSON_Send_Immediately_Main_Copy_Meter_Data(JSONOUT, Data, 10);
-    printf("%s", JSONOUT);
-    // if(){
-
-    // }
+    char JSONOUT1[1000] = {0};
+    WT_JSON_Send_Immediately_Main_Copy_Meter_Data(JSONOUT1, Data, 10);
+    printf("JSONOUT1:\n%s\n\n", JSONOUT1);
+    char JSONOUT2[1000] = {0};
+    if (checkOfCsJsonStrIsRight(NEW_NAME(JSONOUT1), NEW_NAME(JSONOUT1))) {
+        printf("JSONOUT2:\n%s\n\n", JSONOUT1);
+    }
 }

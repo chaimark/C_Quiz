@@ -119,7 +119,9 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
     }
     return;
 }
-
+void _ResJsonDataNote(struct _JsonData This) {
+    _JsonData = &This;
+}
 bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
     JsonItem * TempNowNode = This.Head_JsonDataNote;
     memset(OutputStr.Name._char, 0, OutputStr.MaxLen); // 清空 OutputStr
@@ -137,6 +139,7 @@ bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
 newJsonList NEW_JSON_LIST(newJsonList * DataInit) {
     _JsonData = DataInit;
     (*DataInit).Head_JsonDataNote = NULL;
+    (*DataInit).ResJsonDataNote = _ResJsonDataNote;
     (*DataInit).OutPushJsonString = _OutPushJsonString;
     return (*DataInit);
 }
