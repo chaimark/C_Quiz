@@ -21,18 +21,3 @@
     ],
     "version": 4
 }
-{
-    "list": [],
-    {
-        "T8": 0,
-        "T10": -1,
-        "R53": "33221668",
-        "J79": ""
-    },
-    "code": 1,
-    "data": "执行异常",
-    "error": "未知",
-    "Total": 1,
-    "AutoNumberIDs": null,
-    "NowCheckNum": 8402
-}

@@ -17,8 +17,10 @@
                 "${fileDirname}/C_MyLib/StrLib.c",
                 "${fileDirname}/C_MyLib/WinExcel.c",
                 "${fileDirname}/C_MyLib/JsonCheckFun.c",
+                "${fileDirname}/C_MyLib/SendDataBySerial.c",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}.exe"
+                "${fileDirname}/${fileBasenameNoExtension}.exe",
+                "-lwinspool"
             ],
             "options": {
                 "cwd": "${fileDirname}"
