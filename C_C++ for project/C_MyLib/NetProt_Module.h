@@ -6,20 +6,26 @@
 #include "StrLib.h"
 #include "All.h"
 
-struct {
-    unsigned char RxBuf[10];
-    uint16_t RxLen;
-}UART0Ddata;
-// 外部引入
-#define REBOOT_DEV_OFF      //NET_RST_OFF                // 重启模块标记置高
-#define REBOOT_DEV_ON       //NET_RST_ON                  // 重启模块标记置低
-#define UartDisableIRQ      //NVIC_DisableIRQ(UART0_IRQn)  // 关闭中断使能
-#define UartEnableIRQ       //NVIC_EnableIRQ(UART0_IRQn)   // 开启中断使能
-#define UART_DATABUFF       UART0Ddata.RxBuf            //接收缓冲区
-#define NowLenOfUartBuff    UART0Ddata.RxLen            //接收缓冲区长度
+// 临时示例
+char AAA[1];
+int abac;
+#define REBOOT_DEV_OFF          1                 // 重启模块标记置高
+#define REBOOT_DEV_ON           1                  // 重启模块标记置低
+#define UartDisableIRQ          1 // 关闭中断使能
+#define UartEnableIRQ           1  // 开启中断使能
+#define UART_DATABUFF           AAA            //接收缓冲区
+#define NowLenOfUartBuff        abac            //接收缓冲区长度
+
+// // 外部引入
+// #define REBOOT_DEV_OFF          NET_RST_OFF                 // 重启模块标记置高
+// #define REBOOT_DEV_ON           NET_RST_ON                  // 重启模块标记置低
+// #define UartDisableIRQ          NVIC_DisableIRQ(UART0_IRQn) // 关闭中断使能
+// #define UartEnableIRQ           NVIC_EnableIRQ(UART0_IRQn)  // 开启中断使能
+// #define UART_DATABUFF           UART0Ddata.RxBuf            //接收缓冲区
+// #define NowLenOfUartBuff        UART0Ddata.RxLen            //接收缓冲区长度
 
 // 内部定义
-#define BuffcheckTime10Ms 7 // 50ms 115200 == 11520字节/s
+#define BuffcheckTime10Ms 7 // 70ms
 
 #define CmdListMax 5      // 最大队列数
 #define CmdStrLenMax 600  // 最大字符串长度
@@ -61,10 +67,38 @@ extern NetDevParameter Now_NetDevParameter;
 
 // 公共接口
 extern void setNetArgumentInit(void (*UserShowdownNowDev)(void));
-extern void MOTT_Net_Task(void);
+extern void Net_Task(void);
 extern bool copyDataForUART(void);
 extern void ClearNetDataBuff(void);
 extern void sendDataByNetProt(char * SendCmd, int SendCmdLen);
+#define checkUart() (Now_NetDevParameter.isCheckDownCmd ? (Now_NetDevParameter.NetDataBuff_NowLen ? true : false) : copyDataForUART())
+
+////////////////////////////////////////////////
+// 类定义
+typedef struct _NetDevATCmdData {   // 成员
+    int8_t CmdID;         // 指令ID
+    int8_t Next_CmdID;    // 下一条指令ID
+    char * ATCmd;         // AT指令
+    char * SucessStr;     // 成功返回的字符串
+    bool RunFlag;         // 是否执行当前指令
+    uint8_t CmsResCount;  // 回复查询次数限制
+    uint8_t CmdSendCount; // 指令发送次数限制
+
+    bool IsGetComputerResFlag; // 是否需要获取电脑返回结果
+
+    uint8_t LoadATSendFunName;        // 装载数据的函数名
+    uint8_t DoingATReceiveFunName; // 处理返回结果的函数名
+
+    void (*DataInstallation)(strnew OutStr, struct _NetDevATCmdData This);
+    bool (*DoingATCmdResData)(struct _NetDevATCmdData This);
+} NetDevATCmd;
+// 类方法
+void _DataInstallation(strnew OutStr, struct _NetDevATCmdData This); // 设置或查询 AT指令 的装载方法
+bool _DoingATCmdResData(struct _NetDevATCmdData This);               // 处理指令返回的方法
+extern NetDevATCmd NetDevice_ATData[ATCMD_MAXNUMBER];
+
+extern void MQTT_NetAT_Init(void);
+
 #endif
 
 

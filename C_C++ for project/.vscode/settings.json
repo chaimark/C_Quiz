@@ -8,7 +8,8 @@
         "jsoncheckfun.h": "c",
         "stdio.h": "c",
         "senddatabyserial.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "stdbool.h": "c"
     },
     "C_Cpp.vcFormat.indent.preserveComments": false
 }

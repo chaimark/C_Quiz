@@ -34,7 +34,7 @@ extern int shortChStrToDoubleChStr(strnew inputArray, strnew OutputArray);
 extern int doubleChStrToShortChStr(strnew inputArray, strnew OutputArray);
 
 // 字符串转 任意进制数
-extern int64_t doneAsciiStrToAnyBaseNumberData(char AscArray[], int NumStrNowLen, int OutputBase);
+extern int doneAsciiStrToAnyBaseNumberData(char AscArray[], int OutputBase);
 
 // 任意进制数 转 字符串
 extern int doneBaseNumberDataToAsciiStr(char AscArray[], int ArrayMaxLen, int NumberData, int IntputBase);
@@ -43,7 +43,7 @@ extern int doneBaseNumberDataToAsciiStr(char AscArray[], int ArrayMaxLen, int Nu
 extern double doneAsciiToDouble(char AscArray[]);
 
 // double 转 字符串
-extern void doneDoubleToAscii(char AscArray[], double InputData);
+extern void doneDoubleToAscii(char AscArray[], const char From[], double InputData);
 
 // 读取某位 返回对应位的 bool 值
 extern bool readDataBit(uint64_t InputNumber, int8_t BitNumber);

@@ -1,11 +1,9 @@
 #ifndef __RTC_SETTIME_H
 #define __RTC_SETTIME_H
-
 #include "StrLib.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include "All.h"
-
 // 将小时转换为分钟
 #define HourToMin(x) (x*60)
 // 将分钟转换为秒
@@ -14,24 +12,36 @@
 #ifdef OPEN_AT_CMD_DEBUG
 typedef enum _RTCTaskName {
     ATDebug,
-    SendIntervalTask,
-    SendTimeOverTask,
-    DayOverCclkTask,
-    EEpromWriteTime,
-    EEpromWriteNB,
     IWDTClS,
+    Read_EEprom,
+    HourTaskOfColorShow,
+    MinTaskOfColorShow,
+    WriteTimeOfLocal,
+    AdjustSubDevTime,
+    MBUSUARTReboot,
+    ReadMainMeter,
+    ReadCopyMeter,
+    CloseLEDFlag,
+    TestVoltgeAndMA,
+    PauseTimeOfLinkErr,
 }RTCTaskName;
-#define RTCTimeTaskMAX 7
+#define RTCTimeTaskMAX 11
 #else
 typedef enum _RTCTaskName {
-    SendIntervalTask,
-    SendTimeOverTask,
-    DayOverCclkTask,
-    EEpromWriteTime,
-    EEpromWriteNB,
     IWDTClS,
+    Read_EEprom,
+    HourTaskOfColorShow,
+    MinTaskOfColorShow,
+    WriteTimeOfLocal,
+    AdjustSubDevTime,
+    MBUSUARTReboot,
+    ReadMainMeter,
+    ReadCopyMeter,
+    CloseLEDFlag,
+    TestVoltgeAndMA,
+    PauseTimeOfLinkErr,
 }RTCTaskName;
-#define RTCTimeTaskMAX 6
+#define RTCTimeTaskMAX 12
 #endif
 typedef struct _USER_SET_TASK {
     struct {

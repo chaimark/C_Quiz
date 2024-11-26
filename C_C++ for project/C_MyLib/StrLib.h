@@ -33,10 +33,13 @@ typedef struct New_Arr {
     } Name;
     int MaxLen;
 } strnew;
+// void my_init() __attribute__((constructor));
+// void my_cleanup() __attribute__((destructor));
+
 // 建立对象
 #define NEW_NAME(ArrName) New_Str_Obj(ArrName, ARR_SIZE(ArrName))
 extern strnew New_Str_Obj(void * Master, int SizeNum); // 建立对象的函数
-#define newString(name, Len)   \
+#define newString(name, Len)  \
     char Str##name[Len] = {0}; \
     strnew name = NEW_NAME(Str##name)
 
@@ -48,5 +51,6 @@ extern char * myStrstrCont(char * MotherStr, char * SonStr, int MotherMaxSize, i
 extern void swapChr(char * a, char * b);
 extern void swapStr(char * IntputStr, int StrLen);
 extern char swapLowHight_Of_Char(char InputCh);
+extern bool MoveDataOnBuff(strnew IntptBuff, int ShiftLen, bool IsLeft);
 
 #endif

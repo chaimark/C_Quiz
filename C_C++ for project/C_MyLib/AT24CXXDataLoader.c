@@ -1,11 +1,29 @@
 #include "AT24CXXDataLoader.h"
 #include "stddef.h"
 
+struct AT24CXX_MANAGER_S * _AT24CXX_Manager_NET = NULL;
+#ifndef __AT24C0XXX_H
+AT24CXX_MANAGER_T AT24CXX_Manager_NET;
+#endif
 GetNBData_T GetNBData;  // NB数据
-AT24CXX_MANAGER_T * _AT24CXX_Manager_NET = NULL;
-
 void AT24CXXLoader_Init(void) {
     _AT24CXX_Manager_NET = &AT24CXX_Manager;
+    AT24CXX_Manager_NET.Time_Data.year = 0x2019;
+    AT24CXX_Manager_NET.Time_Data.month = 0x01;
+    AT24CXX_Manager_NET.Time_Data.day = 0x01;
+    AT24CXX_Manager_NET.Time_Data.hour = 0x06;
+    AT24CXX_Manager_NET.Time_Data.minute = 0x30;
+    AT24CXX_Manager_NET.Time_Data.second = 0x59;
+    AT24CXX_Manager_NET.Time_Data.week = getDayOfWeek(0x2020, 0x01, 0x01);
+}
+bool checkTimeFrom(FL_RTC_InitTypeDef InputTimeData) {
+    if (!Check_Time_ByHEX(InputTimeData.hour, InputTimeData.minute, InputTimeData.second)) {
+        return false;    // 时间错误
+    }
+    if (!Check_Date_ByHEX((InputTimeData.year >> 16), InputTimeData.year, InputTimeData.month, InputTimeData.day)) {
+        return false;    // 时间错误
+    }
+    return true;
 }
 
 

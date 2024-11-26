@@ -1,16 +1,40 @@
 #ifndef AT24XXXDATALOADER_H
 #define AT24XXXDATALOADER_H
 
+#include <stdbool.h>
+#include "NumberBaseLib.h"
 #include "All.h"
+//#include "../Src/AT24C0256.h"
+
+#ifndef __AT24C0XXX_H
+typedef struct {
+    /** 年 */
+    uint32_t year;
+    /** 月 */
+    uint32_t month;
+    /** 日 */
+    uint32_t day;
+    /** 周 */
+    uint32_t week;
+    /** 时 */
+    uint32_t hour;
+    /** 分 */
+    uint32_t minute;
+    /** 秒 */
+    uint32_t second;
+
+} FL_RTC_InitTypeDef;
+#else
+#include "../Src/RTC.h"
+#endif
+
 /*
 电信 Band5
 移动 Band8
 联通 Band3
 */
-
 // 需要引入外部 AT24CXX_MANAGER_S 定义
-#include <stdbool.h>
-#ifndef __AT24C0256_H
+#ifndef __AT24C0XXX_H
 typedef struct AT24CXX_MANAGER_S {
     // 32字节
     char sign;		   // 初始化标志
@@ -21,7 +45,6 @@ typedef struct AT24CXX_MANAGER_S {
     // 32*6 = 192 字节
     char heating_start[15];
     char heating_end[15];
-    char NET_Local_IMEI[15];
     char NET_Local_IP[30];
     char NET_Local_MASK[30];
     char NET_Local_GATEWAY[30];
@@ -34,13 +57,11 @@ typedef struct AT24CXX_MANAGER_S {
     unsigned int not_intimer_interval;
     unsigned char Save_Working_Mode;
 
-    char NetCheckENableFlag; // MQTT 使能标志
-
-    char porjectId[20];
-    char productkey[20];
+    bool NetCheckENableFlag;        // NET 查询使能标志
+    bool IsColorDislay;             // 是否彩色显示
+    FL_RTC_InitTypeDef Time_Data;   // 时间
 } AT24CXX_MANAGER_T;
 extern AT24CXX_MANAGER_T AT24CXX_Manager;
-AT24CXX_MANAGER_T AT24CXX_Manager;
 #endif
 
 // public
@@ -57,9 +78,7 @@ typedef struct _GetNBData {
 } GetNBData_T;
 
 extern AT24CXX_MANAGER_T * _AT24CXX_Manager_NET;
-#define AT24CXX_Manager_NET (*_AT24CXX_Manager_NET)
 extern GetNBData_T GetNBData;  // NB数据
-
 extern void AT24CXXLoader_Init(void);
-
+extern bool checkTimeFrom(FL_RTC_InitTypeDef InputTimeData);
 #endif

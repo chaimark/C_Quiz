@@ -25,6 +25,8 @@ bool checkOfCsJsonStrIsRight(strnew JsonInputStr, strnew JsonOutputStr) {
     for (int i = 0; i < strlen(JsonInputStr.Name._char); i++) {
         CheckNum += JsonInputStr.Name._char[i];
     }
-    copyString(JsonOutputStr.Name._char, JsonInputStr.Name._char, JsonOutputStr.MaxLen, JsonInputStr.MaxLen);
+    if (JsonInputStr.Name._char != JsonOutputStr.Name._char) {
+        copyString(JsonOutputStr.Name._char, JsonInputStr.Name._char, JsonOutputStr.MaxLen, JsonInputStr.MaxLen);
+    }
     return ((CheckNum == NowCheckNum) ? true : false);
 }

@@ -1,9 +1,9 @@
 #include "SetTime.h"
-
+#ifdef BSTIM_OPEN_AND_TASK_NUM
 // 可自定义的定时任务
 BSTIM_USER_SET_TASK SetTime;
 void _SetCloseTask(int TaskAddr) {
-    if ((TaskAddr < 0) || (TaskAddr >= SetTimeTaskMAX)) {
+    if ((TaskAddr < 0) || (TaskAddr >= BSTIM_OPEN_AND_TASK_NUM)) {
         return;
     }
     SetTime.Task[TaskAddr].isTaskStart = false; // 初始化标记
@@ -12,7 +12,7 @@ void _SetCloseTask(int TaskAddr) {
     SetTime.Task[TaskAddr].TaskFunc = NULL;
 }
 void _InitSetTimeTask(int TaskAddr, uint64_t SetMax10MsNum, void (*TaskFunc)(void)) {
-    if ((TaskAddr < 0) || (TaskAddr >= SetTimeTaskMAX)) {
+    if ((TaskAddr < 0) || (TaskAddr >= BSTIM_OPEN_AND_TASK_NUM)) {
         return;
     }
     SetTime.Task[TaskAddr].TimeTask_Falge = false; // 初始化标记
@@ -23,7 +23,7 @@ void _InitSetTimeTask(int TaskAddr, uint64_t SetMax10MsNum, void (*TaskFunc)(voi
 }
 // 计数函数
 void CountSetTimeTask(void) {
-    for (int TaskAddr = 0; TaskAddr < SetTimeTaskMAX; TaskAddr++) {
+    for (int TaskAddr = 0; TaskAddr < BSTIM_OPEN_AND_TASK_NUM; TaskAddr++) {
         if (SetTime.Task[TaskAddr].isTaskStart == false) {
             continue;
         }
@@ -43,4 +43,57 @@ void CountSetTimeTask(void) {
 void InitSetTime(void) {
     SetTime.InitSetTimeTask = _InitSetTimeTask;
     SetTime.CloseTask = _SetCloseTask;
+    SetTime.NumberOfTimeTask = BSTIM_OPEN_AND_TASK_NUM; // 定时任务数量
 }
+#endif
+
+////////////////////////////////////////////////////
+
+#ifdef LPTIM_OPEN_AND_TASK_NUM
+// 可自定义的定时任务
+LPTIM_USER_SET_TASK SetLPTime;
+void _LPSetCloseTask(int TaskAddr) {
+    if ((TaskAddr < 0) || (TaskAddr >= LPTIM_OPEN_AND_TASK_NUM)) {
+        return;
+    }
+    SetLPTime.Task[TaskAddr].isTaskStart = false; // 初始化标记
+    SetLPTime.Task[TaskAddr].TimeTask_Falge = false;
+    SetLPTime.Task[TaskAddr].CountNumOnce250Ms = 0; // 复位初始
+    SetLPTime.Task[TaskAddr].TaskFunc = NULL;
+}
+void _LPInitSetTimeTask(int TaskAddr, uint64_t SetMax250MsNum, void (*TaskFunc)(void)) {
+    if ((TaskAddr < 0) || (TaskAddr >= LPTIM_OPEN_AND_TASK_NUM)) {
+        return;
+    }
+    SetLPTime.Task[TaskAddr].TimeTask_Falge = false; // 初始化标记
+    SetLPTime.Task[TaskAddr].isTaskStart = true;     // 开启
+    SetLPTime.Task[TaskAddr].Max250MsNum = SetMax250MsNum; // 定时任务点
+    SetLPTime.Task[TaskAddr].CountNumOnce250Ms = 0; // 复位初始
+    SetLPTime.Task[TaskAddr].TaskFunc = TaskFunc;
+}
+// 计数函数
+void LPCountSetTimeTask(void) {
+    for (int TaskAddr = 0; TaskAddr < LPTIM_OPEN_AND_TASK_NUM; TaskAddr++) {
+        if (SetLPTime.Task[TaskAddr].isTaskStart == false) {
+            continue;
+        }
+        if (SetLPTime.Task[TaskAddr].CountNumOnce250Ms < SetLPTime.Task[TaskAddr].Max250MsNum) {
+            SetLPTime.Task[TaskAddr].CountNumOnce250Ms++;
+        } else {
+            SetLPTime.Task[TaskAddr].TimeTask_Falge = true;
+        }
+        if (SetLPTime.Task[TaskAddr].TimeTask_Falge == true) {
+            if (SetLPTime.Task[TaskAddr].TaskFunc != NULL) {
+                SetLPTime.Task[TaskAddr].TaskFunc(); // 注意:该函数，执行时不要太长，也不要启动同一个定时器的其他任务
+            }
+        }
+    }
+}
+// 定时任务结构体初始化
+void LPInitSetTime(void) {
+    SetLPTime.LPInitSetTimeTask = _LPInitSetTimeTask;
+    SetLPTime.CloseTask = _LPSetCloseTask;
+    SetLPTime.NumberOfTimeTask = LPTIM_OPEN_AND_TASK_NUM; // 定时任务数量
+}
+#endif
+

@@ -185,11 +185,24 @@ int doubleChStrToShortChStr(strnew inputArray, strnew OutputArray) {
 }
 
 // 字符串转 任意进制数
-int64_t doneAsciiStrToAnyBaseNumberData(char AscArray[], int NumStrNowLen, int OutputBase) {
-    strArrayToNumberArray(AscArray, AscArray, NumStrNowLen);                           // 去掉 0x30
-    int NumTemp = anyBaseArrayToAnyBaseNumber(AscArray, NumStrNowLen, 10, OutputBase); // 组合成 任意进制数
-    numberArrayToStrArray(AscArray, AscArray, NumStrNowLen);                           // 复原 0x30
-    return NumTemp;
+int doneAsciiStrToAnyBaseNumberData(char AscArray[], int OutputBase) {
+    int NumStrNowLen = 0;
+    // 查询符号
+    int sign = 1;
+    if (*AscArray == '-') {
+        sign = -1;
+        AscArray++;
+    } else if (*AscArray == '+') {
+        AscArray++;
+    }
+    while ((AscArray[NumStrNowLen] >= '0') && (AscArray[NumStrNowLen] <= '9')) {
+        NumStrNowLen++;
+    }
+    newString(NumStr, 12);
+    memcpy(NumStr.Name._char, AscArray, NumStrNowLen);
+    strArrayToNumberArray(NumStr.Name._char, AscArray, NumStrNowLen);                           // 去掉 0x30
+    int NumTemp = anyBaseArrayToAnyBaseNumber(NumStr.Name._char, NumStrNowLen, 10, OutputBase); // 组合成 任意进制数
+    return ((sign == 1) ? NumTemp : -NumTemp);
 }
 // 任意进制数 转 字符串
 int doneBaseNumberDataToAsciiStr(char AscArray[], int ArrayMaxLen, int NumberData, int IntputBase) {
@@ -204,8 +217,8 @@ double doneAsciiToDouble(char AscArray[]) {
     return atof(AscArray);
 }
 // double 转 字符串
-void doneDoubleToAscii(char AscArray[], double InputData) {
-    sprintf(AscArray, "%lf", InputData);
+void doneDoubleToAscii(char AscArray[], const char From[], double InputData) {
+    sprintf(AscArray, From, InputData);
 }
 // 读取某位 返回对应位的 bool 值
 bool readDataBit(uint64_t InputNumber, int8_t BitNumber) {

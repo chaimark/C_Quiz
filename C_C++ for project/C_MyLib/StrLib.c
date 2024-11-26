@@ -8,6 +8,7 @@ char * myStrstrCont(char * MotherStr, char * SonStr, int MotherMaxSize, int Cont
 void swapChr(char * a, char * b);
 void swapStr(char * IntputStr, int StrLen);
 char swapLowHight_Of_Char(char InputCh);
+bool MoveDataOnBuff(strnew IntptBuff, int ShiftLen, bool IsLeft);
 
 /*******************************************************************************************************************/
 /*******************************************************************************************************************/
@@ -143,11 +144,34 @@ void swapStr(char * InputStr, int StrLen) {
     }
 }
 
-// 实现单字节翻转函数
+// 实现单字节翻转的函数
 char swapLowHight_Of_Char(char InputCh) {
     char DataH = (InputCh & 0xF0) >> 4;
     char DataL = (InputCh & 0x0F) << 4;
 
     return (DataL | DataH);
+}
+
+// 实现将数组左移或右移动某个长度的函数
+bool MoveDataOnBuff(strnew IntptBuff, int ShiftLen, bool IsLeft) {
+    if (ShiftLen > IntptBuff.MaxLen) {
+        return false;
+    }
+    if (IsLeft) {
+        for (int i = 0; i < IntptBuff.MaxLen - ShiftLen; i++) {
+            IntptBuff.Name._char[i] = IntptBuff.Name._char[i + ShiftLen];
+        }
+        for (int i = 0; i < ShiftLen; i++) {
+            IntptBuff.Name._char[(IntptBuff.MaxLen - ShiftLen) + i] = 0;
+        }
+    } else {
+        for (int i = IntptBuff.MaxLen - 1; i >= ShiftLen; i--) {
+            IntptBuff.Name._char[i] = IntptBuff.Name._char[i - ShiftLen];
+        }
+        for (int i = 0; i < ShiftLen; i++) {
+            IntptBuff.Name._char[i] = 0;
+        }
+    }
+    return true;
 }
 

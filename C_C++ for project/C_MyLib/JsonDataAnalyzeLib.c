@@ -1,6 +1,7 @@
 #include "JsonDataAnalyzeLib.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "NumberBaseLib.h"
 
 //==========================================================================================//
 //==========================================================================================//
@@ -62,14 +63,14 @@ char * getDoubleChrOnString(char * MotherString, char HeadChr, char EndChr) {
 }
 
 // 拼接 关键字 字符串
-void _getKeyName(char * SonStr, char Key[]) {
-    catString(SonStr, "\"", 100, 1);
-    catString(SonStr, Key, 100, strlen(Key));
-    catString(SonStr, "\":", 100, 2);
+void _getKeyName(strnew SonStr, char Key[]) {
+    catString(SonStr.Name._char, "\"", SonStr.MaxLen, 1);
+    catString(SonStr.Name._char, Key, SonStr.MaxLen, strlen(Key));
+    catString(SonStr.Name._char, "\":", SonStr.MaxLen, 2);
 }
 #define getKeyName(name, len, key)   \
     char name[len] = {0};\
-    _getKeyName(name,key)
+    _getKeyName(NEW_NAME(name),key)
 
 
 //==========================================================================================//
@@ -183,7 +184,8 @@ int Obj_getInt(struct _JsonObject This, char Key[]) {
         while ((*KeyP) == ' ') {
             KeyP++;
         }
-        return atol(KeyP);
+        return doneAsciiStrToAnyBaseNumberData(KeyP, 16);
+        //return atol(KeyP);
     }
     return 0;
 }
@@ -212,11 +214,14 @@ bool Obj_getBool(struct _JsonObject This, char Key[]) {
         *(KeyP + 4) = '\0';
         if ((strcmp(KeyP, "true") == 0) || (strcmp(KeyP, "TRUE") == 0) || (strcmp(KeyP, "True") == 0)) {
             ResBool = true;
+        } else if ((strcmp(KeyP, "false") == 0) || (strcmp(KeyP, "FALSE") == 0) || (strcmp(KeyP, "False") == 0)) {
+            ResBool = false;
         }
         *(KeyP + 4) = Temp;
     }
     return ResBool;
 }
+// 不支持原地转换，避免破环 json 数据
 void Obj_getString(struct _JsonObject This, char Key[], strnew OutStr) {
     getKeyName(SonStr, 50, Key);
     char * KeyP = NULL;
@@ -234,6 +239,7 @@ void Obj_getString(struct _JsonObject This, char Key[], strnew OutStr) {
     }
     return;
 }
+// 注意输出地址与原json字符串地址一致时，会破坏原数据
 struct _JsonArray Obj_getArray(struct _JsonObject This, char Key[], strnew OutStr) {
     JsonArray tempJsonArr = newJsonArrayByString(OutStr);
     getKeyName(SonStr, 50, Key);
@@ -247,13 +253,16 @@ struct _JsonArray Obj_getArray(struct _JsonObject This, char Key[], strnew OutSt
         if ((EndP = getDoubleChrOnString(KeyP, '[', ']')) != NULL) {
             char Temp = *(EndP + 1);
             *(EndP + 1) = '\0';
-            memset(tempJsonArr.JsonString.Name._char, 0, tempJsonArr.JsonString.MaxLen);
-            copyString(tempJsonArr.JsonString.Name._char, KeyP, tempJsonArr.JsonString.MaxLen, strlen(KeyP));
-            *(EndP + 1) = Temp;
+            if (OutStr.Name._char != This.JsonString.Name._char) {
+                memset(tempJsonArr.JsonString.Name._char, 0, tempJsonArr.JsonString.MaxLen);
+                copyString(tempJsonArr.JsonString.Name._char, KeyP, tempJsonArr.JsonString.MaxLen, strlen(KeyP));
+                *(EndP + 1) = Temp;
+            }
         }
     }
     return tempJsonArr;
 }
+// 注意输出地址与原json字符串地址一致时，会破坏原数据
 struct _JsonObject Obj_getObject(struct _JsonObject This, char Key[], strnew OutStr) {
     JsonObject tempJsonObj = newJsonObjectByString(OutStr);
     getKeyName(SonStr, 50, Key);
@@ -267,9 +276,11 @@ struct _JsonObject Obj_getObject(struct _JsonObject This, char Key[], strnew Out
         if ((EndP = getDoubleChrOnString(KeyP, '{', '}')) != NULL) {
             char Temp = *(EndP + 1);
             *(EndP + 1) = '\0';
-            memset(tempJsonObj.JsonString.Name._char, 0, tempJsonObj.JsonString.MaxLen);
-            copyString(tempJsonObj.JsonString.Name._char, KeyP, tempJsonObj.JsonString.MaxLen, strlen(KeyP));
-            *(EndP + 1) = Temp;
+            if (OutStr.Name._char != This.JsonString.Name._char) {
+                memset(tempJsonObj.JsonString.Name._char, 0, tempJsonObj.JsonString.MaxLen);
+                copyString(tempJsonObj.JsonString.Name._char, KeyP, tempJsonObj.JsonString.MaxLen, strlen(KeyP));
+                *(EndP + 1) = Temp;
+            }
         }
     }
     return tempJsonObj;
