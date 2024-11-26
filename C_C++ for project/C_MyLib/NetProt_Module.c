@@ -135,7 +135,7 @@ bool copyDataForUART(void) {
             memcpy(&Now_NetDevParameter.NetDataBuff[Now_NetDevParameter.NetDataBuff_NowLen], UartBuff.Name._char, NowRxLen); // 接收数据
             Now_NetDevParameter.NetDataBuff_NowLen += NowRxLen;
         } else {
-            memset(Now_NetDevParameter.NetDataBuff, 0, ARR_SIZE(Now_NetDevParameter.NetDataBuff)); // 释放 HTTPBuff_p
+            ClearNetDataBuff();
             memcpy(Now_NetDevParameter.NetDataBuff, UartBuff.Name._char, NowRxLen);   // 接收数据
             Now_NetDevParameter.NetDataBuff_NowLen = NowRxLen;
         }
@@ -417,7 +417,7 @@ void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
 #endif
     }
     return;
-    }
+}
 
 /******************************/
 NetDevATCmd NetDevice_ATData[ATCMD_MAXNUMBER] = {0};
