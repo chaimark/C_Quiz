@@ -4,7 +4,7 @@
 typedef struct _threadArgs {
     HANDLE hComObj;
     strnew recvBuff;
-    int bytesRead;
+    DWORD bytesRead;
 } threadArgs; // 线程参数
 
 void SetComPortData(HANDLE * _hCom) {
@@ -82,7 +82,30 @@ void SetComPortData(HANDLE * _hCom) {
 
 // 串口数据写入函数
 bool SendDataToComX(strnew DataStr, HANDLE hComObj) {
-    return false;
+    DWORD bytesWritten = 0;  // 用于记录实际写入的字节数
+    BOOL writeStatus;
+    
+    // 确保数据末尾是以 '\0' 结尾（字符串格式）
+    DataStr.Name._char[strlen(DataStr.Name._char)] = '\0';
+
+    // 调用 WriteFile 将数据发送到串口
+    writeStatus = WriteFile(
+        hComObj,                     // 串口句柄
+        DataStr.Name._char,          // 发送的数据
+        strlen(DataStr.Name._char),  // 数据长度
+        &bytesWritten,               // 实际写入的字节数
+        NULL                         // 重叠结构（此处不使用重叠IO）
+    );
+    
+    // 判断写入操作是否成功
+    if (!writeStatus) {
+        DWORD dwError = GetLastError();
+        printf("Error writing to serial port, error code: %lu\n", dwError);
+        return false;
+    }
+
+    printf("Successfully sent %lu bytes of data to COM port.\n", bytesWritten);
+    return true;
 }
 // 串口数据接收线程函数
 DWORD WINAPI CopyStsToUser(LPVOID Args) {

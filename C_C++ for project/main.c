@@ -15,36 +15,33 @@
 #include <stdio.h>
 #include <windows.h>
 
-
-
-
-// void SendCmdMenu(strnew data) {
-//     //{"Read":"AT24DataJSON","NowCheckNum":1765}
-//     char * ConstData = "{\"Read\":\"AT24DataJSON\",\"NowCheckNum\":1765}"; // 需要发送的数据
-//     memcpy(data.Name._char, ConstData, strlen(ConstData));
-//     // printf("请选择需要发送的数据：\n");
-//     // printf("1. 发送数据\n");
-//     // printf("2. 退出\n");
-// }
-// char SwitchNeedSendData(strnew data) {
-//     char EscFlag = 0;
-//     SendCmdMenu(data);
-//     //printf("输入 #, 结束该进程");
-//     // 清理缓冲区
-//     //fflush(stdin);
-//     //scanf("%c", &EscFlag);
-//     return EscFlag;
-// }
-// int main() {
-//     char comPort[7] = {0};
-//     list_serial_ports();  // 列出所有可用的串口4
-//     printf("请输入您需要使用的串口：");
-//     unsigned char comNum = 0;
-//     scanf("%d", &comNum);
-//     sprintf(comPort, "COM%d", comNum);
-//     SendDataTask(comPort, SwitchNeedSendData);
-//     return 0;
-// }
+void SendCmdMenu(strnew data) {
+    //{"Read":"AT24DataJSON","NowCheckNum":1765}
+    char * ConstData = "{\"Read\":\"AT24DataJSON\",\"NowCheckNum\":1765}"; // 需要发送的数据
+    memcpy(data.Name._char, ConstData, strlen(ConstData));
+    // printf("请选择需要发送的数据：\n");
+    // printf("1. 发送数据\n");
+    // printf("2. 退出\n");
+}
+char SwitchNeedSendData(strnew data) {
+    char EscFlag = 0;
+    SendCmdMenu(data);
+    //printf("输入 #, 结束该进程");
+    // 清理缓冲区
+    //fflush(stdin);
+    //scanf("%c", &EscFlag);
+    return EscFlag;
+}
+int main() {
+    char comPort[7] = {0};
+    list_serial_ports();  // 列出所有可用的串口4
+    printf("请输入您需要使用的串口：");
+    unsigned char comNum = 0;
+    scanf("%d", &comNum);
+    sprintf(comPort, "COM%d", comNum);
+    SendDataTask(comPort, SwitchNeedSendData);
+    return 0;
+}
 
 // char NetDataBuff[1024] = {"{\"gw\":{\"msg_id\":60,\"msg_gw_pr\":0,\"gw_id\":\"02345678903\"},\"data\":{\"NowPackNum\":3,\"Code\":\"1146FFF7E9FF10F047F802F0FDFF03B4FFF7F2FF03BC0EF0E5FD000070B505460C46164602E00FCC0FC5103E102EFAD2082E02D303CC03C5083E042E07D301CC01C5361F03E021782970641C6D1C761EF9D270BD0748804707480047FEE7FEE7FEE7FEE7FEE7FEE704480549054A064B7047000029080100C140000098450020,\"CsCheckNum\":87}}"};
 
