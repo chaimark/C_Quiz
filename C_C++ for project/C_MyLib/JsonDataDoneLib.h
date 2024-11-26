@@ -5,7 +5,7 @@
 
 typedef struct __JsonItem {
     char KeyType;
-    char key[20];
+    char key[50];
     union _newVar {
         int Dataint;       // 整型指针
         long Datalong;     // 长整型指针
