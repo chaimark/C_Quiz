@@ -1,11 +1,18 @@
 #include "SendDataBySerial.h"
+#include <windows.h>
+#include <stdio.h>
+typedef struct _threadArgs {
+    HANDLE hComObj;
+    strnew recvBuff;
+    int bytesRead;
+} threadArgs; // 线程参数
 
-void SetComPortData(DCB * _dcbSerialParams, HANDLE * _hCom) {
+void SetComPortData(HANDLE * _hCom) {
 #define hCom (*_hCom)
-#define dcbSerialParams (*_dcbSerialParams)
+    DCB ComObj = {0};
     // 配置串口
-    dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-    if (!GetCommState(hCom, &dcbSerialParams)) {
+    ComObj.DCBlength = sizeof(ComObj);
+    if (!GetCommState(hCom, &ComObj)) {
         printf("Error getting current serial parameters\n");
         CloseHandle(hCom);
         return;
@@ -22,29 +29,29 @@ void SetComPortData(DCB * _dcbSerialParams, HANDLE * _hCom) {
     scanf("%d", &baudrate);
     switch (baudrate) {
         case 1:
-            dcbSerialParams.BaudRate = CBR_2400;
+            ComObj.BaudRate = CBR_2400;
             break;
         case 2:
-            dcbSerialParams.BaudRate = CBR_4800;
+            ComObj.BaudRate = CBR_4800;
             break;
         case 3:
-            dcbSerialParams.BaudRate = CBR_9600;
+            ComObj.BaudRate = CBR_9600;
             break;
         case 4:
-            dcbSerialParams.BaudRate = CBR_19200;
+            ComObj.BaudRate = CBR_19200;
             break;
         case 5:
-            dcbSerialParams.BaudRate = CBR_38400;
+            ComObj.BaudRate = CBR_38400;
             break;
         case 6:
-            dcbSerialParams.BaudRate = CBR_57600;
+            ComObj.BaudRate = CBR_57600;
             break;
         case 7:
-            dcbSerialParams.BaudRate = CBR_115200;
+            ComObj.BaudRate = CBR_115200;
             break;
     }
-    dcbSerialParams.ByteSize = 8;   // 数据位 8
-    dcbSerialParams.StopBits = ONESTOPBIT; // 1 个停止位
+    ComObj.ByteSize = 8;   // 数据位 8
+    ComObj.StopBits = ONESTOPBIT; // 1 个停止位
     printf("1.无校验\n");
     printf("2.奇校验\n");
     printf("3.偶校验\n");
@@ -53,24 +60,50 @@ void SetComPortData(DCB * _dcbSerialParams, HANDLE * _hCom) {
     scanf("%d", &parity);
     switch (parity) {
         case 1:
-            dcbSerialParams.Parity = NOPARITY;   // 无校验位
+            ComObj.Parity = NOPARITY;   // 无校验位
             break;
         case 2:
-            dcbSerialParams.Parity = ODDPARITY;   // 奇校验位
+            ComObj.Parity = ODDPARITY;   // 奇校验位
             break;
         case 3:
-            dcbSerialParams.Parity = EVENPARITY;   // 偶校验位
+            ComObj.Parity = EVENPARITY;   // 偶校验位
             break;
         default:
             printf("Error setting parity\n");
-            dcbSerialParams.Parity = EVENPARITY;   // 偶校验位
+            ComObj.Parity = EVENPARITY;   // 偶校验位
     }
-    dcbSerialParams.Parity = NOPARITY;   // 无校验位
-    if (!SetCommState(hCom, &dcbSerialParams)) {
+    ComObj.Parity = NOPARITY;   // 无校验位
+    if (!SetCommState(hCom, &ComObj)) {
         printf("Error setting serial parameters\n");
         CloseHandle(hCom);
         return;
     }
+}
+
+// 串口数据写入函数
+bool SendDataToComX(strnew DataStr, HANDLE hComObj) {
+    return false;
+}
+// 串口数据接收线程函数
+DWORD WINAPI CopyStsToUser(LPVOID Args) {
+    threadArgs ArgStrutc = *((threadArgs *)Args);  // 获取线程 ID
+    while (1) {
+        if (ReadFile(ArgStrutc.hComObj, Args, sizeof(ArgStrutc.recvBuff.Name._char) - 1, &ArgStrutc.bytesRead, NULL)) {
+            if (ArgStrutc.bytesRead > 0) {
+                ArgStrutc.recvBuff.Name._char[ArgStrutc.bytesRead] = '\0';  // 确保字符串结束
+                printf("Received data: %s\n", ArgStrutc.recvBuff.Name._char);
+            } else {
+                printf("No data received\n");
+            }
+        } else {
+            DWORD dwError = GetLastError();
+            if (dwError != ERROR_IO_PENDING) {
+                printf("ReadFile failed, error code: %lu\n", dwError);
+            }
+        }
+        Sleep(500);
+    }
+    pthread_exit(NULL);
 }
 
 void SendDataTask(const char * comPort, char (*SwitchNeedSendData)(strnew data)) {
@@ -81,44 +114,54 @@ void SendDataTask(const char * comPort, char (*SwitchNeedSendData)(strnew data))
         NULL,       // 默认安全性
         OPEN_EXISTING,
         0,          // 默认属性
-        NULL);
+        NULL
+    );
     if (hComObj == INVALID_HANDLE_VALUE) {
         printf("Error opening port\n");
         return;
     }
-    DCB ComObj = {0};
-    SetComPortData(&ComObj, &hComObj);
-    // 写数据到串口
-    char data[100] = {0}; // 需要发送的数据
-    char recvData[128];
-    DWORD bytesWritten, bytesRead;
-    while (1) {
-        if (SwitchNeedSendData(NEW_NAME(data)) == '#') {
-            break;
-        }
-        if (!WriteFile(hComObj, data, strlen(data), &bytesWritten, NULL)) {
-            printf("Error writing to serial port\n");
-            CloseHandle(hComObj);
-            return;
-        }
-        printf("Data sent: %s\n\n", data);
-        if (ReadFile(hComObj, recvData, sizeof(recvData) - 1, &bytesRead, NULL)) {
-            if (bytesRead > 0) {
-                recvData[bytesRead] = '\0';  // 确保字符串结束
-                printf("Received data: %s\n", recvData);
-            } else {
-                printf("No data received\n");
-            }
-        } else {
-            DWORD dwError = GetLastError();
-            if (dwError != ERROR_IO_PENDING) {
-                printf("ReadFile failed, error code: %lu\n", dwError);
-            }
-        }
+
+    // 配置串口
+    SetComPortData(&hComObj);
+
+    char recvData[2048] = {0};  // 接收缓冲区
+    HANDLE threads; // 存储线程句柄
+    DWORD threadId; // 存储线程 ID
+    threadArgs ArgeObj;
+    ArgeObj.recvBuff = NEW_NAME(recvData);
+    ArgeObj.bytesRead = 0;
+    ArgeObj.hComObj = hComObj;
+
+    threads = CreateThread(
+        NULL,           // 默认安全属性
+        0,              // 默认堆栈大小
+        CopyStsToUser, // 线程函数
+        &ArgeObj,    // 传递给线程的参数
+        0,              // 默认创建方式
+        &threadId       // 线程 ID
+    );
+    if (threads == NULL) {
+        printf("Failed to create thread\n");
+        return;
     }
+    char sendData[2048] = {0};  // 发送缓冲区
+    while (1) {
+        // 获取发送数据并进行处理
+        if (SwitchNeedSendData(NEW_NAME(sendData)) == '#') {
+            pthread_cancel(threads);
+            break; // 如果返回 '#'，则不继续发送数据
+        }
+        SendDataToComX(NEW_NAME(sendData), hComObj);
+        Sleep(1000);
+    }
+    // 等待线程完成
+    WaitForMultipleObjects(1, threads, TRUE, INFINITE);
+    // 关闭线程句柄
+    CloseHandle(threads);
     // 关闭串口
     CloseHandle(hComObj);
 }
+
 
 // 输出所有的串口列表
 void list_serial_ports() {
@@ -150,3 +193,4 @@ void list_serial_ports() {
         }
     }
 }
+
