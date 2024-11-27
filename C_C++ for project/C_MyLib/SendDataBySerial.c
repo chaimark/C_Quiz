@@ -126,7 +126,7 @@ DWORD WINAPI CopyStsToUser(LPVOID Args) {
         }
         Sleep(500);
     }
-    pthread_exit(NULL);
+    //pthread_exit(NULL);
 }
 
 void SendDataTask(const char * comPort, char (*SwitchNeedSendData)(strnew data)) {
@@ -171,7 +171,7 @@ void SendDataTask(const char * comPort, char (*SwitchNeedSendData)(strnew data))
     while (1) {
         // 获取发送数据并进行处理
         if (SwitchNeedSendData(NEW_NAME(sendData)) == '#') {
-            pthread_cancel(threads);
+            //pthread_cancel(threads);
             break; // 如果返回 '#'，则不继续发送数据
         }
         SendDataToComX(NEW_NAME(sendData), hComObj);

@@ -195,9 +195,13 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
                     break;
                 case 'p': // %p：指针地址。
                     ItemData->KeyType = 'p';
+                    ItemData->var._char = va_arg(args, void *);
+                    ItemData->var._char = NULL;
                     break;
                 case 'J': // %p：指针地址。
                     ItemData->KeyType = 'J';
+                    ItemData->var._char = va_arg(args, void *);
+                    ItemData->var._char = NULL;
                     break;
             }
             break;
