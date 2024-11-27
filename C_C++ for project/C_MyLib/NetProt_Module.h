@@ -27,8 +27,8 @@ int abac;
 // 内部定义
 #define BuffcheckTime10Ms 7 // 70ms
 
-#define CmdListMax 5      // 最大队列数
-#define CmdStrLenMax 600  // 最大字符串长度
+#define CmdListMax 3      // 最大队列数
+#define CmdStrLenMax 800  // 最大字符串长度
 typedef struct _TableOfCmdTask {
     char ListStr[CmdListMax][CmdStrLenMax + 1]; // Bebug 循环队列
     char NowListNum;        // 当前队列已保存数
