@@ -81,7 +81,8 @@
 ## 2024.12-
     sudo fdisk -l 查询SD卡，烧写uboot到SD卡
     从SD卡启动 uboot 
-    等待uboot启动后，查询IP 使用 ssh 将开发版挂载到ubuntu，然后下载内核和文件系统，最后设置bootloader 环境变量
+    等待uboot启动后，查询IP 使用 ssh 将开发版挂载到ubuntu，然后下载内核和文件系统
+    最后设置bootloader 环境变量
 ## 还未执行
     学习如何使用 menuconfig 配置内核,并使用 zImage 编译内核
     学习如何使用 busybox 配置根文件系统
