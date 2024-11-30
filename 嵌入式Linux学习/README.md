@@ -63,7 +63,7 @@
     编译 u-boot.bin:{
         tar -vzxf 解压官方提供的 u—boot 压缩包
         进入目录，使用 vim 打开 Makefile，搜索目标 “*6140*” 并复制目标
-        然后推出vim，并在当前目录 使用 make *6410* ; 配置 make 工具
+        然后退出vim，并在当前目录 使用 make *6410* ; 配置 make 工具
         然后使用 make ARCH=arm 编译 u-boot.bin
     }
     编译内核:{
@@ -77,13 +77,11 @@
         使用 make uImage ARCH=arm CROSS_COMPILE=arm-linux- 编译内核
     }
     编译根文件系统:{
-        tar -vzxf 解压官方提供的 busybox 压缩包
-        进入目录，使用 vim 打开 Makefile，搜索目标 “*6140*” 并复制目标
-        然后推出vim，并在当前目录 使用 make *6410* ; 配置 make 工具
-        使用 make ARCH=arm CROSS_COMPILE=arm-linux- 编译根文件系统
     }
 ## 2024.12-
-    烧写u-boot.bin到开发板
+    sudo fdisk -l 查询SD卡，烧写uboot到SD卡
+    从SD卡启动 uboot 
+    等待uboot启动后，查询IP 使用 ssh 将开发版挂载到ubuntu，然后下载内核和文件系统，最后设置bootloader 环境变量
 ## 还未执行
     学习如何使用 menuconfig 配置内核,并使用 zImage 编译内核
     学习如何使用 busybox 配置根文件系统
