@@ -59,17 +59,32 @@
         sudo apt-get update
         sudo apt-get upgrade
     }
-## 2024.9-2024.
-    配置内核:{
-        sudo apt-get install libncurses5-dev
-        sudo apt-get install ncurses-dev
-        make menuconfig ARCH=arm
+## 2024.9-2024.12
+    编译 u-boot.bin:{
+        tar -vzxf 解压官方提供的 u—boot 压缩包
+        进入目录，使用 vim 打开 Makefile，搜索目标 “*6140*” 并复制目标
+        然后推出vim，并在当前目录 使用 make *6410* ; 配置 make 工具
+        然后使用 make ARCH=arm 编译 u-boot.bin
     }
     编译内核:{
-        make uImage ARCH=arm CROSS_COMPILE=arm-linux-
+        sudo apt-get install uboot-mkimage 安装 uImage 生成工具
+        tar -vzxf 解压官方提供的 linux 压缩包
+        进入 arch/arm/configs 目录， 找到对应开发板的config文件，复制到 linux 目录下
+        使用 make menuconfig ARCH=arm 配置 make 工具
+        使用 sudo apt-get install libncurses5-dev   安装对应的支持库
+        使用 sudo apt-get install ncurses-dev       安装对应的支持库
+        使用 sudo apt-get install libpcap-dev       安装对应的支持库
+        使用 make uImage ARCH=arm CROSS_COMPILE=arm-linux- 编译内核
     }
+    编译根文件系统:{
+        tar -vzxf 解压官方提供的 busybox 压缩包
+        进入目录，使用 vim 打开 Makefile，搜索目标 “*6140*” 并复制目标
+        然后推出vim，并在当前目录 使用 make *6410* ; 配置 make 工具
+        使用 make ARCH=arm CROSS_COMPILE=arm-linux- 编译根文件系统
+    }
+## 2024.12-
+    烧写u-boot.bin到开发板
 ## 还未执行
-    学习如何使用交叉编译器编译程序
     学习如何使用 menuconfig 配置内核,并使用 zImage 编译内核
     学习如何使用 busybox 配置根文件系统
     学习如何使用 mkfs 创建文件系统
