@@ -87,6 +87,20 @@
         制作 SD 卡启动只需要使用友善提供的软件直接将 superboot 制作成启动盘
     }
 ## 2024.12-
+    从SD卡或NAND启动 uboot.bin{
+        从 eMMC 启动内核{ 
+            //eMMC 就是 NAND flash
+            使用 uboot 的命令查看 NAND flash 或 SD 卡中的存放的 uImage 和 根文件系统
+            使用 uboot 的命令将 uImage 和 根文件系统 下载到 DDR 中
+            然后使用 bootz 命令启动内核
+        }
+        从 net 启动内核{
+            ifconfig 获取主机IP
+            在uboot 中 ping 主机IP, 确保网络畅通
+            在uboot 中 使用 tftp 将主机中的 uImage 和 根文件系统 下载到 DDR 中
+            然后使用 bootz 命令启动内核
+        }
+    }
     编译官方根文件系统:{
     }
     从SD卡启动 uboot.bin 
