@@ -60,14 +60,14 @@
         sudo apt-get upgrade
     }
 ## 2024.9-2024.12
-    编译 u-boot.bin:{
+    编译 uboot.bin :{
         tar -vzxf 解压官方提供的 u—boot 压缩包
         进入目录，使用 vim 打开 Makefile，搜索目标 “*6140*” 并复制目标
         然后退出vim，并在当前目录 使用 make *6410* ; 配置 make 工具
-        然后使用 make ARCH=arm 编译 u-boot.bin
+        然后使用 make ARCH=arm 编译 uboot.bin 
     }
     编译内核:{
-        sudo apt-get install uboot-mkimage 安装 uImage 生成工具
+        sudo apt-get install uboot.bin -mkimage 安装 uImage 生成工具
         tar -vzxf 解压官方提供的 linux 压缩包
         进入 arch/arm/configs 目录， 找到对应开发板的config文件，复制到 linux 目录下
         使用 make menuconfig ARCH=arm 配置 make 工具
@@ -76,12 +76,21 @@
         使用 sudo apt-get install libpcap-dev       安装对应的支持库
         使用 make uImage ARCH=arm CROSS_COMPILE=arm-linux- 编译内核
     }
-    编译根文件系统:{
+    准备 通用的 SD 卡启动盘:{
+        通过分区工具将 SD 卡分为两个区，一个无格式分区(前256M)，一个 FAT32 分区(其他正常空间)
+        sudo fdisk -l 查询SD卡分区信息
+        使用 sudo dd 命令将 uboot.bin 烧写到 SD 卡, 并避开前 512 字节（分区表信息） 
+    }
+    准备 友善之臂的 SD 卡启动盘:{
+        6410 提供的 superboot 有两种启动方式，一种是从 SD 卡启动，一种是从 NAND 启动
+        将 SD 卡中的 images/FriendlyoARM.ini 文件中的 USB-Mode = yes 改成 USB-Mode = no，则与普通 uboot.bin SD卡启动一致，否则开发板将处于 USB 下载模式，需要配合友善之臂提供的下载工具烧写 uboot.bin 到nand flasH 中运行。
+        制作 SD 卡启动只需要使用友善提供的软件直接将 superboot 制作成启动盘
     }
 ## 2024.12-
-    sudo fdisk -l 查询SD卡，烧写uboot到SD卡
-    从SD卡启动 uboot 
-    等待uboot启动后，查询IP 使用 ssh 将开发版挂载到ubuntu，然后下载内核和文件系统
+    编译根文件系统:{
+    }
+    从SD卡启动 uboot.bin 
+    等待 uboot.bin 启动后，查询IP 使用 ssh 将开发版挂载到ubuntu，然后下载内核和文件系统
     最后设置bootloader 环境变量
 ## 还未执行
     学习如何使用 menuconfig 配置内核,并使用 zImage 编译内核
