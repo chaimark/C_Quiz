@@ -60,13 +60,13 @@
         sudo apt-get upgrade
     }
 ## 2024.9-2024.12
-    编译 uboot.bin :{
+    编译官方 uboot.bin :{
         tar -vzxf 解压官方提供的 u—boot 压缩包
         进入目录，使用 vim 打开 Makefile，搜索目标 “*6140*” 并复制目标
         然后退出vim，并在当前目录 使用 make *6410* ; 配置 make 工具
         然后使用 make ARCH=arm 编译 uboot.bin 
     }
-    编译内核:{
+    编译官方内核:{
         sudo apt-get install uboot.bin -mkimage 安装 uImage 生成工具
         tar -vzxf 解压官方提供的 linux 压缩包
         进入 arch/arm/configs 目录， 找到对应开发板的config文件，复制到 linux 目录下
@@ -87,7 +87,7 @@
         制作 SD 卡启动只需要使用友善提供的软件直接将 superboot 制作成启动盘
     }
 ## 2024.12-
-    编译根文件系统:{
+    编译官方根文件系统:{
     }
     从SD卡启动 uboot.bin 
     等待 uboot.bin 启动后，查询IP 使用 ssh 将开发版挂载到ubuntu，然后下载内核和文件系统
