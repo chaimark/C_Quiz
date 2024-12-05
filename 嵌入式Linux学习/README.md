@@ -115,7 +115,7 @@
         setenv netmask 255.255.255.0        // 子网掩码
         setenv ethaddr 00:0c:29:8f:6a:5b    // MAC 地址
         setenv loadaddr 0x30008000          // 下载地址   
-        setenv bootcmd {                    // boot启动命令
+        setenv bootcmd {                    // boot 启动后的自动命令
             setenv bootcmd nand read 0x30008000 0x100000 0x400000; nand read 0x31000000 0x200000 0x400000; bootm 0x30008000
             setenv bootcmd tftp 0x30008000 zImage; tftp 0x31000000 文件系统; ;bootm 0x30008000
         }
@@ -124,18 +124,17 @@
     编译官方根文件系统:{
     }
     使用tftp 下载内核和根文件系统{
-        然后使用 bootz/bootm 命令启动内核
+        根据编译后的大小, 确定需要 copy 到 RAM内存中的地址
+        然后使用 bootz/bootm 命令启动内核和文件系统, 进入 Linux
     }
-    使用 XXXXXX 将开发版挂载到ubuntu上{
-        在上位机上开发，然后将程序copy到挂载的位置
+    进入 Linux 后, 使用 XXXXXX 将开发版挂载到ubuntu上{
+        在上位机上开发, 然后将程序copy到挂载的位置
     }
-
 ## 还未执行
     学习如何使用 menuconfig 配置内核,并使用 zImage 编译内核
     学习如何使用 busybox 配置根文件系统
     学习如何使用 mkfs 创建文件系统
     学习如何制作自己的 bootloader
-    学习如何烧录bootloader, zImage, 根文件系统到开发板
     学习如何使用 mtools 挂载文件系统
     学习如何使用 mount 挂载文件系统
     学习如何使用 umount 卸载文件系统
@@ -147,17 +146,10 @@
     学习如何开发 ARM Linux 环境下的应用程序
 
 #### 常用命令
-    了解 cd 命令,  切换目录
-    了解 ls 命令, 查看文件和文件夹
-    了解 pwd, 查看当前目录
     了解 mkdir, 创建文件夹
     了解 touch, 创建文件
     了解 rm, 删除文件
     了解 rmdir, 删除文件夹
-    了解 cp, 复制文件
-    了解 mv, 移动文件, 重名了文件
-    了解 cat, 查看文件内容
-    简单了解 vim, 编辑文本
     了解 grep , 搜索文件内容
     了解 find, 搜索文件
     了解 tar, 压缩文件
