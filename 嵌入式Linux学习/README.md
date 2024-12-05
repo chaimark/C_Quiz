@@ -87,25 +87,49 @@
         制作 SD 卡启动只需要使用友善提供的软件直接将 superboot 制作成启动盘
     }
 ## 2024.12-
+    在上位机使用 ifconfig 查询IP, 并安装 tftp 服务器, 并配置 tftp 服务器{
+        sudo apt-get install tftp-hpa
+        sudo vim /etc/default/tftpd-hpa
+        sudo systemctl restart tftpd-hpa
+    }
     从SD卡或NAND启动 uboot.bin{
         从 eMMC 启动内核{ 
             //eMMC 就是 NAND flash
             使用 uboot 的命令查看 NAND flash 或 SD 卡中的存放的 uImage 和 根文件系统
             使用 uboot 的命令将 uImage 和 根文件系统 下载到 DDR 中
-            然后使用 bootz 命令启动内核
+            然后使用 bootz/bootm 命令启动内核
         }
         从 net 启动内核{
             ifconfig 获取主机IP
             在uboot 中 ping 主机IP, 确保网络畅通
             在uboot 中 使用 tftp 将主机中的 uImage 和 根文件系统 下载到 DDR 中
-            然后使用 bootz 命令启动内核
+            然后使用 bootz/bootm 命令启动内核
         }
+    }
+    设置 bootloader 环境变量{
+        help 查看uboot 的帮助信息
+        printenv 查看uboot 的环境变量
+        setenv ipaddr 192.168.1.100         // 开发板IP
+        setenv serverip 192.168.1.101       // 主机IP
+        setenv gatewayip 192.168.1.1        // 网关IP
+        setenv netmask 255.255.255.0        // 子网掩码
+        setenv ethaddr 00:0c:29:8f:6a:5b    // MAC 地址
+        setenv loadaddr 0x30008000          // 下载地址   
+        setenv bootcmd {                    // boot启动命令
+            setenv bootcmd nand read 0x30008000 0x100000 0x400000; nand read 0x31000000 0x200000 0x400000; bootm 0x30008000
+            setenv bootcmd tftp 0x30008000 zImage; tftp 0x31000000 文件系统; ;bootm 0x30008000
+        }
+        saveenv 保存环境变量
     }
     编译官方根文件系统:{
     }
-    从SD卡启动 uboot.bin 
-    等待 uboot.bin 启动后, 查询IP 使用 ssh 将开发版挂载到ubuntu, 然后下载内核和文件系统
-    最后设置bootloader 环境变量
+    使用tftp 下载内核和根文件系统{
+        然后使用 bootz/bootm 命令启动内核
+    }
+    使用 XXXXXX 将开发版挂载到ubuntu上{
+        在上位机上开发，然后将程序copy到挂载的位置
+    }
+
 ## 还未执行
     学习如何使用 menuconfig 配置内核,并使用 zImage 编译内核
     学习如何使用 busybox 配置根文件系统
