@@ -40,14 +40,14 @@
         add2line
     }
     在 windows 的 Linux 子系统上重新安装交叉编译链
-    注意：wsl --unregister ubuntu2204 可以重装 wsl
-    注意：ubuntu2204 config --default-user leige (可以设置默认登录用户为 leige)
-    使用：useradd 添加用户, passwd 添加密码
-    使用：groups root 查看 root 用户的用户组
-    使用：usermod -aG root leige
+    注意: wsl --unregister ubuntu2204 可以重装 wsl
+    注意: ubuntu2204 config --default-user leige (可以设置默认登录用户为 leige)
+    使用: useradd 添加用户, passwd 添加密码
+    使用: groups root 查看 root 用户的用户组
+    使用: usermod -aG root leige
     cat /etc/passwd 查看 leige 用户是否创建
     cat /etc/group 查看 leige 用户是否创建
-    移出某用户组：deluser leige root
+    移出某用户组: deluser leige root
     新建某用户组 groupadd XXX
     删除某个用户组 groupdel XXX
     usermod -aG sudo 添加 sudo 权限
