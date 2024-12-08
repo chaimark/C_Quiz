@@ -11,7 +11,8 @@
     看视频教程了解 Linux 中的命令
     使用 Ubuntu 作为日常使用, 并记录用到的所有命令
     创建桌面快捷键 .desktop 文件, 并使用命令 ln -s 创建快捷方式
-    学习了解常用命令    
+    学习了解常用命令  
+    学习 chown -R leige:leige /home/leige 修改文件所有者  
     学习编写shell脚本, 编写了简单的脚本, 并成功运行《自动打开梯子访问 github》
     记录自己常用的命令
     在 MOOC 上找相关课程, 了解 Linux 的整体结构
@@ -39,13 +40,24 @@
         add2line
     }
     在 windows 的 Linux 子系统上重新安装交叉编译链
+    注意：wsl --unregister ubuntu2204 可以重装 wsl
+    注意：ubuntu2204 config --default-user leige (可以设置默认登录用户为 leige)
+    使用：useradd 添加用户, passwd 添加密码
+    使用：groups root 查看 root 用户的用户组
+    使用：usermod -aG root leige
+    cat /etc/passwd 查看 leige 用户是否创建
+    cat /etc/group 查看 leige 用户是否创建
+    移出某用户组：deluser leige root
+    新建某用户组 groupadd XXX
+    删除某个用户组 groupdel XXX
+    usermod -aG sudo 添加 sudo 权限
     安装 sudo tar -zxvf arm-linux-gcc -C /
     下载 wsl_update_x64.msi 运行
     sudo apt-get install build-essential
     gcc AddPat.c -o AddPath
     配置全局 PATH 修改:{ 
         etc/environment; 
-        /home/username/.bashrc; 
+        /home/username/.bashrc;
         /home/username/.bash_profile;
     }
     安装 32 位支持库:{
