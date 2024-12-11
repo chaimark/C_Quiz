@@ -53,7 +53,6 @@
     usermod -aG sudo 添加 sudo 权限
     安装 sudo tar -zxvf arm-linux-gcc -C /
     下载 wsl_update_x64.msi 运行
-    sudo apt-get install build-essential
     gcc AddPat.c -o AddPath
     配置全局 PATH 修改:{ 
         etc/environment; 
@@ -61,6 +60,7 @@
         /home/username/.bash_profile;
     }
     安装 32 位支持库:{
+        sudo apt-get install build-essential
         sudo apt-get install lib32z1
         sudo apt-get install libc6-i386
         sudo apt-get install qemu-user-static
@@ -82,11 +82,11 @@
         sudo apt-get install uboot.bin -mkimage 安装 uImage 生成工具
         tar -vzxf 解压官方提供的 linux 压缩包
         进入 arch/arm/configs 目录,  找到对应开发板的config文件, 复制到 linux 目录下
-        使用 make menuconfig ARCH=arm 配置 make 工具
-        使用 sudo apt-get install libncurses5-dev   安装对应的支持库
-        使用 sudo apt-get install ncurses-dev       安装对应的支持库
-        使用 sudo apt-get install libpcap-dev       安装对应的支持库
-        使用 make uImage ARCH=arm CROSS_COMPILE=arm-linux- 编译内核
+        make menuconfig ARCH=arm 配置 make 工具
+        sudo apt-get install libncurses5-dev   安装对应的支持库
+        sudo apt-get install ncurses-dev       安装对应的支持库
+        sudo apt-get install libpcap-dev       安装对应的支持库
+        make uImage ARCH=arm CROSS_COMPILE=arm-linux- 编译内核
     }
     准备 通用的 SD 卡启动盘:{
         通过分区工具将 SD 卡分为两个区, 一个无格式分区(前256M), 一个 FAT32 分区(其他正常空间)
