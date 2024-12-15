@@ -43,12 +43,12 @@
     下载 wsl_update_x64.msi 运行
     sudo apt-get install build-essential
     gcc AddPat.c -o AddPath
-    配置全局 PATH 修改:{ 
+    配置全局 PATH 修改: { 
         etc/environment; 
         /home/username/.bashrc; 
         /home/username/.bash_profile;
     }
-    安装 32 位支持库:{
+    安装 32 位支持库: {
         sudo apt-get install lib32z1
         sudo apt-get install libc6-i386
         sudo apt-get install qemu-user-static
@@ -60,13 +60,38 @@
         sudo apt-get upgrade
     }
 ## 2024.9-2024.12
-    编译官方 uboot.bin :{
+    编译官方 uboot.bin : {
         tar -vzxf 解压官方提供的 u—boot 压缩包
         进入目录，使用 vim 打开 Makefile，搜索目标 “*6140*” 并复制目标
         然后退出vim，并在当前目录 使用 make *6410* ; 配置 make 工具
         然后使用 make ARCH=arm 编译 uboot.bin 
     }
-    编译官方内核:{
+    编译官方根文件系统: {
+        在 /home/leige 下创建 rootfs 目录 并 cd 到 rootfs
+        mkdir bin dev etc opt home lib mnt proc sbin sys tmp usr var
+        mkdir usr/bin usr/lib usr/sbin lib/modules usr/src
+        mknod -m 666 console c 5 1 创建控制台设备
+        mknod -m 666 null c 1 3 创建空设备
+        tar -vzxf etc.tar.gz -C /home/leige/rootfs/etc
+        进入 linux 内核目录，编译内核模块 {
+            make modules ARCH=arm CROSS_COMPILE=arm-linux-
+            make modules_install ARCH=arm CROSS_COMPILE=arm-linux- INSTALL_MOD_PATH=/home/leige/rootfs
+        }
+        进入 busybox 目录，编译 busybox {
+            make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- {
+                选择 Build busybox as a static binary (静态链接库)
+                选择 Don't use /usr (避免安装到 usr 目录) 
+            }
+            make ARCH=arm CROSS_COMPILE=arm-linux-
+            make install ARCH=arm CROSS_COMPILE=arm-linux- /home/leige/rootfs
+        }
+        回到内核目录，make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- 配置内核支持的文件系统 {
+            选择 Initial RAM filesystem and RAM disk support
+        }
+        ln -s ./bin/busybox init
+        然后编译内核
+    }
+    编译官方内核: {
         sudo apt-get install uboot.bin -mkimage 安装 uImage 生成工具
         tar -vzxf 解压官方提供的 linux 压缩包
         进入 arch/arm/configs 目录， 找到对应开发板的config文件，复制到 linux 目录下
@@ -76,34 +101,48 @@
         使用 sudo apt-get install libpcap-dev       安装对应的支持库
         使用 make uImage ARCH=arm CROSS_COMPILE=arm-linux- 编译内核
     }
-    准备 通用的 SD 卡启动盘:{
+    准备 通用的 SD 卡启动盘: {
         通过分区工具将 SD 卡分为两个区，一个无格式分区(前256M)，一个 FAT32 分区(其他正常空间)
         sudo fdisk -l 查询SD卡分区信息
         使用 sudo dd 命令将 uboot.bin 烧写到 SD 卡, 并避开前 512 字节（分区表信息） 
     }
-    准备 友善之臂的 SD 卡启动盘:{
+    准备 友善之臂的 SD 卡启动盘: {
         6410 提供的 superboot 有两种启动方式，一种是从 SD 卡启动，一种是从 NAND 启动
         将 SD 卡中的 images/FriendlyoARM.ini 文件中的 USB-Mode = yes 改成 USB-Mode = no，则与普通 uboot.bin SD卡启动一致，否则开发板将处于 USB 下载模式，需要配合友善之臂提供的下载工具烧写 uboot.bin 到nand flasH 中运行。
         制作 SD 卡启动只需要使用友善提供的软件直接将 superboot 制作成启动盘
     }
 ## 2024.12-
-    从SD卡或NAND启动 uboot.bin{
-        从 eMMC 启动内核{ 
+    使用 NFS 作为文件系统 {
+        重新配置 Linux 内核 make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- 
+        取消掉 Initial RAM filesystem and RAM disk support
+        选择 Network File System
+        选择 NFS client support
+        选择 rootfs over NFS
+        重新编译内核
+        setenv serverip 192.168.1.100      # NFS 服务器的 IP 地址
+        setenv ipaddr 192.168.1.101        # 启动设备的 IP 地址
+        setenv nfsroot 192.168.1.100:/nfsroot   # NFS 根文件系统的路径
+        setenv bootargs "root=/dev/nfs nfsroot=192.168.1.100:/nfsroot ip=dhcp"  # 内核启动参数
+        在 Ubuntu 中安装 NFS 服务器
+        在 uboot 中使用 tftp 命令下载内核
+        在 uboot 中使用 bootm/bootz 命令启动内核
+        在 uboot 中使用 nfs 命令挂载 NFS 服务器
+    }
+    从SD卡或NAND启动 uboot.bin {
+        从 eMMC 启动内核 { 
             //eMMC 就是 NAND flash
             使用 uboot 的命令查看 NAND flash 或 SD 卡中的存放的 uImage 和 根文件系统
             使用 uboot 的命令将 uImage 和 根文件系统 下载到 DDR 中
             然后使用 bootz 命令启动内核
         }
-        从 net 启动内核{
+        从 net 启动内核 {
             ifconfig 获取主机IP
             在uboot 中 ping 主机IP, 确保网络畅通
             在uboot 中 使用 tftp 将主机中的 uImage 和 根文件系统 下载到 DDR 中
             然后使用 bootz 命令启动内核
         }
     }
-    编译官方根文件系统:{
-    }
-    从SD卡启动 uboot.bin 
+    从SD卡或NAND启动 uboot.bin
     等待 uboot.bin 启动后，查询IP 使用 ssh 将开发版挂载到ubuntu，然后下载内核和文件系统
     最后设置bootloader 环境变量
 ## 还未执行
