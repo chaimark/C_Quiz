@@ -54,6 +54,9 @@
     安装 sudo tar -zxvf arm-linux-gcc -C /
     下载 wsl_update_x64.msi 运行
     gcc AddPat.c -o AddPath
+    解压的arm-linux-gcc 目录下有 bin 和 lib 目录, 将 bin 目录添加到 PATH 中
+    AddPath /opt/xxxx/bin
+    export LD_LIBRARY_PATH=/opt....../lib 加到 .bashrc 中
     配置全局 PATH 修改: { 
         etc/environment; 
         /home/username/.bashrc;
