@@ -102,14 +102,15 @@
         在 /home/leige 下创建 rootfs 目录 并 cd 到 rootfs
         mkdir bin dev etc opt home lib mnt proc sbin sys tmp usr var
         mkdir usr/bin usr/lib usr/sbin lib/modules usr/src
+        cd ./dev
         mknod -m 666 console c 5 1 创建控制台设备
         mknod -m 666 null c 1 3 创建空设备
         tar -vzxf etc.tar.gz -C /home/leige/rootfs/etc
-        进入 linux 内核目录，编译内核模块 {
+        进入 linux 内核目录, 编译内核模块 {
             make modules ARCH=arm CROSS_COMPILE=arm-linux-
             make modules_install ARCH=arm CROSS_COMPILE=arm-linux- INSTALL_MOD_PATH=/home/leige/rootfs
         }
-        进入 busybox 目录，编译 busybox {
+        进入 busybox 目录, 编译 busybox {
             make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- {
                 选择 Build busybox as a static binary (静态链接库)
                 选择 Don't use /usr (避免安装到 usr 目录) 
@@ -117,7 +118,7 @@
             make ARCH=arm CROSS_COMPILE=arm-linux-
             make install ARCH=arm CROSS_COMPILE=arm-linux- /home/leige/rootfs
         }
-        回到内核目录，make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- 配置内核支持的文件系统 {
+        回到内核目录, make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- 配置内核支持的文件系统 {
             选择 Initial RAM filesystem and RAM disk support
         }
         ln -s ./bin/busybox init
@@ -128,19 +129,21 @@
         tar -vzxf 解压官方提供的 linux 压缩包
         进入 arch/arm/configs 目录,  找到对应开发板的config文件, 复制到 linux 目录下
         make menuconfig ARCH=arm 配置 make 工具
-        sudo apt-get install libncurses5-dev   安装对应的支持库
-        sudo apt-get install ncurses-dev       安装对应的支持库
-        sudo apt-get install libpcap-dev       安装对应的支持库
+        安装对应的支持库{
+            sudo apt-get install libncurses5-dev
+            sudo apt-get install ncurses-dev    
+            sudo apt-get install libpcap-dev       
+        }
         make uImage ARCH=arm CROSS_COMPILE=arm-linux- 编译内核
     }
     准备 通用的 SD 卡启动盘: {
-        通过分区工具将 SD 卡分为两个区，一个无格式分区(前256M)，一个 FAT32 分区(其他正常空间)
+        通过分区工具将 SD 卡分为两个区, 一个无格式分区(前256M), 一个 FAT32 分区(其他正常空间)
         sudo fdisk -l 查询SD卡分区信息
         使用 sudo dd 命令将 uboot.bin 烧写到 SD 卡, 并避开前 512 字节（分区表信息） 
     }
     准备 友善之臂的 SD 卡启动盘: {
-        6410 提供的 superboot 有两种启动方式，一种是从 SD 卡启动，一种是从 NAND 启动
-        将 SD 卡中的 images/FriendlyoARM.ini 文件中的 USB-Mode = yes 改成 USB-Mode = no，则与普通 uboot.bin SD卡启动一致，否则开发板将处于 USB 下载模式，需要配合友善之臂提供的下载工具烧写 uboot.bin 到nand flasH 中运行。
+        6410 提供的 superboot 有两种启动方式, 一种是从 SD 卡启动, 一种是从 NAND 启动
+        将 SD 卡中的 images/FriendlyoARM.ini 文件中的 USB-Mode = yes 改成 USB-Mode = no, 则与普通 uboot.bin SD卡启动一致, 否则开发板将处于 USB 下载模式, 需要配合友善之臂提供的下载工具烧写 uboot.bin 到nand flasH 中运行。
         制作 SD 卡启动只需要使用友善提供的软件直接将 superboot 制作成启动盘
     }
 ## 2024.12-
