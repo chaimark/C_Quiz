@@ -63,16 +63,19 @@
         /home/username/.bash_profile;
     }
     安装 32 位支持库:{
+        apt-get install lib32stdc++6 暗转32 位支持库
         sudo apt-get install build-essential
         sudo apt-get install lib32z1
         sudo apt-get install libc6-i386
         sudo apt-get install qemu-user-static
         sudo apt-get update
         sudo apt-get upgrade
-        增加 Liunx 原生头文件
-        sudo update-binfmts --install i386 /usr/bin/qemu-i386-static --magic '\x7fELF\x01\x01\x01\x03\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x03\x00\x01\x00\x00\x00' --mask '\xff\xff\xff\xff\xff\xff\xff\xfc\xff\xff\xff\xff\xff\xff\xff\xff\xf8\xff\xff\xff\xff\xff\xff\xff'
-        sudo apt-get update
-        sudo apt-get upgrade
+        增加 Liunx 原生头文件 {
+            将下面的命令用 root 用户编写shell脚本后放入 Init.d 文件夹
+            sudo update-binfmts --install i386 /usr/bin/qemu-i386-static --magic '\x7fELF\x01\x01\x01\x03\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x03\x00\x01\x00\x00\x00' --mask '\xff\xff\xff\xff\xff\xff\xff\xfc\xff\xff\xff\xff\xff\xff\xff\xff\xf8\xff\xff\xff\xff\xff\xff\xff'
+            sudo apt-get update
+            sudo apt-get upgrade
+        }
     }
     在上位机使用 ifconfig 查询IP, 并安装 tftp 服务器, 并配置 tftp 服务器{
         sudo apt-get install tftp-hpa
@@ -108,8 +111,15 @@
         cd ./dev
         mknod -m 666 console c 5 1 创建控制台设备
         mknod -m 666 null c 1 3 创建空设备
-        tar -vzxf etc.tar.gz -C /home/leige/rootfs/etc
+        复制 arm-linux-gcc 的 lib 库{
+            sudo cp -r /opt/FriendlyARM/toolschain/4.4.3/lib ~/rootfs/lib/
+        }
+        复制 busybox 的 etc 结构{
+            sudo cp -rfa /home/leige/busybox-1.17.2/examples/bootfloppy/etc ~/rootfs/etc/
+            编辑 etc/inittab 删除第三行代码: tty2::askfirst:-/bin/sh
+        }
         进入 linux 内核目录, 编译内核模块 {
+            make ARCH=arm CROSS_COMPILE=arm-linux- defconfig
             make modules ARCH=arm CROSS_COMPILE=arm-linux-
             make modules_install ARCH=arm CROSS_COMPILE=arm-linux- INSTALL_MOD_PATH=/home/leige/rootfs
         }
@@ -124,11 +134,11 @@
         回到内核目录, make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- 配置内核支持的文件系统 {
             选择 Initial RAM filesystem and RAM disk support
         }
+        cd ....rootfs/
         ln -s ./bin/busybox init
-        然后编译内核
     }
     编译官方内核: {
-        sudo apt-get install uboot.bin -mkimage 安装 uImage 生成工具
+        sudo apt-get install u-boot-tools 安装 uImage 生成工具
         tar -vzxf 解压官方提供的 linux 压缩包
         进入 arch/arm/configs 目录,  找到对应开发板的config文件, 复制到 linux 目录下
         make menuconfig ARCH=arm 配置 make 工具
@@ -137,6 +147,7 @@
             sudo apt-get install ncurses-dev    
             sudo apt-get install libpcap-dev       
         }
+        make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- 配置内核
         make uImage ARCH=arm CROSS_COMPILE=arm-linux- 编译内核
     }
     准备 通用的 SD 卡启动盘: {
