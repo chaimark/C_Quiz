@@ -83,6 +83,7 @@
         sudo systemctl restart tftpd-hpa
     }
 ## 2024.9-2024.12
+    sudo -s 获取 root 权限
     编译官方 uboot.bin : {
         tar -vzxf 解压官方提供的 u—boot 压缩包
         进入目录, 使用 vim 打开 Makefile, 搜索目标 “*6140*” 并复制目标
@@ -105,31 +106,36 @@
         saveenv 保存环境变量
     }
     编译官方根文件系统: {
+        
         在 /home/leige 下创建 rootfs 目录 并 cd 到 rootfs
         mkdir bin dev etc opt home lib mnt proc sbin sys tmp usr var
         mkdir usr/bin usr/lib usr/sbin lib/modules usr/src
         cd ./dev
-        mknod -m 666 console c 5 1 创建控制台设备
-        mknod -m 666 null c 1 3 创建空设备
-        复制 arm-linux-gcc 的 lib 库{
-            sudo cp -r /opt/FriendlyARM/toolschain/4.4.3/lib ~/rootfs/lib/
+        mknod -m 666 console c 5 1
+        mknod -m 666 null c 1 3
+        lib 库{
+            为保证链接库能用直接用友善之臂的根文件系统root_qtopia 中的链接库lib 目录 
+            或 sudo cp -r /opt/FriendlyARM/toolschain/4.4.3/lib ~/rootfs/lib/
         }
         复制 busybox 的 etc 结构{
             sudo cp -rfa /home/leige/busybox-1.17.2/examples/bootfloppy/etc ~/rootfs/etc/
             编辑 etc/inittab 删除第三行代码: tty2::askfirst:-/bin/sh
         }
-        进入 linux 内核目录, 编译内核模块 {
-            make ARCH=arm CROSS_COMPILE=arm-linux- defconfig
-            make modules ARCH=arm CROSS_COMPILE=arm-linux-
-            make modules_install ARCH=arm CROSS_COMPILE=arm-linux- INSTALL_MOD_PATH=/home/leige/rootfs
-        }
         进入 busybox 目录, 编译 busybox {
             make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- {
                 选择 Build busybox as a static binary (静态链接库)
                 选择 Don't use /usr (避免安装到 usr 目录) 
+                选择 Busybox install.. /home/leige/work/rootfs
             }
+            如果编译时提示 loginutils/passwd.o' failed：则需要在 include/libbb.h 中添加 #include <sys/resource.h>
             make ARCH=arm CROSS_COMPILE=arm-linux-
-            make install ARCH=arm CROSS_COMPILE=arm-linux- /home/leige/rootfs
+            make install ARCH=arm CROSS_COMPILE=arm-linux-
+        }
+        进入 linux 内核目录, 编译内核模块 {
+            sudo apt-get install module-init-tools
+            make ARCH=arm CROSS_COMPILE=arm-linux- defconfig
+            make modules ARCH=arm CROSS_COMPILE=arm-linux-
+            make modules_install ARCH=arm CROSS_COMPILE=arm-linux- INSTALL_MOD_PATH=/home/leige/work/rootfs
         }
         回到内核目录, make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- 配置内核支持的文件系统 {
             选择 Initial RAM filesystem and RAM disk support
