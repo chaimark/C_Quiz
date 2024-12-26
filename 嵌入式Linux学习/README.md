@@ -12,7 +12,7 @@
     使用 Ubuntu 作为日常使用, 并记录用到的所有命令
     创建桌面快捷键 .desktop 文件, 并使用命令 ln -s 创建快捷方式
     学习了解常用命令  
-    学习 chown -R leige:leige /home/leige 修改文件所有者  
+    修改文件所有者 chown -R leige:leige /home/leige 
     学习编写shell脚本, 编写了简单的脚本, 并成功运行《自动打开梯子访问 github》
     记录自己常用的命令
     在 MOOC 上找相关课程, 了解 Linux 的整体结构
