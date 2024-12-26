@@ -296,6 +296,6 @@ cd /home/leige/outputClass
 dd if=/dev/zero of=/home/leige/outputClass/rootfs.img bs=1M count=512
 mkfs.ext3 /home/leige/outputClass/rootfs.img
 resize2fs -M /home/leige/outputClass/rootfs.img
-mkdir /mnt/tempPoint
+sudo mkdir /mnt/tempPoint
 sudo mount -o loop /home/leige/outputClass/rootfs.img /mnt/tempPoint
 
