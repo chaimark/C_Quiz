@@ -46,7 +46,8 @@
     使用: groups root 查看 root 用户的用户组
     使用: usermod -aG root leige
     cat /etc/passwd 查看 leige 用户是否创建
-    cat /etc/group 查看 leige 用户是否创建
+    cat /etc/group
+     查看 leige 用户是否创建
     移出某用户组: deluser leige root
     新建某用户组 groupadd XXX
     删除某个用户组 groupdel XXX
@@ -235,6 +236,16 @@
     了解 ps , 查看进程
 
 ## 需要安装的环境和工具
+### wsl 第一个add_leige.sh
+#!/bin/bash
+adduser leige
+usermod -aG sudo leige
+echo Enter any key to continue
+read -n 1 -s
+cat /etc/passwd
+cat /etc/group
+
+### ubuntu环境搭建inst_linux.sh
 #!/bin/bash
 sudo apt update
 sudo apt upgrade
@@ -242,16 +253,22 @@ sudo apt install git
 sudo apt install gcc
 mkdir /home/leige/git_room
 mkdir /home/leige/myBin
+mkdir /home/leige/work
+mkdir /home/leige/outputClass
+mkdir /home/leige/zipClass
 cd /home/leige/git_room
 git config --global user.name chai21sks
 git config --global user.email 3046476712@qq.com
+echo please open your youtbe.cmd and enter any key to continue
+read -n 1 -s
 git clone https://github.com/chaimark/C_Quiz.git
 git clone https://github.com/chaimark/Linux_C_Project.git
 cd /home/leige/git_room/Linux_C_Project
+echo please open your youtbe.cmd again and enter any key to continue
+read -n 1 -s
 gcc AddPat.c -o AddPath
 chmod 765 AddPath
 sudo mv AddPath /home/leige/myBin
-mkdir /home/leige/work
 mkdir /home/leige/work/rootfs
 cd /home/leige/work/rootfs
 mkdir bin dev etc opt home lib mnt proc sbin sys tmp usr var
@@ -271,3 +288,10 @@ sudo apt-get install libc6-i386
 sudo apt-get install qemu-user-static
 sudo apt-get update
 sudo apt-get upgrade
+cd /home/leige/outputClass
+dd if=/dev/zero of=/home/leige/work/rootfs.img bs=1M count=512
+mkfs.ext3 /home/leige/work/rootfs.img
+resize2fs -M /home/leige/work/rootfs.img
+mkdir /mnt/tempPoint
+sudo mount -o loop /home/leige/work/rootfs.img /mnt/tempPoint
+
