@@ -253,6 +253,7 @@ chmod 765 AddPath
 sudo mv AddPath /home/leige/myBin
 mkdir /home/leige/work
 mkdir /home/leige/work/rootfs
+cd /home/leige/work/rootfs
 mkdir bin dev etc opt home lib mnt proc sbin sys tmp usr var
 mkdir usr/bin usr/lib usr/sbin lib/modules usr/src
 cd ./dev
