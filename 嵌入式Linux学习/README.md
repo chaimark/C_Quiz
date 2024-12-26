@@ -293,9 +293,9 @@ sudo apt-get install qemu-user-static
 sudo apt-get update
 sudo apt-get upgrade
 cd /home/leige/outputClass
-dd if=/dev/zero of=/home/leige/work/rootfs.img bs=1M count=512
-mkfs.ext3 /home/leige/work/rootfs.img
-resize2fs -M /home/leige/work/rootfs.img
+dd if=/dev/zero of=/home/leige/outputClass/rootfs.img bs=1M count=512
+mkfs.ext3 /home/leige/outputClass/rootfs.img
+resize2fs -M /home/leige/outputClass/rootfs.img
 mkdir /mnt/tempPoint
-sudo mount -o loop /home/leige/work/rootfs.img /mnt/tempPoint
+sudo mount -o loop /home/leige/outputClass/rootfs.img /mnt/tempPoint
 
