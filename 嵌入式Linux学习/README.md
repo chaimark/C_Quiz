@@ -88,8 +88,10 @@
     编译官方 uboot.bin : {
         tar -vzxf 解压官方提供的 u—boot 压缩包
         进入目录, 使用 vim 打开 Makefile, 搜索目标 “*6140*” 并复制目标
-        然后退出vim, 并在当前目录 使用 make *6410* ; 配置 make 工具
-        然后使用 make ARCH=arm 编译 uboot.bin 
+        然后退出vim, 并在当前目录 配置 make 工具:{
+            make mini6410_nand256_config ARCH=arm
+            然后使用 make ARCH=arm 编译 uboot.bin 
+        }
     }
     设置 bootloader 环境变量{
         help 查看uboot 的帮助信息
@@ -128,7 +130,7 @@
                 选择 Don't use /usr (避免安装到 usr 目录) 
                 选择 Busybox install.. /home/leige/work/rootfs
             }
-            如果编译时提示 loginutils/passwd.o' failed：则需要在 include/libbb.h 中添加 #include <sys/resource.h>
+            如果编译时提示 loginutils/passwd.o' failed: 则需要在 include/libbb.h 中添加 #include <sys/resource.h>
             make ARCH=arm CROSS_COMPILE=arm-linux-
             make install ARCH=arm CROSS_COMPILE=arm-linux-
         }
