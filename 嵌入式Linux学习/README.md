@@ -109,7 +109,6 @@
         saveenv 保存环境变量
     }
     编译官方根文件系统: {
-        
         在 /home/leige 下创建 rootfs 目录 并 cd 到 rootfs
         mkdir bin dev etc opt home lib mnt proc sbin sys tmp usr var
         mkdir usr/bin usr/lib usr/sbin lib/modules usr/src
