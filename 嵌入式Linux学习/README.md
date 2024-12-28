@@ -301,4 +301,8 @@ mkfs.ext3 /home/leige/outputClass/rootfs.img
 resize2fs -M /home/leige/outputClass/rootfs.img
 sudo mkdir /mnt/tempPoint
 sudo mount -o loop /home/leige/outputClass/rootfs.img /mnt/tempPoint
+cd /home/leige/myBin
+./AddPath $(pwd)
+./AddPath -show
+echo please Add arm-linux-gcc path of lib and bin
 
