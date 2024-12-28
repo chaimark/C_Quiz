@@ -273,9 +273,9 @@ read -n 1 -s
 git config --global --unset http.proxy
 git config --global --unset https.proxy
 cd /home/leige/git_room/Linux_C_Project
-gcc AddPat.c -o AddPath
+gcc AddPath.c -o /home/leige/myBin/AddPath
+cd /home/leige/myBin
 sudo chmod 765 AddPath
-sudo mv AddPath /home/leige/myBin
 mkdir /home/leige/work/rootfs
 cd /home/leige/work/rootfs
 mkdir bin dev etc opt home lib mnt proc sbin sys tmp usr var
