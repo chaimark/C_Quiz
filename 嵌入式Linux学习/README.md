@@ -79,9 +79,7 @@
         }
     }
     在上位机使用 ifconfig 查询IP, 并安装 tftp 服务器, 并配置 tftp 服务器{
-        sudo apt-get install tftp-hpa
-        sudo vim /etc/default/tftpd-hpa
-        sudo systemctl restart tftpd-hpa
+        sudo apt-get install tftp-hpa tftp-server tftp
     }
 ## 2024.9-2024.12
     sudo -s 获取 root 权限
@@ -104,7 +102,7 @@
         setenv loadaddr 0x30008000          // 下载地址   
         setenv bootcmd {                    // boot 启动后的自动命令
             setenv bootcmd nand read 0x30008000 0x100000 0x400000; nand read 0x31000000 0x200000 0x400000; bootm 0x30008000
-            setenv bootcmd tftp 0x30008000 zImage; tftp 0x31000000 文件系统; ;bootm 0x30008000
+            setenv bootcmd tftp 0x30008000 zImage; tftp 0x31000000 文件系统; bootm 0x30008000
         }
         saveenv 保存环境变量
     }
@@ -176,7 +174,7 @@
         选择 NFS client support
         选择 rootfs over NFS
         重新编译内核
-        setenv serverip 192.168.1.100      # NFS 服务器的 IP 地址
+        setenv serverip 192.168.31.199      # NFS 服务器的 IP 地址
         setenv ipaddr 192.168.1.101        # 启动设备的 IP 地址
         setenv nfsroot 192.168.1.100:/nfsroot   # NFS 根文件系统的路径
         setenv bootargs "root=/dev/nfs nfsroot=192.168.1.100:/nfsroot ip=dhcp"  # 内核启动参数
@@ -292,6 +290,8 @@ sudo apt-get install build-essential
 sudo apt-get install lib32z1
 sudo apt-get install libc6-i386
 sudo apt-get install qemu-user-static
+sudo apt-get install net-tools
+sudo apt-get install tftp-hpa tftp-server tftp
 sudo apt-get update
 sudo apt-get upgrade
 cd /home/leige/outputClass
