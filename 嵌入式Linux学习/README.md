@@ -272,6 +272,7 @@ echo please open your youtbe.cmd again and enter any key to continue
 read -n 1 -s
 git config --global --unset http.proxy
 git config --global --unset https.proxy
+cd /home/leige/git_room/Linux_C_Project
 gcc AddPat.c -o AddPath
 sudo chmod 765 AddPath
 sudo mv AddPath /home/leige/myBin
