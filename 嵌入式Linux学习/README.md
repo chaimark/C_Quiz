@@ -302,6 +302,7 @@ resize2fs -M /home/leige/outputClass/rootfs.img
 sudo mkdir /mnt/tempPoint
 sudo mount -o loop /home/leige/outputClass/rootfs.img /mnt/tempPoint
 cd /home/leige/myBin
+echo export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/TuxamitoSoftToolchains/arm-arm1176jzfssf-linux-gnueabi/gcc-4.6.4/lib >> ~/.bashrc
 ./AddPath $(pwd)
 ./AddPath -show
 echo please Add arm-linux-gcc path of lib and bin
