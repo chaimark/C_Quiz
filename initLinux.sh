@@ -56,3 +56,4 @@ echo export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/opt/TuxamitoSoftToolchains/arm-ar
 echo please Add arm-linux-gcc path of lib and bin
 
 
+
