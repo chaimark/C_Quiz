@@ -258,8 +258,6 @@ mkdir /home/leige/zipClass
 cd /home/leige/git_room
 git config --global user.name chai21sks
 git config --global user.email 3046476712@qq.com
-git config --global http.proxy '127.0.0.1:7890'
-git config --global https.proxy '127.0.0.1:7890'
 echo please open your youtbe.cmd and enter any key to continue
 read -n 1 -s
 git clone https://github.com/chaimark/C_Quiz.git
@@ -267,8 +265,6 @@ git clone https://github.com/chaimark/Linux_C_Project.git
 cd /home/leige/git_room/Linux_C_Project
 echo please open your youtbe.cmd again and enter any key to continue
 read -n 1 -s
-git config --global --unset http.proxy
-git config --global --unset https.proxy
 cd /home/leige/git_room/Linux_C_Project
 gcc AddPath.c -o /home/leige/myBin/AddPath
 cd /home/leige/myBin
