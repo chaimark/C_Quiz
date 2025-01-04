@@ -35,6 +35,7 @@ sudo apt-get install lib32z1 -y
 sudo apt-get install libc6-i386 -y
 sudo apt-get install qemu-user-static -y
 sudo apt-get install zlib1g-dev unzip lib32stdc++6 lib32stdc++6-4.8-dbg build-essential libncurses5 libncurses5-dev u-boot-tools traceroute -y
+sudo apt-get install mtd-utils -y
 sudo apt-get update
 sudo apt-get upgrade
 cd /home/leige/outputClass
