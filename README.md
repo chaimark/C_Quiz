@@ -25,13 +25,11 @@ git clone https://github.com/chaimark/WorkSpace.git
 ### 修改本地仓库当前分支名字
 git branch -m master main
 ### 连接到 github 仓库
-git remote add WorkSpace https://github.com/chaimark/WorkSpace.git
-### 修改远程仓库的名字
-git remote add origin WorkSpace
+git remote add origin https://github.com/chaimark/WorkSpace.git
 ### 设置远程仓库的名字
 git remote rename origin WorkSpace
 ### 拉取 github 仓库的文件
-git pull WorkSpace main:main
+git pull origin main:main
 ### 查看当前分支的所有文件
 git status
 ### 添加文件到暂存区
@@ -39,7 +37,7 @@ git add *
 ### 提交到本地仓库
 git commit -m "massage"
 ### 推送文件到 github 仓库
-git push -u WorkSpace main:main
+git push origin main:main
 ### 新建分支
 git branch master
 ### 切换分支
