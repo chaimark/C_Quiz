@@ -1,3 +1,5 @@
+sudo apt-get update
+sudo apt-get upgrade
 sudo apt install git -y
 sudo apt install gcc -y
 mkdir /home/leige/git_room
@@ -29,6 +31,7 @@ sudo mknod -m 666 null c 1 3
 sudo apt-get install module-* -y
 sudo apt-get install net-tools -y
 sudo apt-get install tftp-hpa tftp-server tftp -y
+sudo apt-get install nfs*
 sudo apt-get install ncurses-dev -y
 sudo apt-get install libpcap-dev -y
 sudo apt-get install lib32z1 -y
