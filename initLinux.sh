@@ -9,7 +9,7 @@ mkdir /home/leige/outputClass
 mkdir /home/leige/zipClass
 cd /home/leige/git_room
 git config --global user.name chai21sks
-git config --global user.email 3046476712@qq.com
+git config --global user.email chai21sks@gmail.com
 echo please open your youtbe.cmd and enter any key to continue
 read -n 1 -s
 git clone https://github.com/chaimark/C_Quiz.git
