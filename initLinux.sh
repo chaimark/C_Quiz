@@ -1,5 +1,5 @@
-sudo apt-get update
-sudo apt-get upgrade
+sudo apt update
+sudo apt upgrade
 sudo apt install git -y
 sudo apt install gcc -y
 mkdir /home/leige/git_room
