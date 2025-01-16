@@ -1,0 +1,62 @@
+#!/bin/bash
+# Ubi的偏移地址 8k
+file_system_start=$((8 * 1024))
+# 输入参数
+# 文件系统总大小（单位：MB）
+file_system_size_mb=$(($1))
+# 页面大小（单位：kB）
+page_size=$(($2 * 1024))  # 将页面大小从 MB 转换为 kB
+# 擦除块大小（单位：kB）
+erase_block_size=$(($3 * 1024))  # 将擦除块大小从 MB 转换为 kB
+
+# 输入参数检查，确保传入的参数不为空
+if [ -z "$file_system_size_mb" ] || [ -z "$page_size" ] || [ -z "$erase_block_size" ]; then
+    echo "Error: Missing arguments. Usage: ./imgToUbi.sh <file_system_size_MB> <page_size_MB> <erase_block_size_MB>"
+    exit 1
+fi
+
+# 转换文件系统总大小为字节
+file_system_size_bytes=$((file_system_size_mb * 1024 * 1024))
+
+# 计算页面数
+page_count=$((file_system_size_bytes / page_size))
+# 如果有余数，加上一个页面
+if ((file_system_size_bytes % page_size != 0)); then
+  page_count=$((page_count + 1))
+fi
+
+# 计算擦除块数量
+erase_block_count=$((file_system_size_bytes / erase_block_size))
+# 如果有余数，加上一个擦除块
+if ((file_system_size_bytes % erase_block_size != 0)); then
+  erase_block_count=$((erase_block_count + 1))
+fi
+
+# 如果擦除块大小未指定，给出合理的默认值（可以根据需要修改）
+if [ -z "$erase_block_size" ]; then
+  # 默认擦除块大小为 256KB
+  default_erase_block_size=262144
+  default_erase_block_count=$((file_system_size_bytes / default_erase_block_size))
+  if ((file_system_size_bytes % default_erase_block_size != 0)); then
+    default_erase_block_count=$((default_erase_block_count + 1))
+  fi
+
+  echo "未指定擦除块大小，使用默认值：$default_erase_block_size 字节"
+  echo "默认擦除块数：$default_erase_block_count"
+else
+  # 输出结果
+  echo "文件系统总大小：$file_system_size_mb MB ($file_system_size_bytes 字节)"
+  echo "页面大小：$page_size 字节"
+  echo "擦除块大小：$erase_block_size 字节" "($((erase_block_size / page_size)) "页/块")"
+  echo "页面数：$page_count"
+  echo "擦除块数：$erase_block_count"
+  echo "Ubi 偏移地址：$file_system_start"
+  echo "mkfs.ubifs -r $4 -m $page_size -e $((erase_block_size - file_system_start)) -c $erase_block_count -o $5"
+fi
+
+if [ -z "$4" ] || [ -z "$5" ]; then
+    echo "Error: Not find the path of output"
+    exit 1
+fi
+
+mkfs.ubifs -r $4 -m $page_size -e $((erase_block_size - file_system_start)) -c $erase_block_count -o $5
