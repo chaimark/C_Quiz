@@ -10,7 +10,7 @@ void _AddCsToJsonAndPushJsonStr(JsonItem * NowCheckNum, newJsonList * JsonDataLi
         CheckNum += OutputJsonStr.Name._char[i];
     }
     memset(OutputJsonStr.Name._char, 0, OutputJsonStr.MaxLen);
-    setJsonItemData(NowCheckNum, "NowCheckNum:%d;%d", CheckNum, 0);
+    (*JsonDataList).setJsonItemData(JsonDataList, NowCheckNum, "NowCheckNum:%d;%d", CheckNum, 0);
     (*NowCheckNum).var.Dataint = CheckNum;
     return;
 }

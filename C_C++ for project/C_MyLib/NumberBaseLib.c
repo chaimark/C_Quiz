@@ -1,14 +1,24 @@
 #include "NumberBaseLib.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+
+void DoubleOrFloatToBuff(strnew OutBuff, double Number, bool IsDouble) {
+    if ((IsDouble) && (OutBuff.MaxLen >= sizeof(double))) {
+        memcpy(OutBuff.Name._char, &Number, sizeof(double));
+    } else if(OutBuff.MaxLen >= sizeof(false)) {
+        memcpy(OutBuff.Name._char, &Number, sizeof(false));
+    }
+}
+
 /*
-// 该库中提到的所有进制数全是直接表示，比如
+// 该库中提到的所有进制数全是直接表示, 比如
 // hex(0x125)   //表示 dec(125)
 // hex(0x1010)  //表示 bin(1010)
 // hex(0x1f)    //表示 hex(0x1f)
 */
 
-// 将数组串转字符串（可以原地转换，需要注意数组串的长度与字符串的长度，不是整个数组的长度）
+// 将数组串转字符串（可以原地转换, 需要注意数组串的长度与字符串的长度, 不是整个数组的长度）
 void numberArrayToStrArray(char StrArray[], char NumberArray[], int ArrayMinLen) {
     int Addr = 0;
     do {
@@ -20,7 +30,7 @@ void numberArrayToStrArray(char StrArray[], char NumberArray[], int ArrayMinLen)
         Addr++;
     } while (Addr < ArrayMinLen);
 }
-// 将字符串转数组串（可以原地转换，需要注意数组串的长度与字符串的长度，不是整个数组的长度）
+// 将字符串转数组串（可以原地转换, 需要注意数组串的长度与字符串的长度, 不是整个数组的长度）
 void strArrayToNumberArray(char NumberArray[], char StrArray[], int ArrayMinLen) {
     int Addr = 0;
     do {
@@ -140,7 +150,7 @@ int anyBaseNumberToAnyBaseArray(uint64_t Number, int IntputBase, int OutputBase,
     return ResLen;
 }
 
-// 任意进制数组 转 任意进制数 string:12345600 ==> 12345600
+// 任意进制数组 转 任意进制数 Array:12345600 ==> 12345600
 int64_t anyBaseArrayToAnyBaseNumber(char IntArray[], int NumStrNowLen, int IntputBase, int OutputBase) {
     swapStr(IntArray, NumStrNowLen); // 先将数组从从大端模式改为小端
     int64_t TempNum = anyArrayToSameBaseNumber(IntputBase, (uint8_t *)IntArray, NumStrNowLen);
@@ -148,7 +158,7 @@ int64_t anyBaseArrayToAnyBaseNumber(char IntArray[], int NumStrNowLen, int Intpu
     return TempNum;
 }
 
-// 单字节数组 转 双字节数组 0x23 --> 0x02 0x03 （原地转换会出现覆盖，所以不支持原地，且需要两个 strnew）
+// 单字节数组 转 双字节数组 0x23 --> 0x02 0x03 （原地转换会出现覆盖, 所以不支持原地, 且需要两个 strnew）
 int shortChStrToDoubleChStr(strnew inputArray, strnew OutputArray) {
     if (&(inputArray.Name._char) != &(OutputArray.Name._char)) {
         int ResLen = 0;
@@ -169,7 +179,7 @@ int shortChStrToDoubleChStr(strnew inputArray, strnew OutputArray) {
     }
     return 0;
 }
-// 双字节数组 转 单字节数组 0x02 0x03 --> 0x23 （长度足够，支持原地转换，需要两个 strnew）
+// 双字节数组 转 单字节数组 0x02 0x03 --> 0x23 （长度足够, 支持原地转换, 需要两个 strnew）
 int doubleChStrToShortChStr(strnew inputArray, strnew OutputArray) {
     if (&(inputArray.Name._char) != &(OutputArray.Name._char)) {
         int ResLen = 0;
@@ -226,31 +236,31 @@ bool readDataBit(uint64_t InputNumber, int8_t BitNumber) {
         return false;
     }
     uint64_t mask = (1ULL << BitNumber);
-    return (InputNumber & mask) != 0;
+    return ((InputNumber & mask) != 0);
 }
 
 // 设置某位 返回是否设置成功
-bool setDataBit(uint64_t * InputNumber, int8_t BitNumber, bool Value) {
+uint64_t setDataBit(uint64_t InputNumber, int8_t BitNumber, bool Value) {
     if (BitNumber < 0 || BitNumber >= 64) {
-        return false;
+        return InputNumber;
     }
     uint64_t mask = (1ULL << BitNumber);
     if (Value) {
-        *InputNumber |= mask;
+        InputNumber |= mask;
     } else {
-        *InputNumber &= ~mask;
+        InputNumber &= ~mask;
     }
-    return true;
+    return InputNumber;
 }
 
 // 外用接口（不支持原地转换）
 int HEX2ToASCII(char * hex, int hex_len, char * asc, int asc_len) {
-    if (hex_len * 2 > asc_len) {    // asc_len 太小，不够
+    if (hex_len * 2 > asc_len) {    // asc_len 太小, 不够
         return 0;
     }
     // HEX TO STR-------------------
-    strnew IDStr;
-    strnew IDHex;
+    newstrobj(IDStr, 1);
+    newstrobj(IDHex, 1);
     IDHex.Name._char = hex;
     IDHex.MaxLen = hex_len;
     IDStr.Name._char = asc;
@@ -267,18 +277,18 @@ int HEX2ToASCII(char * hex, int hex_len, char * asc, int asc_len) {
     // HEX TO STR-------------------
 }
 
-// 外用接口（支持原地转换：注，非原地转换时输入的字符串会被破坏）
+// 外用接口（支持原地转换：注, 非原地转换时输入的字符串会被破坏）
 int ASCIIToHEX2(char * asc, int asc_len, char * hex, int hex_len) {
-    if (hex_len < asc_len / 2) {    // hex_len 太小，不够
+    if (hex_len < asc_len / 2) {    // hex_len 太小, 不够
         return 0;
     }
     // STR TO HEX-------------------
-    strnew IDStr;
-    strnew IDHex;
+    newstrobj(IDStr, 1);
+    newstrobj(IDHex, 1);
     IDStr.Name._char = asc;
-    IDStr.MaxLen = asc_len;
+    IDStr.MaxLen = asc_len; // 字符串长度
     IDHex.Name._char = hex;
-    IDHex.MaxLen = hex_len;
+    IDHex.MaxLen = hex_len; // 最大空间
     strArrayToNumberArray(IDStr.Name._char, IDStr.Name._char, IDStr.MaxLen); // 将字符串转数组串
     int Len = doubleChStrToShortChStr(IDStr, IDHex);                         // 双字节数组 转 单字节数组 0x02 0x03 --> 0x23
     return Len;

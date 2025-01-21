@@ -32,17 +32,23 @@ typedef struct New_Arr {
         long double * _Ldouble; // 扩展精度浮点型指针
     } Name;
     int MaxLen;
+    int SizeType;
+    int (*getStrlen)(struct New_Arr This); // 获取类型
 } strnew;
 // void my_init() __attribute__((constructor));
 // void my_cleanup() __attribute__((destructor));
 
 // 建立对象
-#define NEW_NAME(ArrName) New_Str_Obj(ArrName, ARR_SIZE(ArrName))
-extern strnew New_Str_Obj(void * Master, int SizeNum); // 建立对象的函数
+extern void _strnewInit(strnew * newArray, int TypeSize);
+#define newstrobj(Name, TypeSize) strnew Name = {0};\
+    _strnewInit(&Name, TypeSize);
+
+#define NEW_NAME(ArrName) New_Str_Obj(ArrName, ARR_SIZE(ArrName), sizeof(ArrName[0]))
+
+extern strnew New_Str_Obj(void * Master, int SizeNum, int SizeType); // 建立对象的函数
 #define newString(name, Len)  \
     char Str##name[Len] = {0}; \
     strnew name = NEW_NAME(Str##name)
-
 /*-----------------------------------外部接口----------------------------------*/
 extern int catString(char * OutStr, char * IntStr, int MaxSize, int IntSize);
 extern bool copyString(char * OutStr, char * IntStr, int MaxSize, int IntSize);
@@ -52,5 +58,32 @@ extern void swapChr(char * a, char * b);
 extern void swapStr(char * IntputStr, int StrLen);
 extern char swapLowHight_Of_Char(char InputCh);
 extern bool MoveDataOnBuff(strnew IntptBuff, int ShiftLen, bool IsLeft);
+
+#ifdef _Alignas 
+#define GET_TYPE(var) (_Generic((var), \
+    int: "int", \
+    unsigned int: "unsigned int", \
+    char: "char", \
+    unsigned char: "unsigned char", \
+    double: "double", \
+    float: "float", \
+    char *: "char *", \
+    unsigned char *: "unsigned char *", \
+    default: "unknown"))
+
+typedef struct _Type_T {
+    void * var;
+    const char * type;
+}Type_T;
+
+extern Type_T _InitType(void * var, const char * type);
+#define newType_X(TypeName, var) Type_T TypeName = _InitType(var, GET_TYPE(var))
+
+#define newType1(var)           _InitType(var, GET_TYPE(var))
+#define newType2(Name, var)     newType_X(Name, var)
+
+#define GET_TYPE_MACRO(_1, _2, NAME, ...) NAME
+#define newType(...) GET_TYPE_MACRO(__VA_ARGS__, newType2, newType1)(__VA_ARGS__)
+#endif
 
 #endif

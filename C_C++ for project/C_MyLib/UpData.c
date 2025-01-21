@@ -1,5 +1,5 @@
 #include "updata.h"
-// #include "mf_config.h"
+#include "mf_config.h"
 
 // FL_FLASH_PAGE_SIZE_BYTE   512 页大小
 // 0 ~ 63  块 
@@ -82,7 +82,7 @@ int updataCheck(void) {
     if (updata_param.sign != UPDATA_SIGN || updata_param.pageNum < 10) {
         return -1;
     }
-    printf("updata find page = %d\r\n", updata_param.pageNum);
+    MyPrintf("updata find page = %d\r\n", updata_param.pageNum);
     // 有已经更新的待运行的程序，需要校验
     for (int i = 0; i < updata_param.pageNum; i++) {
         memset(UpdataData.Page8Buff, 0, PAGE_SIZE);    // 初始化读取空间
@@ -112,12 +112,12 @@ int updataCopyProgram(void) {
             // 写
             addr = UPDATA_MCU_OFFSET + (i * 512);
             if (flash_write_page(addr, UpdataData.Page8Buff) < 0) {
-                printf("updata page %04x program fail\r\n", addr);
+                MyPrintf("updata page %04x program fail\r\n", addr);
                 Flag = -1;
                 break;
             }
 
-            printf("updata addr %04x sucess\r\n", addr);
+            MyPrintf("updata addr %04x sucess\r\n", addr);
         }
         if (Flag != -1) {
             break;
@@ -127,6 +127,7 @@ int updataCopyProgram(void) {
     return Flag;
 }
 #else
+uint8_t UpdataCsDeart;  // 校验差
 // 读取 flash 数据 ==> 缓存区
 void readFlashDataToUpdataBuff(uint8_t PageNum) {
     flash_read_page((UPDATA_PAGE_BEGIN + PageNum * PAGE_SIZE), UpdataData.Page8Buff);
@@ -137,10 +138,7 @@ void writeUpdataBuffDataToFlash(uint8_t PageNum) {
 }
 // 计算包所在的 flash 页
 int ComputeNeedPage(int PackNum, int PackLen) {
-    float Temp = ((float)PAGE_SIZE / (float)PackLen);
-    Temp = ((float)PackNum / Temp);
-    int Res = (int)Temp;
-    return (Temp - Res > 0) ? (Res + 1) : Res;
+    return ((PackNum * PackLen) / PAGE_SIZE);
 }
 // 为不满 512 的缓存空间 补充 0xff
 void addHex_FF_ToBuff(void) {
@@ -149,10 +147,10 @@ void addHex_FF_ToBuff(void) {
 }
 // 判断当前包所在页面的剩余空间
 int NowPackIsGotoNextPage(int NowPageNum, int NowPackNum) {
-    if (NowPackNum * UpdataData.PackLen > NowPageNum * PAGE_SIZE) {
+    if (NowPackNum * UpdataData.PackLen > (NowPageNum + 1) * PAGE_SIZE) {
         return -1;	    // 确保页面号与 包序号正确
     }
-    return (NowPageNum * PAGE_SIZE - NowPackNum * UpdataData.PackLen);   // 当前页剩余空间
+    return ((NowPageNum + 1) * PAGE_SIZE - NowPackNum * UpdataData.PackLen);   // 当前页剩余空间
 }
 // 把当前包存入缓存区，如果缓存区满，则写 flash 
 // 备注： NowPackNum == -1 则将剩下缓存区写入 flash
@@ -179,13 +177,17 @@ int SaveUpdataToPage8Buff(int NowPageNum, int NowPackNum, strnew NowCodeHex) {
         memcpy(&UpdataData.Page8Buff[Addr], NowCodeHex.Name._char, NowCodeHex.MaxLen);
         UpdataData.NowLen_Page8Buff = Addr + NowCodeHex.MaxLen;
     }
-    if (NowCodeHex.MaxLen != UpdataData.PackLen) {
-        addHex_FF_ToBuff();
-    }
     UpdataData.NowPageNum = NowPageNum;    // 更新页码
+    if (NowCodeHex.MaxLen == UpdataData.PackLen) {
+        return 2;
+    }
+    for (int i = 0; i < (PAGE_SIZE - UpdataData.NowLen_Page8Buff); i++) {
+        UpdataCsDeart += 0xFF;
+    }
+    addHex_FF_ToBuff(); // 最后一页需要补 0xFF
     return 2;
 }
-// "data":{"PackLen":128,"VerNum":12}
+// "data":{"PackLen":128}
 // "data":{"NowPackNum":0,"Code":"11223344556677889900","CsCheckNum":114}
 // "data":{"upDataFlag":true,"CsCheckNum":90,"pageNum":10}
 int UpData_Receive_Hex(JsonObject BinCode) {
@@ -193,28 +195,26 @@ int UpData_Receive_Hex(JsonObject BinCode) {
     int FlagCodeNum;    // 返回码
     uint8_t checkSum = 0;
     if (UpdataData.Sign != 0xB2) {
-        if (BinCode.isJsonNull(&BinCode, "VerNum") < 0) {
+        if (BinCode.isJsonNull(&BinCode, "PackLen") < 0) {
             FlagCodeNum = 0;
             goto OverSub;
         }
     }
     if (BinCode.getBool(&BinCode, "upDataFlag")) {
         updata_param.sign = UPDATA_SIGN;
-        updata_param.checkSum = BinCode.getInt(&BinCode, "CsCheckNum");
+        updata_param.checkSum = BinCode.getInt(&BinCode, "CsCheckNum") + UpdataCsDeart;
         updata_param.pageNum = BinCode.getInt(&BinCode, "pageNum");
         updataWriteSign();  // 写标记区
         FlagCodeNum = 3;
         goto OverSub;
     }
     // 存在版本信息，准备升级，或重新升级
-    if (BinCode.isJsonNull(&BinCode, "VerNum") >= 0) {
+    if (BinCode.isJsonNull(&BinCode, "PackLen") >= 0) {
         updataInit();
         if (UpdataData.Sign == 0) { // 第一次升级
             UpdataData.PackLen = BinCode.getInt(&BinCode, "PackLen");
-            UpdataData.VerNum = BinCode.getInt(&BinCode, "VerNum");
         } else {    // 重新升级
             UpdataData.PackLen = BinCode.getInt(&BinCode, "PackLen");
-            UpdataData.VerNum = BinCode.getInt(&BinCode, "VerNum");
         }
         UpdataData.Sign = 0xB2;
         UpdataData.NowPageNum = 0;
@@ -224,7 +224,7 @@ int UpData_Receive_Hex(JsonObject BinCode) {
         goto OverSub;
     }
     BinCode.getString(&BinCode, "Code", CodeStr);
-    CodeStr.MaxLen = ASCIIToHEX2(CodeStr.Name._char, strlen(CodeStr.Name._char), CodeStr.Name._char, strlen(CodeStr.Name._char) / 2);
+    CodeStr.MaxLen = ASCIIToHEX2(CodeStr.Name._char, CodeStr.getStrlen(&CodeStr), CodeStr.Name._char, CodeStr.getStrlen(&CodeStr) / 2);
     // 计算校验
     for (int i = 0; i < CodeStr.MaxLen; i++) {
         checkSum += CodeStr.Name._char[i];

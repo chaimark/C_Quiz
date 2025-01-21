@@ -3,8 +3,7 @@
 
 #include <stdbool.h>
 #include "NumberBaseLib.h"
-#include "All.h"
-//#include "../Src/AT24C0256.h"
+#include "../Src/AT24C0256.h"
 
 #ifndef __AT24C0XXX_H
 typedef struct {
@@ -37,48 +36,42 @@ typedef struct {
 #ifndef __AT24C0XXX_H
 typedef struct AT24CXX_MANAGER_S {
     // 32字节
-    char sign;		   // 初始化标志
-    char gw_id[6];	   // 设备地址
-    char username[10]; // 登录
-    char password[15];
-
-    // 32*6 = 192 字节
-    char heating_start[15];
-    char heating_end[15];
-    char NET_Local_IP[30];
-    char NET_Local_MASK[30];
-    char NET_Local_GATEWAY[30];
-    char NET_4G_Remote_Url[42];
-    short int NET_4G_Remote_Port;
-
-    short int main_interval;
-    short int copy_interval;
-    short int copy_statistics;
-    unsigned int not_intimer_interval;
-    unsigned char Save_Working_Mode;
-
-    bool NetCheckENableFlag;        // NET 查询使能标志
-    bool IsColorDislay;             // 是否彩色显示
-    FL_RTC_InitTypeDef Time_Data;   // 时间
+    char Sing;                  // 初始化标志
+    char VER[4];                // 版本号
+    char Save_Working_Mode;     // 工作模式（权限）
+    char MeterID[4];            // 表号
+    char NET_Remote_Url[42];    // 目标地址
+    uint16_t NET_Remote_Port;   // 目标端口
+    char DaysNumberOfCCLK;      // 间隔校时的天数
+    struct {
+        uint32_t SendIntervalDay;           // 当天发送的周期 (单位是 s) 1440 分钟 = 1天 = 86400 秒
+        uint8_t  SendStartHour;             // 当天发送的起始点
+        struct {
+            uint16_t StartDay;              // 某模式起始日（如：第150日; 1月1日为第1日）
+            uint8_t  SendInterval;          // 某模式下的间隔周期 (单位是 day)
+            uint8_t  OneDayMaxSendTime;     // 某模式下的最大发送次数
+        }SendFlagMode[3];                   // 当月发送标记模式 (默认：0:防锁模式, 1:频发模式, 2:保底模式)
+    } SendManageObj;
+    struct {
+        char _Module_SIM_BAND;
+        char _Module_SIM_ICCID[21];
+        char _Module_SIM_IMSI[21];
+        char _Module_DEV_IMEI[21];
+        //char _Module_DEV_SNR;
+        char _Module_DEV_CSQ;
+        char _Module_DEV_RSRP;
+        char _Module_DEV_RSRQ;
+        unsigned int _Module_DEV_Volt;
+        char _Module_Socket_Num;
+    } Get_Module_Data;
+    FL_RTC_InitTypeDef Time_Data;
+    bool NetCheckENableFlag;    // 网络检测使能标志
 } AT24CXX_MANAGER_T;
 extern AT24CXX_MANAGER_T AT24CXX_Manager;
 #endif
 
-// public
-typedef struct _GetNBData {
-    char NB_DEV_IMEI[20];
-    char NB_DEV_SNR;
-    char NB_DEV_CSQ;
-    char NB_DEV_RSRP;
-    char NB_DEV_RSRQ;
-    char NB_SIM_BAND;
-    char NB_SIM_ICCID[20];
-    char NB_SIM_IMSI[20];
-    char NB_Socket_Num;
-} GetNBData_T;
-
 extern AT24CXX_MANAGER_T * _AT24CXX_Manager_NET;
-extern GetNBData_T GetNBData;  // NB数据
 extern void AT24CXXLoader_Init(void);
 extern bool checkTimeFrom(FL_RTC_InitTypeDef InputTimeData);
 #endif
+

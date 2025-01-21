@@ -1,7 +1,7 @@
 #ifndef __UPDATA_H
 #define __UPDATA_H
 
-#define ISBootLoader 1
+#define ISBootLoader 0
 //true 
 //false
 
@@ -9,7 +9,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include "fm33lc0xx_fl_flash.h"
+#include "fm33le0xx_fl_flash.h"
+// #define MyPrintf(...)  printf(__VA_ARGS__)
+#define MyPrintf(...)  FL_DelayMs(10)
 
 #if (ISBootLoader == 0)
 #include "../Interflow/JsonDataAnalyzeLib.h"
@@ -17,18 +19,11 @@
 #endif
 
 // PAGE_SIZE == 512
-#ifndef FL_FLASH_PAGE_SIZE_BYTE 
-// 临时示例
-#define FL_FAIL 1
-#define FLASH 2
-#define PAGE_SIZE 512
-#else
 #define  PAGE_SIZE FL_FLASH_PAGE_SIZE_BYTE
-#endif
 int flash_write_page(uint32_t addr, uint8_t * buf);
 void flash_read_page(uint32_t addr, uint8_t * buf);
 
-// #define FM33LC026_FLASH_EN // 选择打开 FM33LC026 的 flash
+#define FM33LC026_FLASH_EN // 选择打开 FM33LC026 的 flash
 #ifdef FM33LC026_FLASH_EN
 /***********FM33LC026****************/
 #define UPDATA_PAGE_SIGN 0x1F000
@@ -56,7 +51,6 @@ extern updata_param_t updata_param;
 
 typedef struct _UpdataDataTemp {
     char Sign;
-    int VerNum;
     int PackLen;
     int NowPackNum; // 接收到的包序号
     int NowPageNum; // 当前包所在的页号

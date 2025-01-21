@@ -79,6 +79,9 @@ JsonObject newJsonObjectByString(strnew DataInit);
 //==========================================================================================//
 
 int Arr_sizeItemNum(struct _JsonArray This) {
+    if (This.ItemNum != -1) {
+        return This.ItemNum;
+    }
     Stack s;        // 定义栈
     initStack(&s);  // 初始化栈
     int ItemNum = 0;
@@ -101,7 +104,8 @@ int Arr_sizeItemNum(struct _JsonArray This) {
         }
         EndItem++;
     }
-    return (This.isJsonNull(&This) ? 0 : ItemNum);
+    This.ItemNum = (This.isJsonNull(&This) ? 0 : ItemNum);
+    return This.ItemNum;
 }
 signed char Arr_isJsonNull(struct _JsonArray This) {
     return ((strcmp(This.JsonString.Name._char, "[]") == 0) ? true : false);
@@ -135,13 +139,18 @@ void Arr_get(struct _JsonArray This, strnew OutStr, int ItemNum) {
     char Temp = *(EndItem - 1);
     *(EndItem - 1) = '\0';
     memset(OutStr.Name._char, 0, OutStr.MaxLen);
-    copyString(OutStr.Name._char, HeadItem, OutStr.MaxLen, strlen(HeadItem));
+    if (OutStr.SizeType == 1) { // 如果是字符串类型
+        copyString(OutStr.Name._char, &HeadItem[1], OutStr.MaxLen, (strlen(&HeadItem[1]) - 1));
+    } else {
+        copyString(OutStr.Name._char, HeadItem, OutStr.MaxLen, strlen(HeadItem));
+    }
     *(EndItem - 1) = Temp;
 }
 
 JsonArray newJsonArrayByString(strnew DataInit) {
     JsonArray Temp;
     Temp.JsonString = DataInit;
+    Temp.ItemNum = -1;
     Temp.sizeItemNum = Arr_sizeItemNum;
     Temp.isJsonNull = Arr_isJsonNull;
     Temp.get = Arr_get;
@@ -257,6 +266,9 @@ struct _JsonArray Obj_getArray(struct _JsonObject This, char Key[], strnew OutSt
                 memset(tempJsonArr.JsonString.Name._char, 0, tempJsonArr.JsonString.MaxLen);
                 copyString(tempJsonArr.JsonString.Name._char, KeyP, tempJsonArr.JsonString.MaxLen, strlen(KeyP));
                 *(EndP + 1) = Temp;
+            } else {
+                tempJsonArr.JsonString.Name._char = KeyP;
+                tempJsonArr.JsonString.MaxLen = strlen(KeyP);
             }
         }
     }
@@ -280,6 +292,9 @@ struct _JsonObject Obj_getObject(struct _JsonObject This, char Key[], strnew Out
                 memset(tempJsonObj.JsonString.Name._char, 0, tempJsonObj.JsonString.MaxLen);
                 copyString(tempJsonObj.JsonString.Name._char, KeyP, tempJsonObj.JsonString.MaxLen, strlen(KeyP));
                 *(EndP + 1) = Temp;
+            } else {
+                tempJsonObj.JsonString.Name._char = KeyP;
+                tempJsonObj.JsonString.MaxLen = strlen(KeyP);
             }
         }
     }

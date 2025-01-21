@@ -3,7 +3,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-newJsonList * _JsonData = NULL;
 #define JSON_DATA (*_JsonData)
 
 bool AddPullWTJsonKeyAndVer(JsonItem * ItemData, struct _JsonData This) {
@@ -27,14 +26,16 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
     static char Front_JsonItemLevel = 0;
     static char TempStr[50] = {0}; // 先进后出的栈区，用户缓存 {{}}
 
-    newString(NowItemLine, 300);
     if ((Front_JsonItemLevel - TempNowNode->JsonItemLevel) > 0) {
         for (int i = 0; i < (Front_JsonItemLevel - TempNowNode->JsonItemLevel); i++) {
-            OutputStr.Name._char[strlen(OutputStr.Name._char)] = TempStr[strlen(TempStr) - 1]; // 括号出栈
+            OutputStr.Name._char[OutputStr.getStrlen(&OutputStr)] = TempStr[strlen(TempStr) - 1]; // 括号出栈
             TempStr[strlen(TempStr) - 1] = 0;
         }
         catString(OutputStr.Name._char, ",", OutputStr.MaxLen, 1);
     }
+    strnew NowItemLine = OutputStr;
+    NowItemLine.Name._char += OutputStr.getStrlen(&OutputStr);
+    NowItemLine.MaxLen = OutputStr.MaxLen - OutputStr.getStrlen(&OutputStr);
     switch (TempNowNode->KeyType) {
         case 'd': // %d 或 %i：有符号十进制整数。
             if (strcmp(TempNowNode->key, "") != 0) {
@@ -107,11 +108,10 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
         }
     }
     Front_JsonItemLevel = TempNowNode->JsonItemLevel;
-    catString(OutputStr.Name._char, NowItemLine.Name._char, OutputStr.MaxLen, strlen(NowItemLine.Name._char));
     if (TempNowNode->next == NULL) { // 无下一个节点，推出栈区所有括号
         int TempStr_OverLen = strlen(TempStr);
         for (int i = 0; i < TempStr_OverLen; i++) {
-            OutputStr.Name._char[strlen(OutputStr.Name._char)] = TempStr[strlen(TempStr) - 1]; // 括号出栈
+            OutputStr.Name._char[OutputStr.getStrlen(&OutputStr)] = TempStr[strlen(TempStr) - 1]; // 括号出栈
             TempStr[strlen(TempStr) - 1] = 0;
         }
         Front_JsonItemLevel = 0;
@@ -120,7 +120,7 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
     return;
 }
 void _ResJsonDataNote(struct _JsonData This) {
-    _JsonData = &This;
+    This._JsonData = &This;
 }
 bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
     JsonItem * TempNowNode = This.Head_JsonDataNote;
@@ -131,20 +131,10 @@ bool _OutPushJsonString(strnew OutputStr, struct _JsonData This) {
         TempNowNode = TempNowNode->next;
     }
     catString(OutputStr.Name._char, "}", OutputStr.MaxLen, 1);
-    _JsonData = NULL;
+    This._JsonData = NULL;
     return true;
 }
-
-// 建立对象的函数
-newJsonList NEW_JSON_LIST(newJsonList * DataInit) {
-    _JsonData = DataInit;
-    (*DataInit).Head_JsonDataNote = NULL;
-    (*DataInit).ResJsonDataNote = _ResJsonDataNote;
-    (*DataInit).OutPushJsonString = _OutPushJsonString;
-    return (*DataInit);
-}
-
-void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
+void _setJsonItemData(struct _JsonData This, JsonItem * ItemData, char * fmt, ...) {
     JsonItem * TempNext = NULL;
     char keyFromStr[200] = {0};
     strcpy(keyFromStr, fmt);
@@ -213,6 +203,16 @@ void setJsonItemData(JsonItem * ItemData, char * fmt, ...) {
     ItemData->next = TempNext; // 设置 ItemData 结构体中的指针
     va_end(args);              // 结束对 args 的访问
 
-    AddPullWTJsonKeyAndVer(ItemData, _JsonData); // 向 WTMqttJson 中添加关键字与值
+    AddPullWTJsonKeyAndVer(ItemData, This._JsonData); // 向 WTMqttJson 中添加关键字与值
+}
+
+// 建立对象的函数
+newJsonList NEW_JSON_LIST(newJsonList * DataInit) {
+    (*DataInit)._JsonData = DataInit;
+    (*DataInit).Head_JsonDataNote = NULL;
+    (*DataInit).ResJsonDataNote = _ResJsonDataNote;
+    (*DataInit).OutPushJsonString = _OutPushJsonString;
+    (*DataInit).setJsonItemData = _setJsonItemData;
+    return (*DataInit);
 }
 

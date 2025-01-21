@@ -5,8 +5,8 @@ struct AT24CXX_MANAGER_S * _AT24CXX_Manager_NET = NULL;
 #ifndef __AT24C0XXX_H
 AT24CXX_MANAGER_T AT24CXX_Manager_NET;
 #endif
-GetNBData_T GetNBData;  // NB数据
 void AT24CXXLoader_Init(void) {
+    AT24CXX_Manager.SendManageObj.SendIntervalDay = MinToSec(HourToMin(6));
     _AT24CXX_Manager_NET = &AT24CXX_Manager;
     AT24CXX_Manager_NET.Time_Data.year = 0x2019;
     AT24CXX_Manager_NET.Time_Data.month = 0x01;
@@ -23,7 +23,7 @@ bool checkTimeFrom(FL_RTC_InitTypeDef InputTimeData) {
     if (!Check_Date_ByHEX((InputTimeData.year >> 16), InputTimeData.year, InputTimeData.month, InputTimeData.day)) {
         return false;    // 时间错误
     }
-    return true;
+    return (InputTimeData.year < NowYear ? false : true);
 }
 
 

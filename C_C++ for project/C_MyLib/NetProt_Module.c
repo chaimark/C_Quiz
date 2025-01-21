@@ -1,31 +1,405 @@
 #include "NetProt_Module.h"
 #include "NumberBaseLib.h"
-#include "Gpio.h"
 #include "StrLib.h"
 #include "AT24CXXDataLoader.h"
 #include "SetTime.h"
 #include "RTC_SetTime.h"
-#include "NET_ATCmd_FunctionSum.h"
+#include "_Module_ATCmd_FunctionSum.h"
+#include "../Src/ADC.h"
+#include "../Src/Display.h"
+/******************************/
+strnew UartBuff = {0};    // Uart接收缓冲区
+NetDevParameter Now_NetDevParameter;    // 网络状态标记与下行指令表
+NetDevATCmd * NetDevice_ATData;
 
-void ClearNetDataBuff(void) {
-    memset(Now_NetDevParameter.NetDataBuff, 0, ARR_SIZE(Now_NetDevParameter.NetDataBuff)); // 释放 HTTPBuff_p
-    Now_NetDevParameter.NetDataBuff_NowLen = 0;
-}
-void sendDataByNetProt(char * SendCmd, int SendCmdLen) {
-    ClearNetDataBuff();
-    Uart0Send((unsigned char *)SendCmd, SendCmdLen);
-    for (int i = 0; i < 1000; i++) {
-        if (checkUart()) {
+bool checkUart(int MaxTimeMs) {
+    int MaxTime = (MaxTimeMs == 0 ? 1000 : MaxTimeMs);
+    bool Flag = false;
+    for (int i = 0; i < MaxTime; i++) {
+        Flag = (Now_NetDevParameter.NetDataBuff_NowLen > 0 ? true : false);
+        if (Flag) {
             break;
         }
         IncludeDelayMs(1);
     }
+    return Flag;
 }
-strnew UartBuff = {0};    // Uart接收缓冲区
-NetDevParameter Now_NetDevParameter;    // 网络状态标记与下行指令表
+bool _FindStr_WaitTime(strnew FindStr, int MaxTimeMs, char ** OutNote) {
+    char * TempP = NULL;
+    if (checkUart(MaxTimeMs)) {
+        if ((TempP = strstr(Now_NetDevParameter.NetDataBuff, FindStr.Name._char)) == NULL) {
+            return false;
+        }
+        (*OutNote) = ((OutNote != NULL) ? TempP : NULL);
+        return true;
+    }
+    return false;
+}
+void ClearNetDataBuff(void) {
+    memset(Now_NetDevParameter.NetDataBuff, 0, ARR_SIZE(Now_NetDevParameter.NetDataBuff)); // 释放 HTTPBuff_p
+    Now_NetDevParameter.NetDataBuff_NowLen = 0;
+}
+void sendDataByTTLProt(void * dataStr, int SendCmdLen) {
+    char * SendCmd = (char *)dataStr;
+    sendDataBy_Module_Prot(SendCmd, SendCmdLen);
+}
+// 设置模组处于AT模式
+bool SetDevATCMDModel_ThroughSendData(void) {
+    checkUart(0);
+    bool ATConfig_Flag;
+    // 清除 Now_NetDevParameter 状态标记
+    Now_NetDevParameter.isCmdResFlag = false;
+    Now_NetDevParameter.isWriteEEprom = false;
+#ifdef IsShortLinkModeFlag
+    ATConfig_Flag = EnterATMode__NB();
+#else
+//NET 进入 AT 模式
+    if (UP_Mode_EC20_ON) {
+#ifdef _4G_ATCMD_FUNCTIONSUM_H
+        ATConfig_Flag = EnterATMode_4G();
+#endif
+    } else {
+#ifdef _NET_ATCMD_FUNCTIONSUM_H
+        ATConfig_Flag = EnterATMode_NET();
+#endif
+    }
+#endif
+
+#ifdef OPEN_AT_CMD_DEBUG
+    ATCmdDebugTask();
+#ifdef IsShortLinkModeFlag
+    RTC_TASK.InitSetTimeTask(SendTimeOverTask, 1, NULL); // 超过 1 s，需要关闭 _Module_
+#endif
+#endif
+    Now_NetDevParameter.isSendOk = false;
+    Now_NetDevParameter.isWriteEEprom = false; // 写完 EEprom 后，将标志位清零
+    // 进入AT模式 ==========
+    return ATConfig_Flag;
+}
+void clearUartBuff(void) {
+    memset(UartBuff.Name._char, 0, UartBuff.MaxLen);
+    NowLenOfUartBuff = 0;   // 需要把外部传入的buff标记或长度复位才算清空
+}
+int IsOverTimeOfUart(int TempNowRxLen) {
+    while (1) {
+        IncludeDelayMs(30);    // 等待 30ms 接收数据，避免短数据占用太多时间
+        if (TempNowRxLen == NowLenOfUartBuff) {
+            return NowLenOfUartBuff;
+        }
+        TempNowRxLen = NowLenOfUartBuff;
+    }
+}
+// 判断是否连接上MQTT （参数 ：false 不重启模组，true 设备不在线则重启模组）
+bool isMQTTLinkOnleng(bool isResAtDev) {
+    bool ATConfig_Flag = false;
+    if (AT24CXX_Manager_NET.NetCheckENableFlag == false) {
+        return true;
+    }
+
+    if ((isResAtDev) && (Now_NetDevParameter.NowNetOnlineFlag == false)) {
+        for (int i = 0; i < 10; i++) {
+            if (SetDevATCMDModel_ThroughSendData()) {
+                break;
+            }
+        }
+    }
+#ifdef IsShortLinkModeFlag
+    ATConfig_Flag = isMQTTLinkOnleng__NB();
+#else
+    if (UP_Mode_EC20_ON) {
+#ifdef _4G_ATCMD_FUNCTIONSUM_H
+        ATConfig_Flag = isMQTTLinkOnleng_4G();
+#endif
+    } else {
+#ifdef _NET_ATCMD_FUNCTIONSUM_H
+        ATConfig_Flag = isMQTTLinkOnleng_NET();
+#endif
+    }
+#endif
+    if (ATConfig_Flag) {
+        return true;
+    }
+    return false;
+}
+// 处理用户请求/命令
+bool doingUserRequest(void) {
+    return true;
+}
+// 发送ATCmd
+bool sendATCmdData(NetDevATCmd NowATCmd) {
+    newString(ATCmd_SendBUFF, 500);
+    // 装载指令
+    NowATCmd.DataInstallation(ATCmd_SendBUFF, &NowATCmd);
+    clearUartBuff();
+    // 发送指令
+    sendDataByTTLProt(ATCmd_SendBUFF.Name._char, ATCmd_SendBUFF.getStrlen(&ATCmd_SendBUFF));
+    for (int ResCount_i = 0; ResCount_i <= NowATCmd.CmsResCount; ResCount_i++) {
+        newstrobj(TempSucessStr, 1);
+        TempSucessStr.Name._char = NowATCmd.SucessStr;
+        TempSucessStr.MaxLen = TempSucessStr.getStrlen(&TempSucessStr);
+        if (FindStr_WaitTime(TempSucessStr, NowATCmd.DelayTime) == false) {   // 模组是否回复
+            ClearNetDataBuff();
+            // 判断是否可以跳过
+            if ((NowATCmd.DoingATReceiveFunName == ResetTrueDoingFun) && ((ResCount_i + 1) == NowATCmd.CmsResCount)) {
+                return true; // 发送结束也没收到回复，直接跳过
+            }
+            continue;
+        }
+        // 处理模组的回复
+        if (NowATCmd.DoingATCmdResData(&NowATCmd) == false) {
+            return false; // AT 指令发送失败
+        }
+        // 该指令是否需要上位机回复，如果不需要直接回复 true
+        if (NowATCmd.IsGetComputerResFlag == false) {
+            return true; // 上位机回复成功
+        }
+        return doingUserRequest(); // 上位机回复成功
+    }
+    return (NowATCmd.CmsResCount == 0 ? true : false); // AT 指令发送失败限制为0,直接跳过该指令
+}
+// 获取指令
+char copyComputerDownData(void) {
+    if (checkUart(0)) { // 从 UART0Ddata 获取数据
+        char * AddrStart = NULL;
+        if (myStrstr(Now_NetDevParameter.NetDataBuff, "{\"gw\":", ARR_SIZE(Now_NetDevParameter.NetDataBuff)) != NULL) {
+            if (NULL == (AddrStart = myStrstr(Now_NetDevParameter.NetDataBuff, "{\"gw\":", ARR_SIZE(Now_NetDevParameter.NetDataBuff)))) {
+                ClearNetDataBuff();
+                return false;
+            }
+            if (NULL == strstr(AddrStart, "}}")) {
+                return false;
+            }
+            if (Now_NetDevParameter.CmdTable.NowListNum >= CmdListMax) {
+                Now_NetDevParameter.CmdTable.popUpListStr(&Now_NetDevParameter.CmdTable);  // 弹出队列 List
+            }
+            // 将下行指令推入队列 List
+            Now_NetDevParameter.CmdTable.pushListStr(&Now_NetDevParameter.CmdTable, NEW_NAME(Now_NetDevParameter.NetDataBuff));
+            ClearNetDataBuff(); // 释放 HTTPBuff_p
+            return true;
+        } else {
+            // 其他定制指令
+        }
+    }
+    return false;
+}
+// 搬运串口数据
+bool copyDataForUART(void) {
+    if (NowLenOfUartBuff != 0) {
+        int NowRxLen = IsOverTimeOfUart(NowLenOfUartBuff);  // 返回接收完全的数据长度
+        if (NowRxLen > CmdStrLenMax) {
+            clearUartBuff();
+            return false;
+        }
+        UartDisableIRQ;
+        if (Now_NetDevParameter.NetDataBuff_NowLen + NowRxLen <= ARR_SIZE(Now_NetDevParameter.NetDataBuff)) {                                                                                                                                 // 追加到 Now_NetDevParameter.NetDataBuff
+            memcpy(&Now_NetDevParameter.NetDataBuff[Now_NetDevParameter.NetDataBuff_NowLen], UartBuff.Name._char, NowRxLen); // 接收数据
+            Now_NetDevParameter.NetDataBuff_NowLen += NowRxLen;
+        } else {
+            ClearNetDataBuff();
+            memcpy(Now_NetDevParameter.NetDataBuff, UartBuff.Name._char, NowRxLen);   // 接收数据
+            Now_NetDevParameter.NetDataBuff_NowLen = NowRxLen;
+        }
+        clearUartBuff();
+        UartEnableIRQ;
+#ifdef IsShortLinkModeFlag
+        if (!Now_NetDevParameter.isGetDownCmd) { // 短链接，非主动获取的模式下，需要监控指令
+            Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
+        }
+#endif
+        return true;
+    } else {
+        return false;
+    }
+}
+bool is_Module_OverTime(void) {
+#ifdef IsShortLinkModeFlag
+    if (RTC_TASK.Task[SendTimeOverTask].TimeTask_Falge) {
+        RTC_TASK.CloseTask(SendTimeOverTask); // 关闭定时任务
+        RTC_TASK.Task[SendTimeOverTask].MaxSecNum = 0;
+        RTC_TASK.Task[SendTimeOverTask].CountNumOnceSec = 0;
+        return true;
+    }
+    return false;
+#else
+    return false;
+#endif
+}
+void isNo_One_Connect(void) {
+    // if (UP_Mode_EC20_ON) {
+    //     RTC_TASK.InitSetTimeTask(WriteTimeOfLocal, 10, Write_RX8025T_AndRTC_By_UTC8); // 10s 后写入时间 (4G)
+    // }
+    Now_NetDevParameter.CheckOnlineFlag = setDataBit(Now_NetDevParameter.CheckOnlineFlag, 0, false);  // 关闭网络检查
+    Now_NetDevParameter.NowNetOnlineFlag = true; // 设备已在线
+    Now_NetDevParameter.ReBootCount = 0;         // 连接成功，重器计数清零
+    // JSON_Send_GW_Infor(Now_NetDevParameter.ReBootCount > 0 ? true : false);
+    // printf("Now the gateway is online\r\n");
+}
+// 检查时间任务
+void check_time_task(void) {
+#ifdef IsShortLinkModeFlag  
+    RTC_TASK.CloseTask(CheckNet); // 关闭 CheckNet 任务
+#else
+    RTC_TASK.InitSetTimeTask(CheckNet, Now_NetDevParameter.LineCheckTime, check_time_task);
+    Now_NetDevParameter.CheckOnlineFlag = setDataBit(Now_NetDevParameter.CheckOnlineFlag, 0, true);   // 打开网络检查s
+#endif
+}
+bool checkLinkStat(void) {
+    // return checkLinkStat__NB();
+    return true;
+}
+#ifdef IsShortLinkModeFlag
+#define LinkContMax 1
+#else
+#define LinkContMax 5
+#endif
+void Net_Task(void) {
+    static uint8_t LinkContinueTime = LinkContMax; // 连续 5 次都连接不上，则稍后再尝试， // 注意最高位不能使用
+    if (Now_NetDevParameter.NowNetOnlineFlag == false) {
+        if (!RTC_TASK.Task[PauseTimeOfLinkErr].TimeTask_Falge) {
+            goto NetSubOver;
+        }
+        LinkContinueTime = setDataBit(LinkContinueTime, 7, true); // 标记本次尝试连接
+    }
+    if (readDataBit(Now_NetDevParameter.CheckOnlineFlag, 0) == true) { // 检查当前设备 network 是否在线
+        Now_NetDevParameter.CheckOnlineFlag = setDataBit(Now_NetDevParameter.CheckOnlineFlag, 0, false);  // 关闭网络检查
+        if (isMQTTLinkOnleng(true)) {
+            Now_NetDevParameter.NowNetOnlineFlag = true;  // 标记在线
+        } else {
+            Now_NetDevParameter.NowNetOnlineFlag = false; // 标记不在线，下次运行这个任务时重启
+            Now_NetDevParameter.ReBootCount++;
+        }
+    }
+    if (is_Module_OverTime()) {
+        goto NetSubOver;
+    }
+    // 不在线或无连接，重新联网通信
+    if (Now_NetDevParameter.NowNetOnlineFlag == false) {
+        // 设置模组进入 AT 模式
+        for (int i = 0; i < 10; i++) {
+            if (SetDevATCMDModel_ThroughSendData()) {
+                if (is_Module_OverTime()) {
+                    goto NetSubOver;
+                }
+                break;
+            }
+        }
+        int NowStep = 0;
+        while (NowStep != -1) {
+            // 一个是否执行的开关，后续可扩展为指令控制
+            if (NetDevice_ATData[NowStep].RunFlag) {
+                for (int SendCount_i = 0; SendCount_i < NetDevice_ATData[NowStep].CmdSendCount; SendCount_i++) {
+                    if (sendATCmdData(NetDevice_ATData[NowStep])) {
+                        Display__Module_Steep((unsigned char)NowStep % 100, 1);
+                        break;
+                    }
+                    Display__Module_Steep((unsigned char)NowStep % 100, 0);
+                    // 联网遇到问题，中断联网进程
+                    if ((SendCount_i + 1) == NetDevice_ATData[NowStep].CmdSendCount) {
+                        IncludeDelayMs(500);   // 连接流程结束后等待 2 秒	
+                        Display__Module_Steep(255, 0);
+                        Now_NetDevParameter.CheckOnlineFlag = setDataBit(Now_NetDevParameter.CheckOnlineFlag, 0, false);  // 关闭网络检查
+                        Now_NetDevParameter.NowNetOnlineFlag = false; // 标记不在线，下次运行这个任务时重启
+                        Now_NetDevParameter.ReBootCount++;            // 重连一次
+                        // printf("The network connection has been interrupted : %s\r\n", NetDevice_ATData[NowStep].ATCmd);
+                        goto NetSubOver;
+                    }
+                }
+            }
+            NowStep = NetDevice_ATData[NowStep].Next_CmdID;
+            if (is_Module_OverTime()) {
+                goto NetSubOver;
+            }
+        }
+        IncludeDelayMs(3000);   // 连接流程结束后等待 3 秒
+        // 判断 MQTT 是否在线
+        if (isMQTTLinkOnleng(false)) {
+            IncludeDelayMs(50);   // 连接流程结束后等待 2 秒
+            Display__Module_Steep(255, 1);
+            RTC_TASK.InitSetTimeTask(PauseTimeOfLinkErr, 5, NULL);      // 恢复限制冷却时间
+            LinkContinueTime = setDataBit(LinkContinueTime, 7, false); // 恢复标记本次尝试连接
+            isNo_One_Connect();
+        }
+        if (is_Module_OverTime()) {
+            goto NetSubOver;
+        }
+        Now_NetDevParameter.ReBootCount = 0; // 复位重启计数器
+        ClearNetDataBuff();
+    }
+#ifdef IsShortLinkModeFlag
+    Now_NetDevParameter.GetDownCmd();
+    if (Now_NetDevParameter.SendData != NULL) {
+        Now_NetDevParameter.isSendOk = Now_NetDevParameter.SendData();  // 发送数据
+        Now_NetDevParameter.isSendOk = (Meter_Manager.DataCount > 0 ? false : true);
+        ClearNetDataBuff(); // 清空数据
+    }
+    Now_NetDevParameter.GetDownCmd();
+NetSubOver:
+#else
+NetSubOver:
+    if (readDataBit(Now_NetDevParameter.CheckOnlineFlag, 4) == true) {  // 是否需要被动监控某个特殊字段
+        Now_NetDevParameter.NowNetOnlineFlag = checkLinkStat();         // 标记是否在线，下次运行这个任务时重启            
+    }
+    Now_NetDevParameter.GetDownCmd();
+#endif
+    Now_NetDevParameter.NowNetOnlineFlag = true;
+    do {
+        if (Now_NetDevParameter.DoneCmd != NULL) {
+            Now_NetDevParameter.DoneCmd(); // 处理指令
+        }
+#ifdef IsShortLinkModeFlag
+#include "updata.h"
+        if (UpdataData.Sign == 0xB2) {
+            for (int i = 0; i < 6; i++) {
+                // (+NNMI 是接收到缓存的意思);
+                if (FindStr_WaitTime(NEW_NAME("+NNMI"), 1000) == true) {
+                    Now_NetDevParameter.GetDownCmd();
+                    break;
+                }
+                ClearNetDataBuff();
+            }
+        }
+        Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.CmdTable.NowListNum != 0 ? true : false); // 清除标志
+        ClearNetDataBuff();
+#endif
+    } while (Now_NetDevParameter.isCmdResFlag);
+#ifdef IsShortLinkModeFlag
+    if (Now_NetDevParameter.ShowdownNowDev != NULL) {
+        Now_NetDevParameter.ShowdownNowDev();   // 短链接，需要关闭设备
+        Now_NetDevParameter.NowNetOnlineFlag = false;
+    }
+    RTC_TASK.InitSetTimeTask(PauseTimeOfLinkErr, 1, NULL); // 短链接，1s 后继续尝试
+    LinkContinueTime = LinkContMax;  // 短链接，恢复联网次数限制
+    LinkContinueTime = setDataBit(LinkContinueTime, 7, false); // 恢复标记本次尝试连接
+    return;
+#else
+    if (Now_NetDevParameter.NowNetOnlineFlag == false) { // 如果标记，则本次连接尝试已完成
+        if (!readDataBit(LinkContinueTime, 7)) {
+            return;
+        }
+        LinkContinueTime = setDataBit(LinkContinueTime, 7, false); // 恢复标记本次尝试连接
+        if (RTC_TASK.Task[PauseTimeOfLinkErr].TimeTask_Falge) {
+#ifndef IsShortLinkModeFlag // 长连接状态下, 需要限制尝试联网的次数
+            LinkContinueTime = (LinkContinueTime > 0 ? (LinkContinueTime - 1) : LinkContMax);
+#endif
+            if (LinkContinueTime != 0) {
+                RTC_TASK.InitSetTimeTask(PauseTimeOfLinkErr, 1, NULL); // 1s 后继续尝试
+            } else {
+                RTC_TASK.InitSetTimeTask(PauseTimeOfLinkErr, MinToSec(240), NULL); // 一天连 6 次 1440/12 = 240
+            }
+        }
+    } else {
+        LinkContinueTime = LinkContMax;  // 恢复联网次数限制
+    }
+#endif
+}
+
+/***********************************************/
+/***********************************************/
+/***********************************************/
+
 void _pushListStr(struct _TableOfCmdTask This, strnew InputStr) {     // 推入队列 DebugStr
     // 计算输入字符串长度
-    int InputStrLen = strlen(InputStr.Name._char);
+    int InputStrLen = InputStr.getStrlen(&InputStr);
     // 如果输入字符串长度大于队列字符串长度，则截断
     if (InputStrLen > CmdStrLenMax) {
         memcpy(This.ListStr[This.NowListAddr], InputStr.Name._char, CmdStrLenMax);    // 将输入字符串复制到队列中
@@ -66,377 +440,82 @@ void TableOfCmdTaskInit(void) { // 下行任务表初始化
     Now_NetDevParameter.CmdTable.pushListStr = _pushListStr;
     Now_NetDevParameter.CmdTable.popUpListStr = _popUpListStr;
 }
-// 设置模组处于AT模式
-bool SetDevATCMDModel_ThroughSendData(void) {
-    // 先复位模组 ==========
-    REBOOT_DEV_OFF;
-    IncludeDelayMs(500); // 拉低 500 ms
-    REBOOT_DEV_ON;
-    IncludeDelayMs(2000); // 延时等待重启结束
-    checkUart();
-    bool ATConfig_Flag = true;
-    // 清除 Now_NetDevParameter 状态标记
-    Now_NetDevParameter.isCmdResFlag = false;
-    Now_NetDevParameter.isWriteEEprom = false;
-    // 进入AT模式 ==========
-    // {"AT+ENTM\r\n", "\r\n+OK"}
-    char cmdStr[2][2][20] = {{"+++", "a"}, {"a", "+ok"}};
-    for (int i = 0; i < 2; i++) {
-        sendDataByNetProt(cmdStr[i][0], strlen(cmdStr[i][0]));
-        if (checkUart()) {
-            if (myStrstr(Now_NetDevParameter.NetDataBuff, cmdStr[i][1], Now_NetDevParameter.NetDataBuff_NowLen) != NULL) {
-                ATConfig_Flag = true;
-                continue;
-            } else {
-                ATConfig_Flag = false; // 无法进入AT模式，直接退出，等待下一次重启
-                break;
-            }
-        } else {
-            if (i == 0) {
-                sendDataByNetProt("\r\n", strlen("\r\n"));
-                sendDataByNetProt("AT+ENTM\r\n", strlen("AT+ENTM\r\n"));
-                ATConfig_Flag = false; // 无法进入AT模式，直接退出，等待下一次重启
-            }
+// 根据不同的模组，写一个函数主动获取下行指令（无所谓模组是单条推出，还是一起，由解析函数区分）
+void UserGetDownCmd(void) {
+    bool IsGetDownCmd = false;
+    do {
+        IsGetDownCmd = false;
+        if (!Now_NetDevParameter.isGetDownCmd) { // 非主动获取指令,直接退出
             break;
         }
-    }
-    if (ATConfig_Flag) {
-        sendDataByNetProt("AT+VER\r\n", strlen("AT+VER\r\n"));
-        ATConfig_Flag = checkUart();
-        printf("Successfully entered the AT mode\r\n");
-    } else {
-        printf("Fail to enter the AT mode\r\n");
-    }
-#ifdef OPEN_AT_CMD_DEBUG
-    ATCmdDebugTask();
-    // RTC_TASK.InitSetTimeTask(SendTimeOverTask, 1, NULL); // 超过 1 s，需要关闭 NB
-#endif
-    return ATConfig_Flag;
+        // 主动获取指令,并返回是否有指令已存入缓存区
+        // if (UserGetDownCmd__XXX() == false) {
+        //     return;
+        // }
+        IsGetDownCmd = copyComputerDownData();
+        Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | IsGetDownCmd);  // 检查是否有收到数据
+    } while (IsGetDownCmd);
 }
-void clearUartBuff(void) {
-    memset(UartBuff.Name._char, 0, UartBuff.MaxLen);
-    NowLenOfUartBuff = 0;   // 需要把外部传入的buff标记或长度复位才算清空
-}
-int IsOverTimeOfUart(int TempNowRxLen) {
-    while (1) {
-        IncludeDelayMs(30);    // 等待 30ms 接收数据，避免短数据占用太多时间
-        if (TempNowRxLen == NowLenOfUartBuff) {
-            return NowLenOfUartBuff;
-        }
-        TempNowRxLen = NowLenOfUartBuff;
-    }
-}
-// 搬运串口数据
-bool copyDataForUART(void) {
-    if (NowLenOfUartBuff != 0) {
-        int NowRxLen = IsOverTimeOfUart(NowLenOfUartBuff);  // 返回接收完全的数据长度
-        UartDisableIRQ;
-        if (Now_NetDevParameter.NetDataBuff_NowLen + NowRxLen <= ARR_SIZE(Now_NetDevParameter.NetDataBuff)) {                                                                                                                                 // 追加到 Now_NetDevParameter.NetDataBuff
-            memcpy(&Now_NetDevParameter.NetDataBuff[Now_NetDevParameter.NetDataBuff_NowLen], UartBuff.Name._char, NowRxLen); // 接收数据
-            Now_NetDevParameter.NetDataBuff_NowLen += NowRxLen;
-        } else {
-            ClearNetDataBuff();
-            memcpy(Now_NetDevParameter.NetDataBuff, UartBuff.Name._char, NowRxLen);   // 接收数据
-            Now_NetDevParameter.NetDataBuff_NowLen = NowRxLen;
-        }
-        clearUartBuff();
-        UartEnableIRQ;
-        return true;
-    } else {
-        return false;
-    }
-}
-// 判断是否连接上MQTT
-bool isMQTTLinkOnleng(void) {
-    bool ATConfig_Flag = false;
-    if (AT24CXX_Manager_NET.NetCheckENableFlag == false) {
-        return true;
-    }
-
-    for (int i = 0; i < 10; i++) {
-        if (SetDevATCMDModel_ThroughSendData()) {
+bool UserSendData(void) {
+    bool SendFlag = false;
+    for (int i = 0; i < 3; i++) {
+        if (Meter_Manager.DataCount <= 0) {
             break;
         }
-    }
-    //if (UP_Mode_EC20_ON) {
-        //ATConfig_Flag = isMQTTLinkOnleng_4G();
-    //} else {
-    ATConfig_Flag = isMQTTLinkOnleng_NET();
-    //}
-
-    if (ATConfig_Flag) {
-        return true;
-    }
-    if (Now_NetDevParameter.isLongLinkModeFlag != true) {
-        return false;
-    }
-    return false;
-}
-// 处理用户请求/命令
-bool doingUserRequest(void) {
-    return true;
-}
-// 处理模组回复,判断指令是否发送成功，或者模组再忙等待返回等操作
-bool doingATCmdResult(NetDevATCmd NowATCmd) {
-    return NowATCmd.DoingATCmdResData(&NowATCmd);
-}
-// 发送ATCmd
-bool sendATCmdData(NetDevATCmd NowATCmd) {
-    newString(ATCmd_SendBUFF, 500);
-    // 装载指令
-    NowATCmd.DataInstallation(ATCmd_SendBUFF, &NowATCmd);
-    clearUartBuff();
-    // 发送指令
-    sendDataByNetProt(ATCmd_SendBUFF.Name._char, strlen(ATCmd_SendBUFF.Name._char));
-    for (int ResCount_i = 0; ResCount_i <= NowATCmd.CmsResCount; ResCount_i++) {
-        // 模组是否回复
-        if (!checkUart()) {
-            // 判断是否可以跳过
-            if ((NowATCmd.DoingATReceiveFunName == ResetTrueFlagDoingFun) && ((ResCount_i + 1) == NowATCmd.CmsResCount)) {
-                return true; // 发送结束也没收到回复，直接跳过
-            }
-            continue;
-        }
-        // 处理模组的回复
-        if (doingATCmdResult(NowATCmd) == false) {
-            return false; // AT 指令发送失败
-        }
-        // 该指令是否需要上位机回复，如果不需要直接回复 true
-        if (NowATCmd.IsGetComputerResFlag == false) {
-            return true; // 上位机回复成功
-        }
-        return doingUserRequest(); // 上位机回复成功
-    }
-    return true; // AT 指令发送限制为0,直接跳过该指令
-}
-// 获取指令
-char copyComputerDownData(void) {
-    if (checkUart()) { // 从 UART0Ddata 获取数据
-        char * AddrStart = NULL;
-        if (myStrstr(Now_NetDevParameter.NetDataBuff, "{\"gw\":", ARR_SIZE(Now_NetDevParameter.NetDataBuff)) != NULL) {
-            if (NULL == (AddrStart = myStrstr(Now_NetDevParameter.NetDataBuff, "{\"gw\":", ARR_SIZE(Now_NetDevParameter.NetDataBuff)))) {
-                ClearNetDataBuff();
-                return false;
-            }
-            if (NULL == strstr(AddrStart, "}}")) {
-                return false;
-            }
-            if (Now_NetDevParameter.CmdTable.NowListNum >= CmdListMax) {
-                Now_NetDevParameter.CmdTable.popUpListStr(&Now_NetDevParameter.CmdTable);  // 弹出队列 List
-            }
-            // 将下行指令推入队列 List
-            Now_NetDevParameter.CmdTable.pushListStr(&Now_NetDevParameter.CmdTable, NEW_NAME(Now_NetDevParameter.NetDataBuff));
-            ClearNetDataBuff(); // 释放 HTTPBuff_p
-            return true;
-        } else {
-            return true;
+        if ((SendFlag = WT_JSON_Send_Meter_Data()) == true) {
+            i = 0;
         }
     }
-    return false;
-}
-
-bool isNBOverTime(void) {
-    if (Now_NetDevParameter.isLongLinkModeFlag == true) {
-        return false;
-    }
-    // if (RTC_TASK.Task[SendTimeOverTask].TimeTask_Falge) {
-    //     RTC_TASK.CloseTask(SendTimeOverTask); // 关闭定时任务
-    //     RTC_TASK.Task[SendTimeOverTask].MaxSecNum = 0;
-    //     RTC_TASK.Task[SendTimeOverTask].CountNumOnceSec = 0;
-    //     return true;
-    // }
-    return false;
-}
-// 检查时间任务
-void check_time_task(void) {
-    if (Now_NetDevParameter.isLongLinkModeFlag) {
-        if (SetLPTime.Task[checkNet].TimeTask_Falge) {   // 任务0 用于判断什么时候检查网络在线标记
-            SetLPTime.LPInitSetTimeTask(checkNet, SecTo250Ms(Now_NetDevParameter.LineCheckTime), NULL);            // 初始化创建定时任务
-            Now_NetDevParameter.CheckOnlineFlag = true;  // 检查网络在线标记
-        }
-    }
-    if (Now_NetDevParameter.isLongLinkModeFlag == true) {
-        Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据  
-    }
-}
-#define LinkContMax 1
-void Net_Task(void) {
-    static uint8_t LinkContinueTime = LinkContMax; // 连续 5 次都连接不上，则 480 min 后再尝试
-    check_time_task();      // 检查时间任务
-    if (!RTC_TASK.Task[PauseTimeOfLinkErr].TimeTask_Falge) {
-        goto NetSubOver;
-    }
-    if (Now_NetDevParameter.CheckOnlineFlag == true) { // 检查当前设备 network 是否在线
-        if (!isMQTTLinkOnleng()) {
-            Now_NetDevParameter.NowNetOnlineFlag = false; // 标记不在线，下次运行这个任务时重启
-            Now_NetDevParameter.ReBootCount++;
-        } else {
-            Now_NetDevParameter.CheckOnlineFlag = false; // 已在线，不用再检查 network
-            Now_NetDevParameter.NowNetOnlineFlag = true;  // 标记在线
-        }
-    }
-    if (isNBOverTime()) {
-        goto NetSubOver;
-    }
-    // 不在线或无连接，重新联网通信
-    if (Now_NetDevParameter.NowNetOnlineFlag == false) {
-        // 设置模组进入 AT 模式
-        for (int i = 0; i < 10; i++) {
-            if (SetDevATCMDModel_ThroughSendData()) {
-                if (isNBOverTime()) {
-                    goto NetSubOver;
-                }
-                break;
-            }
-        }
-        int NowStep = 0;
-        while (NowStep != -1) {
-            // 一个是否执行的开关，后续可扩展为指令控制
-            if (NetDevice_ATData[NowStep].RunFlag) {
-                for (int SendCount_i = 0; SendCount_i < NetDevice_ATData[NowStep].CmdSendCount; SendCount_i++) {
-                    if (sendATCmdData(NetDevice_ATData[NowStep])) {
-                        break;
-                    }
-                    // 联网遇到问题，中断联网进程
-                    if ((SendCount_i + 1) == NetDevice_ATData[NowStep].CmdSendCount) {
-                        Now_NetDevParameter.CheckOnlineFlag = false;  // TCP 连接失败，不需要检查，直接准备重启
-                        Now_NetDevParameter.NowNetOnlineFlag = false; // 标记不在线，下次运行这个任务时重启
-                        Now_NetDevParameter.ReBootCount++;            // 重连一次
-                        printf("The network connection has been interrupted : %s\r\n", NetDevice_ATData[NowStep].ATCmd);
-                        goto NetSubOver;
-                    }
-                }
-            }
-            NowStep = NetDevice_ATData[NowStep].Next_CmdID;
-            if (isNBOverTime()) {
-                goto NetSubOver;
-            }
-        }
-        IncludeDelayMs(3000);   // 连接流程结束后等待 3 秒
-        // 判断 MQTT 是否在线
-        if (isMQTTLinkOnleng()) {
-            // if (UP_Mode_EC20_ON) {
-            //     RTC_TASK.InitSetTimeTask(WriteTimeOfLocal, 10, Write_RX8025T_AndRTC_By_UTC8); // 10s 后写入时间 (4G)
-            // }
-            Now_NetDevParameter.CheckOnlineFlag = false;  // TCP 连接成功后暂时不需要检查
-            Now_NetDevParameter.NowNetOnlineFlag = true; // 设备已在线
-            Now_NetDevParameter.ReBootCount = 0;         // 连接成功，重器计数清零
-            JSON_Send_GW_Infor((Now_NetDevParameter.ReBootCount > 0 ? true : false));
-            printf("Now the gateway is online\r\n");
-            // JSON_Send_GW_Infor(0);//汇云上线需要先发一包心跳
-        }
-        if (isNBOverTime()) {
-            goto NetSubOver;
-        }
-        Now_NetDevParameter.ReBootCount = 0; // 复位重启计数器
-        ClearNetDataBuff();
-    }
-    if (!Now_NetDevParameter.isLongLinkModeFlag) { // 短链接，需要查询下行指令
-        if (Now_NetDevParameter.isCheckDownCmd == false) { // 非实时监控模式需要主动获取指令
-            Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
-        }
-        if (Now_NetDevParameter.SendData != NULL) {
-            Now_NetDevParameter.SendData(); // 发送数据
-            ClearNetDataBuff(); // 清空数据
-        }
-        if (Now_NetDevParameter.isCheckDownCmd == false) { // 非实时监控模式需要主动获取指令
-            Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
-        }
-    }
-NetSubOver:
-    if (Now_NetDevParameter.isCmdResFlag) {
-        if (Now_NetDevParameter.DoneCmd != NULL) {
-            Now_NetDevParameter.DoneCmd(); // 处理指令
-        }
-        Now_NetDevParameter.isCmdResFlag = false;
-        ClearNetDataBuff();
-    }
-    // 判断是长连接还是短链接
-    if (!Now_NetDevParameter.isLongLinkModeFlag) {
-        if (Now_NetDevParameter.ShowdownNowDev != NULL) {
-            Now_NetDevParameter.ShowdownNowDev();   // 短链接，需要关闭设备
-            Now_NetDevParameter.NowNetOnlineFlag = false;
-        }
-        return;
-    }
-    if (RTC_TASK.Task[PauseTimeOfLinkErr].TimeTask_Falge) {
-        // 长连接状态下, 需要限制尝试联网的次数
-        LinkContinueTime = (LinkContinueTime > 0 ? (LinkContinueTime - 1) : 10);
-        if (LinkContinueTime != 0) {
-            RTC_TASK.InitSetTimeTask(PauseTimeOfLinkErr, 5, NULL); // 5s 后继续尝试
-        } else {
-            RTC_TASK.InitSetTimeTask(PauseTimeOfLinkErr, MinToSec(480), NULL); // 一天连三次 1440/3 = 480
-        }
-    }
-}
-void UserSendData(void) {
-    return;
+    return SendFlag;
 }
 void UserDoneCmd(void) {
-    if (Now_NetDevParameter.CmdTable.NowListNum > 0) {
+    while (Now_NetDevParameter.CmdTable.NowListNum > 0) {
         strnew OnceLineListStr = Now_NetDevParameter.CmdTable.popUpListStr(&Now_NetDevParameter.CmdTable);   // 弹出一行数据
-        char * AddrStart = NULL;
-        if (strstr(OnceLineListStr.Name._char, "{\"gw\":") != NULL) {
-            AddrStart = strstr(OnceLineListStr.Name._char, "{\"gw\":");
-            MQTT_JSON_Analysis(AddrStart);
-            printf("Received Command of HuiYun\r\n");
-        } else {
-            printf("Received Command of Other\r\n");
-        }
+        #warning(如果模组回的太快, 一行数据可能就是两三条指令, 未确定是否区分);
+        memcpy(Now_NetDevParameter.NetDataBuff, OnceLineListStr.Name._char, OnceLineListStr.MaxLen);
+        Now_NetDevParameter.isWriteEEprom = WT_MQTT_JSON_Analysis();
     }
 }
 // AT 参数初始化
 void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     // 初始化 Now_NetDevParameter
-    Now_NetDevParameter.LineCheckTime = 60;  // 60 秒后，判断你是否处于连接状态
+    Now_NetDevParameter.CheckOnlineFlag = setDataBit(Now_NetDevParameter.CheckOnlineFlag, 4, true); // 是否需要被动监控某个字段
+    Now_NetDevParameter.LineCheckTime = 5 * 60;  // 判断你是否处于连接状态
     Now_NetDevParameter.ShowdownNowDev = UserShowdownNowDev;
-    Now_NetDevParameter.NET_Receive_checkTime = BuffcheckTime10Ms;
-    Now_NetDevParameter.isLongLinkModeFlag = true;
     Now_NetDevParameter.SendData = UserSendData;    // 长连接不需要发送函数
     Now_NetDevParameter.DoneCmd = UserDoneCmd;      // 处理指令
-    Now_NetDevParameter.isCheckDownCmd = true;      // 是否需要监控下行指令
+    Now_NetDevParameter.GetDownCmd = UserGetDownCmd;// 获取下行指令
+    Now_NetDevParameter.isGetDownCmd = false;        // 是否主动获取指令
     TableOfCmdTaskInit();                           // 指令表初始化
-    AT24CXXLoader_Init();                           // 读取 AT 参数
     UartBuff = NEW_NAME(UART_DATABUFF);             // 初始化缓存 UartBuff
+
     // 特殊定时任务
-    if (Now_NetDevParameter.isLongLinkModeFlag == true) {
-        SetLPTime.LPInitSetTimeTask(checkNet, SecTo250Ms(Now_NetDevParameter.LineCheckTime), NULL);
-        RTC_TASK.InitSetTimeTask(PauseTimeOfLinkErr, 1, NULL);  // 开机可以尝试连接网络
-    }
+#ifndef IsShortLinkModeFlag  
+    RTC_TASK.InitSetTimeTask(CheckNet, Now_NetDevParameter.LineCheckTime, check_time_task);
+#endif
     // 初始化 SetTime 任务
     // 初始化 SetLPTime 任务
-    // SetLPTime.LPInitSetTimeTask(RefreshLED, SecTo250Ms(0.5), Refresh_LED);
+    SetLPTime.LPInitSetTimeTask(HomePage, SecTo250Ms(0.9), ShowHomePage);    //1s 执行一次
     // 初始化 RTC_TASK 任务
-    RTC_TASK.InitSetTimeTask(Read_EEprom, MinToSec(80), NULL);
-    RTC_TASK.InitSetTimeTask(TestVoltgeAndMA, 2, NULL);
-    // RTC_TASK.InitSetTimeTask(MBUSUARTReboot, MinToSec(2160), MBUS_Uart1_Init);  // 启动 Uart 重启任务
-
-    if (AT24CXX_Manager_NET.IsColorDislay) {
-#ifdef _COLORSHOW_H
-        initTaskOfColorShowTask();
-#endif
-    }
+    RTC_TASK.InitSetTimeTask(DayOverCclkTask, MinToSec(HourToMin(AT24CXX_Manager_NET.DaysNumberOfCCLK * 24)), NULL); // 604,800
+    RTC_TASK.InitSetTimeTask(EEpromWriteTime, MinToSec(15), NULL);  // 15 分钟写入一次 EEPROM Time
+    RTC_TASK.InitSetTimeTask(BatVoltge, MinToSec(1), Test_BatVoltge); // 1 分钟检测一次电池电压
+    RTC_TASK.InitSetTimeTask(InsideT, MinToSec(1), Test_InsideT); // 1 分钟检测一次内部温度
+    RTC_TASK.InitSetTimeTask(Read_EEprom, MinToSec(1), NULL);
+    RTC_TASK.InitSetTimeTask(Drive_Moved, MinToSec(1), Get_Drive_Be_Moved);
+    RTC_TASK.InitSetTimeTask(PauseTimeOfLinkErr, 1, NULL); // 刚开启，延时 1s 后允许连接网络
+    Test_BatVoltge();
+    Test_InsideT();
     return;
 }
-
-/******************************/
-NetDevATCmd NetDevice_ATData[ATCMD_MAXNUMBER] = {0};
 // 设置或查询 AT指令 的装载方法
 void _DataInstallation(strnew OutStr, struct _NetDevATCmdData This) {
-    //if (UP_Mode_EC20_ON) {
-        //DataInstallation_4G(OutStr, &This);
-    //} else {
-    DataInstallation_NET(OutStr, &This);
-    //}
+    DataInstallation__NB(OutStr, &This);
 }
 // 处理指令返回的方法
 bool _DoingATCmdResData(struct _NetDevATCmdData This) {
     bool ResFlag = false;
-    //if (UP_Mode_EC20_ON) {
-        //ResFlag = DoingATCmdResData_4G(&This);
-    //} else {
-    ResFlag = DoingATCmdResData_NET(&This);
-    //}
+    ResFlag = DoingATCmdResData__NB(&This);
     return ResFlag;
 }
 // 建立对象的函数
@@ -446,15 +525,13 @@ NetDevATCmd New_NetDevAT_Obj(NetDevATCmd DataInit) {
     return DataInit;
 }
 
-void MQTT_NetAT_Init(void) {
+void NetAT_Init(void) {
     // 初始化 NetDevice_ATData
+    NetDevice_ATData = NetDevice_ATData__NB;
     for (int i = 0; i < ATCMD_MAXNUMBER; i++) {
-        //if (UP_Mode_EC20_ON) {
-            //NetDevice_ATData[i] = NetDevice_ATData_4G[i];
-        //} else {
-        NetDevice_ATData[i] = NetDevice_ATData_NET[i];
-        //}
         NetDevice_ATData[i] = New_NetDevAT_Obj(NetDevice_ATData[i]);
     }
     return;
 }
+
+

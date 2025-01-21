@@ -1,5 +1,12 @@
 #include "StrLib.h"
-
+#ifdef _Alignas 
+Type_T _InitType(void * var, const char * type) {
+    Type_T Temp;
+    Temp.var = var;
+    Temp.type = type;
+    return Temp;
+}
+#endif
 /*-----------------------------------函数说明----------------------------------*/
 int catString(char * OutStr, char * IntStr, int MaxSize, int IntSize);
 bool copyString(char * OutStr, char * IntStr, int MaxSize, int IntSize);
@@ -14,11 +21,22 @@ bool MoveDataOnBuff(strnew IntptBuff, int ShiftLen, bool IsLeft);
 /*******************************************************************************************************************/
 /*******************************************************************************************************************/
 /*-----------------------------------建立数组对象----------------------------------*/
+int _getStrlen(struct New_Arr This) {
+    if (This.SizeType == 1) {
+        return strlen(This.Name._char);
+    }
+    return -1;
+}
+void _strnewInit(strnew * newArray, int TypeSize) {
+    (*newArray).SizeType = TypeSize;
+    (*newArray).getStrlen = _getStrlen;
+}
 // 新建数组对象 （返回一个结构体数据）
-strnew New_Str_Obj(void * Master, int SizeNum) {
-    strnew newArray;
+strnew New_Str_Obj(void * Master, int SizeNum, int SizeType) {
+    newstrobj(newArray, 1);
     newArray.MaxLen = SizeNum;
     newArray.Name._void = Master;
+    newArray.SizeType = SizeType;
     return newArray;
 }
 

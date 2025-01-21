@@ -1,8 +1,8 @@
 #include "ATCmdDebug.h"
 #include "RTC_SetTime.h"
-#include "All.h"
+#include "PublicLib_No_One.h"
 #include "NetProt_Module.h"
-// #include "../Src/LPUart.h"
+#include "../Src/LPUart.h"
 
 #ifdef OPEN_AT_CMD_DEBUG
 
@@ -15,15 +15,21 @@ void CopyATDebugResDataToLPUart0(char * data, int len) {
 }
 
 int NowLen = 0;
-void SendDebug(unsigned char InputBuf[], unsigned int Len) {
+void SendDebug(char InputBuf[], unsigned int Len) {
     copyString(DebugBuff, (char *)InputBuf, ARR_SIZE(DebugBuff), Len);
     NowLen = Len;
 }
 
-#define My_UART_Init            __NOP
-#define My_UART_Interrupt_Init  __NOP
-#define My_UART_Close           __NOP
-#define My_UART_isSend          LPUart1Send(UartTxBuff, UartTxBuffLen)
+#define My_UART_Init            MF_LPUART0_Init
+#define My_UART_Interrupt_Init  MF_LPUART0_Interrupt_Init
+#define My_UART_Close           CloseLPUart0TTL
+
+#define isSendNull
+#ifdef isSendNull
+#define My_UART_isSend          isSend_LPUART0()
+#else
+#define My_UART_isSend          isSend_LPUART0((unsigned char *)UartTxBuff, UartTxBuffLen)
+#endif
 
 void ATCmdDebugTask(void) {
     IncludeDelayMs(100); // 100ms
@@ -36,20 +42,26 @@ void ATCmdDebugTask(void) {
     IncludeDelayMs(100); // 100ms
     My_UART_isSend;
     while (RTC_TASK.Task[ATDebug].TimeTask_Falge == false) {
-        if (checkUart()) {
+        if (checkUart(0)) {
             CopyATDebugResDataToLPUart0(Now_NetDevParameter.NetDataBuff, strlen(Now_NetDevParameter.NetDataBuff));
             memset(Now_NetDevParameter.NetDataBuff, 0, ARR_SIZE(Now_NetDevParameter.NetDataBuff));
             Now_NetDevParameter.NetDataBuff_NowLen = 0;
         }
-        My_UART_isSend;
+        if (UartTxBuffLen > 0) {
+            My_UART_isSend;
+#ifndef isSendNull
+            UartTxBuffLen = 0;
+            memset(UartTxBuff, 0, UartTxBuffLen);
+#endif
+        }
         if (NowLen != 0) {
             // Send AT
-            sendDataByNetProt(DebugBuff, strlen(DebugBuff));
+            sendDataByTTLProt(DebugBuff, strlen(DebugBuff));
             // 清空BUFF
             memset(DebugBuff, 0, ARR_SIZE(DebugBuff));
             NowLen = 0;
             RTC_TASK.InitSetTimeTask(ATDebug, MinToSec(7), NULL); // 10 min 后退出Debug模式
-            RTC_TASK.InitSetTimeTask(IWDTClS, MinToSec(8), NULL); // 8min 初始化喂狗定时器
+            SetLPTime.LPInitSetTimeTask(IWDTClS, SecTo250Ms(MinToSec(8)), NULL); // 8min 内定时器喂狗
         }
     }
     My_UART_Close();
