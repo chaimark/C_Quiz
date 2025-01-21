@@ -9,7 +9,8 @@
         "stdio.h": "c",
         "senddatabyserial.h": "c",
         "string.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "winexcel.h": "c"
     },
     "C_Cpp.vcFormat.indent.preserveComments": false
 }
