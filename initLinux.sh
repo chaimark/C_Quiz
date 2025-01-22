@@ -26,6 +26,9 @@ mkdir usr/bin usr/lib usr/sbin lib/modules usr/src
 cd ./dev
 sudo mknod -m 666 console c 5 1
 sudo mknod -m 666 null c 1 3
+
+sudo apt-get install flex
+sudo apt-get install bison
 sudo apt-get install module-* -y
 sudo apt-get install net-tools -y
 sudo apt-get install tftp-hpa tftp -y
@@ -36,8 +39,17 @@ sudo apt-get install libpcap-dev -y
 sudo apt-get install lib32z1 -y
 sudo apt-get install libc6-i386 -y
 sudo apt-get install qemu-user-static -y
-sudo apt-get install zlib1g-dev unzip lib32stdc++6 lib32stdc++6-4.8-dbg build-essential libncurses5 libncurses5-dev u-boot-tools traceroute -y
+sudo apt-get install zlib1g-dev
+sudo apt-get install unzip
+sudo apt-get install lib32stdc++6
+sudo apt-get install lib32stdc++6-4.8-dbg
+sudo apt-get install build-essential
+sudo apt-get install libncurses5
+sudo apt-get install libncurses5-dev
+sudo apt-get install u-boot-tools
+sudo apt-get install traceroute
 sudo apt-get install mtd-utils -y
+sudo apt-get install make
 sudo apt-get update
 sudo apt-get upgrade
 cd /home/leige/outputClass
