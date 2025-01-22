@@ -18,6 +18,10 @@
                 "${fileDirname}/C_MyLib/WinExcel.c",
                 "${fileDirname}/C_MyLib/JsonCheckFun.c",
                 "${fileDirname}/C_MyLib/SendDataBySerial.c",
+                "${fileDirname}/mbedtls/token.c",
+                "${fileDirname}/mbedtls/md5.c",
+                "${fileDirname}/mbedtls/hmac.c",
+                "${fileDirname}/mbedtls/base64.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}.exe",
                 "-lwinspool"
