@@ -115,7 +115,9 @@
         mknod -m 666 null c 1 3
         lib 库{
             为保证链接库能用直接用友善之臂的根文件系统root_qtopia 中的链接库lib 目录 
-            或 sudo cp -r /opt/FriendlyARM/toolschain/4.4.3/lib ~/rootfs/lib/
+            或 sudo cp -r /opt/FriendlyARM/toolschain/4.4.3/lib/*so* *.a ~/rootfs/lib/ -d
+	       找到 ld-linux-armhf.so.3 链接指向的源文件
+            用同样的方法 复制编译器目录的所有 lib 文件    
         }
         复制 busybox 的 etc 结构{
             sudo cp -rfa /home/leige/busybox-1.17.2/examples/bootfloppy/etc ~/rootfs/etc/
