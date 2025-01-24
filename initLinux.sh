@@ -27,6 +27,8 @@ cd ./dev
 sudo mknod -m 666 console c 5 1
 sudo mknod -m 666 null c 1 3
 
+sudo apt-get update -y
+sudo apt-get install python3-pip -y
 sudo apt-get install flex -y
 sudo apt-get install bison -y
 sudo apt-get install module-* -y

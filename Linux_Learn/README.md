@@ -94,12 +94,13 @@
     设置 bootloader 环境变量{
         help 查看uboot 的帮助信息
         printenv 查看uboot 的环境变量
-        setenv ipaddr 192.168.1.100         // 开发板IP
-        setenv serverip 192.168.1.101       // 主机IP
-        setenv gatewayip 192.168.1.1        // 网关IP
+        setenv ipaddr 192.168.3.219         // 开发板IP
+        setenv serverip 192.168.3.170       // 主机IP
+        setenv gatewayip 192.168.3.1        // 网关IP
         setenv netmask 255.255.255.0        // 子网掩码
         setenv ethaddr 00:0c:29:8f:6a:5b    // MAC 地址
         setenv loadaddr 0x30008000          // 下载地址   
+        setenv bootargs "root=/dev/nfs nfsroot=192.168.3.170:/srv/nfs4/rootfs,vers=4,tcp ip=dhcp rootpath=/srv/nfs4/rootfs console=ttySAC0,115200 init=/	linuxrc lcd=S70"
         setenv bootcmd {                    // boot 启动后的自动命令
             setenv bootcmd nand read 0x30008000 0x100000 0x400000; nand read 0x31000000 0x200000 0x400000; bootm 0x30008000
             setenv bootcmd tftp 0x30008000 zImage; tftp 0x31000000 文件系统; bootm 0x30008000
