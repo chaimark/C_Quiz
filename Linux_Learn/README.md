@@ -88,7 +88,7 @@
         进入目录, 使用 vim 打开 Makefile, 搜索目标 “*6140*” 并复制目标
         然后退出vim, 并在当前目录 配置 make 工具:{
             make mini6410_nand256_config ARCH=arm
-            然后使用 make ARCH=arm 编译 uboot.bin 
+            然后使用 make ARCH=arm CROSS_COMPILE=arm-linux- 编译 uboot.bin 
         }
     }
     设置 bootloader 环境变量{
@@ -115,9 +115,13 @@
         mknod -m 666 null c 1 3
         lib 库{
             为保证链接库能用直接用友善之臂的根文件系统root_qtopia 中的链接库lib 目录 
-            或 sudo cp -r /opt/FriendlyARM/toolschain/4.4.3/lib/*so* *.a ~/rootfs/lib/ -d
-	       找到 ld-linux-armhf.so.3 链接指向的源文件
-            用同样的方法 复制编译器目录的所有 lib 文件    
+            使用:
+                sudo cp -r ........../lib/*so* *.a ~/work/rootfs/lib/ -d
+                特例：找到 ld-linux-armhf.so.3 链接指向的源文件，并以 ld-linux-armhf.so.的名字 复制到 rootfs 中
+            用同样的方法 复制编译器目录的所有 lib 文件
+            /opt/TuxamitoSoftToolchains/arm-arm1176jzfssf-linux-gnueabi/gcc-4.6.4/arm-arm1176jzfssf-linux-gnueabi/lib32
+            /opt/TuxamitoSoftToolchains/arm-arm1176jzfssf-linux-gnueabi/gcc-4.6.4/arm-arm1176jzfssf-linux-gnueabi/lib64
+            /opt/TuxamitoSoftToolchains/arm-arm1176jzfssf-linux-gnueabi/gcc-4.6.4/arm-arm1176jzfssf-linux-gnueabi/lib
         }
         复制 busybox 的 etc 结构{
             sudo cp -rfa /home/leige/busybox-1.17.2/examples/bootfloppy/etc ~/rootfs/etc/
@@ -128,9 +132,9 @@
                 选择 Build busybox as a static binary (静态链接库)
                 选择 Don't use /usr (避免安装到 usr 目录) 
                 选择 Busybox install.. /home/leige/work/rootfs
+                选择 vi-style line editing commands
             }
             如果编译时提示 loginutils/passwd.o' failed: 则需要在 include/libbb.h 中添加 #include <sys/resource.h>
-            make ARCH=arm CROSS_COMPILE=arm-linux-
             make install ARCH=arm CROSS_COMPILE=arm-linux-
         }
         进入 linux 内核目录, 编译内核模块 {
@@ -143,7 +147,7 @@
             选择 Initial RAM filesystem and RAM disk support
         }
         cd ....rootfs/
-        ln -s ./bin/busybox init
+        ln -s bin/busybox init
     }
     编译官方内核: {
         sudo apt-get install u-boot-tools 安装 uImage 生成工具

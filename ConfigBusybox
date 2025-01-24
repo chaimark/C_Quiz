@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.17.2
-# Fri Jan 24 02:27:18 2025
+# Fri Jan 24 15:28:28 2025
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -52,7 +52,7 @@ CONFIG_FEATURE_HAVE_RPC=y
 #
 # Build Options
 #
-# CONFIG_STATIC is not set
+CONFIG_STATIC=y
 # CONFIG_PIE is not set
 # CONFIG_NOMMU is not set
 # CONFIG_BUILD_LIBBUSYBOX is not set
