@@ -173,7 +173,7 @@ bootargs=root=/dev/nfs nfsroot=192.168.3.170:/srv/nfs4/rootfs/,proto=tcp rw ip=1
         将 SD 卡中的 images/FriendlyoARM.ini 文件中的 USB-Mode = yes 改成 USB-Mode = no, 则与普通 uboot.bin SD卡启动一致, 否则开发板将处于 USB 下载模式, 需要配合友善之臂提供的下载工具烧写 uboot.bin 到nand flasH 中运行。
         制作 SD 卡启动只需要使用友善提供的软件直接将 superboot 制作成启动盘
     }
-## 2024.12-
+## 2024.12-2025.1
     使用 NFS 作为文件系统 {
         重新配置 Linux 内核 make menuconfig ARCH=arm CROSS_COMPILE=arm-linux- 
         取消掉 Initial RAM filesystem and RAM disk support
@@ -181,14 +181,20 @@ bootargs=root=/dev/nfs nfsroot=192.168.3.170:/srv/nfs4/rootfs/,proto=tcp rw ip=1
         选择 NFS client support
         选择 rootfs over NFS
         重新编译内核
-        setenv serverip 192.168.31.199      # NFS 服务器的 IP 地址
-        setenv ipaddr 192.168.1.101        # 启动设备的 IP 地址
-        setenv nfsroot 192.168.1.100:/nfsroot   # NFS 根文件系统的路径
-        setenv bootargs "root=/dev/nfs nfsroot=192.168.1.100:/nfsroot ip=dhcp"  # 内核启动参数
-        在 Ubuntu 中安装 NFS 服务器
-        在 uboot 中使用 tftp 命令下载内核
+        setenv serverip 192.168.3.170       # NFS 服务器的 IP 地址
+        setenv ipaddr 192.168.3.219         # 设备的 IP 地址
+        setenv gatewayip 192.168.3.1        # 网关
+        setenv netmask 255.255.255.0        # 子网掩码
+        setenv bootargs 'root=/dev/nfs nfsroot=192.168.3.170:/srv/nfs4/rootfs/,proto=tcp rw ip=192.168.3.219:192.168.3.170:192.168.3.1:255.255.255.0 console=ttySAC0,115200 init=/linuxrc lcd=S70'  # 内核启动参数
+        sudo apt install nfs | nfs-hpa          # 在 Ubuntu 中安装 NFS 服务器
+        sudo apt install tftp | tftp-server     # 在 Ubuntu 中安装 tftp
+        sudo vim /etc/exports {                 # 设置 nfs 共享目录
+            /srv/nfs4   *(rw,sync,no_subtree_check)
+        }
+        sudo vim /etc/default/tftpd-hpa         # 设置 tftp 共享目录
         在 uboot 中使用 bootm/bootz 命令启动内核
         在 uboot 中使用 nfs 命令挂载 NFS 服务器
+        如果 uboot 任然找不到 nfs 文件系统, 请关闭防火墙再试 
     }
     从SD卡或NAND启动 uboot.bin {
         从 eMMC 启动内核 { 
