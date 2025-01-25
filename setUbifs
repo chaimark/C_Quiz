@@ -1,14 +1,29 @@
 #!/bin/bash
+
+# 检查参数个数
+if [[ "$#" -lt 1 ]]; then
+    echo "使用方法: $0 您构建的根文件系统路径"
+    exit 1
+fi
+
+# 获取参数
+RootfsPath="$1"
+# 检查路径是否为空
+if [[ -z "$RootfsPath" ]]; then
+    echo "错误: 路径不能为空"
+    exit 1
+fi
+
+# 安装 mtd-utils
 sudo apt-get install mtd-utils > /dev/null
 
-#创建文件系统镜像
+# 创建文件系统镜像
 read -p "文件系统的大小(512M):" FLASH_SIZE_MB
 read -p "页面大小(4k):" PageSize
 read -p "可擦除块的单位大小(256k):" DeakSize 
-read -p "更文件系统路径" RootfsPath
-#
 
-sudo mkfs.ubifs -r ${RootfsPath} -m ${PageSize * 1024} -e ${(DeakSize/PageSize - 2) * (PageSize * 1024)} -c ${((FLASH_SIZE_MB * 1024) / DeakSize)} -o ./rootfs.img
+# 执行 mkfs.ubifs 命令创建文件系统
+sudo mkfs.ubifs -r ${RootfsPath} -m $((PageSize * 1024)) -e $(((DeakSize / PageSize - 2) * (PageSize * 1024))) -c $(((FLASH_SIZE_MB * 1024) / DeakSize)) -o ./rootfs.img
 
 DEV_FLASH_IMG="rootfs.ubi"    # 模拟的闪存设备文件
 UBI_CFG="dev_flash.cfg"          # UBI 配置文件
@@ -28,9 +43,9 @@ EOF
 # 将 UBI 卷映像加载到设备
 sudo ubinize -o ${DEV_FLASH_IMG} -m $((PageSize * 1024)) -p ${DeakSize}KiB ${UBI_CFG}
 
+# 删除临时文件
 sudo rm -rf ${UBI_CFG}
-sudo rm -rf /home/leige/outputClass/rootfs.img
+sudo rm -rf ./rootfs.img
 
 # 完成，退出
 exit 0
-
