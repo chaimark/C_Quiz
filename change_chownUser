@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# 检查参数个数
+if [[ "$#" -lt 2 ]]; then
+    echo "使用方法: $0 用户名 文件/目录路径"
+    exit 1
+fi
+
+# 获取参数
+username="$1"
+filepath="$2"
+
+# 检查用户名是否为空
+if [[ -z "$username" ]]; then
+    echo "错误: 用户名不能为空"
+    exit 1
+fi
+
+# 检查文件/目录是否存在
+if [[ ! -e "$filepath" ]]; then
+    echo "错误: 文件或目录不存在: $filepath"
+    exit 1
+fi
+
+# 提示用户确认
+read -p "您确定要将 $filepath 的所有者和组更改为 $username:$username 吗？请输入 y 确认： " UserCase
+if [[ "$UserCase" == "y" ]]; then
+    sudo chown -R -- "$username":"$username" "$filepath"
+    echo "已更改 $filepath 的所有者和组为 $username:$username"
+else
+    echo "操作已取消"
+fi
