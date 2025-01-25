@@ -107,13 +107,14 @@ bootargs=root=/dev/nfs nfsroot=192.168.3.170:/srv/nfs4/rootfs/,proto=tcp rw ip=1
         }
         saveenv 保存环境变量
     }
-    编译官方根文件系统: {
+    制作根文件系统: {
         在 /home/leige 下创建 rootfs 目录 并 cd 到 rootfs
         mkdir bin dev etc opt home lib mnt proc sbin sys tmp usr var
         mkdir usr/bin usr/lib usr/sbin lib/modules usr/src
         cd ./dev
         mknod -m 666 console c 5 1
         mknod -m 666 null c 1 3
+        mknod -m 666 tty2 c 1 3
         lib 库{
             为保证链接库能用直接用友善之臂的根文件系统root_qtopia 中的链接库lib 目录 
             使用:
