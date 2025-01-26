@@ -23,7 +23,7 @@ read -p "页面大小(4k):" PageSize
 read -p "可擦除块的单位大小(256k):" DeakSize 
 
 # 执行 mkfs.ubifs 命令创建文件系统
-sudo mkfs.ubifs -r ${RootfsPath} -m $((PageSize * 1024)) -e $(((DeakSize / PageSize - 2) * (PageSize * 1024))) -c $(((FLASH_SIZE_MB * 1024) / DeakSize)) -o ./rootfs.img
+sudo mkfs.ubifs -r ${RootfsPath} -m $((PageSize * 1024)) -e $(((DeakSize / PageSize - 2) * (PageSize * 1024))) -c $(((FLASH_SIZE_MB * 1024) / DeakSize)) -o ./rootfs.ubifs
 
 DEV_FLASH_IMG="rootfs.ubi"    # 模拟的闪存设备文件
 UBI_CFG="dev_flash.cfg"          # UBI 配置文件
@@ -32,11 +32,12 @@ UBI_CFG="dev_flash.cfg"          # UBI 配置文件
 sudo cat > ${UBI_CFG} <<EOF
 [ubi]
 mode=ubi
-image=./rootfs.img
+image=./rootfs.ubifs
 vol_id=0
 vol_type=dynamic
 vol_name=rootfs
 vol_alignment=1MiB
+vol_flags=autoresize
 vol_size=${FLASH_SIZE_MB}MiB
 EOF
 
@@ -45,7 +46,7 @@ sudo ubinize -o ${DEV_FLASH_IMG} -m $((PageSize * 1024)) -p ${DeakSize}KiB ${UBI
 
 # 删除临时文件
 sudo rm -rf ${UBI_CFG}
-sudo rm -rf ./rootfs.img
+sudo rm -rf ./rootfs.ubifs
 
 # 完成，退出
 exit 0
