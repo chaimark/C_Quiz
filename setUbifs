@@ -12,6 +12,9 @@ RootfsPath="$1"
 if [[ -z "$RootfsPath" ]]; then
     echo "错误: 路径不能为空"
     exit 1
+elif [[ "$RootfsPath" == "?" ]]; then
+    echo "使用方法: $0 您构建的根文件系统路径"
+    exit 1
 fi
 
 # 安装 mtd-utils
