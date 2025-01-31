@@ -228,43 +228,23 @@
         在上位机上开发, 然后将程序copy到挂载的位置
     }
 ## 还未执行
-    学习如何使用 menuconfig 配置内核,并使用 zImage 编译内核
-    学习如何使用 busybox 配置根文件系统
-    学习如何使用 mkfs 创建文件系统
-    学习如何制作自己的 bootloader
-    学习如何使用 mtools 挂载文件系统
-    学习如何使用 mount 挂载文件系统
-    学习如何使用 umount 卸载文件系统
-    学习如何使用 chroot 
+    学习如何制作 uImage 配置内核
+    学习如何制作 busybox 配置文件
+    学习如何制作 uboot Makefile 的配置目标
     学习如何开发 Linux 环境下的设备驱动
     学习如何使用 insmod 加载驱动
     学习如何使用 rmmod 卸载驱动
     学习如何使用 lsmod 查看驱动
     学习如何开发 ARM Linux 环境下的应用程序
-
 #### 常用命令
-    了解 mkdir, 创建文件夹
-    了解 touch, 创建文件
-    了解 rm, 删除文件
-    了解 rmdir, 删除文件夹
-    了解 grep , 搜索文件内容
-    了解 find, 搜索文件
-    了解 tar, 压缩文件
+    了解 tar, 打包文件夹成文件
     了解 gzip, 压缩文件
     了解 gunzip, 解压文件
     了解 zip, 压缩文件
     了解 unzip, 解压文件
-    了解 chmod, 修改文件权限
-    了解 ps , 查看进程
 
 ## 需要安装的环境和工具
-### wsl 第一个add_leige.sh
-#!/bin/bash
-adduser leige
-usermod -aG sudo leige
-echo Enter any key to continue
-read -n 1 -s
-cat /etc/passwd
-cat /etc/group
-
-
+### wsl 第一个addLeige.sh
+### ubuntu 中修改文件夹所有者 change_chownUser.sh
+### ubuntn 初始化 linux 开发环境 initLinux.sh
+### 制作 ubi 文件系统 setUbifs.sh
