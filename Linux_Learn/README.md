@@ -54,13 +54,13 @@
 ## 2024.8-2024.9
 
     开发 AddPath 命令并将其加入Linux 的 /bin 目录作为全局命令{
-        实现使用 AddPath 可以将某路径快速加入全局变量中（实现：添加 删除 查看）
+        实现使用 AddPath 可以将某路径快速加入全局变量中（实现: 添加 删除 查看）
     } 
     学习 git , 并使用 git 管理自己的项目{
-        记忆：git add -A
-        记忆：git commit -m "XXX"
-        记忆：git status
-        记忆：git push
+        记忆: git add -A
+        记忆: git commit -m "XXX"
+        记忆: git status
+        记忆: git push
         其他命令存档写入某文件, 方便查阅
     }
     了解正则表达式
@@ -142,7 +142,7 @@
             使用:
                 sudo cp -r ........../lib/*so* ~/work/rootfs/lib/ -d
                 sudo cp -r ........../lib/*.a ~/work/rootfs/lib/ -d
-                特例：找到 ld-linux-armhf.so.3 链接指向的源文件，并以 ld-linux-armhf.so.的名字 复制到 rootfs 中
+                特例: 找到 ld-linux-armhf.so.3 链接指向的源文件，并以 ld-linux-armhf.so.的名字 复制到 rootfs 中
             用同样的方法 复制编译器目录的所有 lib 文件
             /opt/TuxamitoSoftToolchains/arm-arm1176jzfssf-linux-gnueabi/gcc-4.6.4/arm-arm1176jzfssf-linux-gnueabi/lib32
             /opt/TuxamitoSoftToolchains/arm-arm1176jzfssf-linux-gnueabi/gcc-4.6.4/arm-arm1176jzfssf-linux-gnueabi/lib64
