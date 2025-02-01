@@ -1,10 +1,25 @@
 # 该文件夹下是关于如何使用6410学习Linux的步骤
 
-01、学习Linux常用的shell命令<br>
-02、学习编写shell脚本<br>
-03、学习编写简单的Makefile<br>
-04、简单了解6410开发板的硬件设备<br>
-05、在电脑上安装合适的传口驱动, 为烧录和与6410通信做准备<br>
+    学习Linux常用的shell命令
+    随便找一个 linux 学习的课程
+    准备开发环境 (gcc wsl ubuntu 交叉编译链)
+    编写 linux 程序 (AddPath)
+    学习编写 shell 脚本 (addUser change_chownUser initLinux)
+    学习 git 将自己编写的程序和脚本, 以及学习记录等上传到 git 仓库
+    购买开发板准备驱动, 串口线等链接到开发板, 测试开发板的下载功能
+    下载官方提供的 uboot Linux_kernel rootfs 并尝试编译这三个项目
+    将编译后 uboot uImage 文件下载到开发板
+    学习使用 NFS 文件系统
+    学习构建 ubi 文件系统, 制作 shell 脚本, 简化制作流程
+    =================================================
+    学习构建设备树以及设备树文件的编写规则
+    学习编写简单的 Makefile 以及 Makefile 的编写规则
+    简单了解6410开发板的硬件设备
+    学习如何制作 uImage 配置内核
+    学习如何制作 busybox 配置文件
+    学习如何制作 uboot Makefile 的配置目标
+    制作驱动程序————内核模块
+    学习 QT 编程
 
 # 学习log
 
@@ -106,7 +121,6 @@
 
 ## 2024.9-2024.12
 
-    使用chown
     编译官方 uboot.bin :{
         tar -vzxf 解压官方提供的 u—boot 压缩包
         进入目录, 使用 vim 打开 Makefile, 搜索目标 “*6140*” 并复制目标
@@ -246,11 +260,13 @@
     制作设备树文件{
         dtc -I dts -O dtb -o my6410.dtb s3c6410-mini6410.dts
     }
+    设备树文件的语法{
+
+    }
     学习如何制作 uImage 配置内核
     学习如何制作 busybox 配置文件
     学习如何制作 uboot Makefile 的配置目标
     学习编写内核模块软件（驱动程序）{
-
     }
     学习编写 QT 软件{
 
