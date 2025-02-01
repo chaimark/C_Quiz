@@ -55,7 +55,9 @@
 
     开发 AddPath 命令并将其加入Linux 的 /bin 目录作为全局命令{
         实现使用 AddPath 可以将某路径快速加入全局变量中（实现: 添加 删除 查看）
+
     } 
+
     学习 git , 并使用 git 管理自己的项目{
         记忆: git add -A
         记忆: git commit -m "XXX"
@@ -228,12 +230,6 @@
         在 uboot 中使用 bootm/bootz 命令启动内核
         如果 uboot 任然找不到 nfs 文件系统, 请关闭防火墙再试 
     }
-    将 NFS 制作成ubi{
-        setUbifs /srv/nfs4/rootfs
-    }
-    制作设备树文件{
-        
-    }
     使用tftp 下载内核和根文件系统{
         根据编译后的大小, 确定需要 copy 到 RAM内存中的地址
         然后使用 bootz/bootm 命令启动内核和文件系统, 进入 Linux
@@ -242,12 +238,26 @@
         在上位机上开发, 然后将程序copy到挂载的位置
     }
 
-## 还未执行
+## 2025.1-2025.
 
+    将 NFS 制作成 ubi{
+        setUbifs /srv/nfs4/rootfs
+    }
+    制作设备树文件{
+        dtc -I dts -O dtb -o my6410.dtb s3c6410-mini6410.dts
+    }
     学习如何制作 uImage 配置内核
     学习如何制作 busybox 配置文件
     学习如何制作 uboot Makefile 的配置目标
-    学习如何开发 Linux 环境下的设备驱动
+    学习编写内核模块软件（驱动程序）{
+
+    }
+    学习编写 QT 软件{
+
+    } 
+
+## 还未执行
+
     学习如何使用 insmod 加载驱动
     学习如何使用 rmmod 卸载驱动
     学习如何使用 lsmod 查看驱动
@@ -255,7 +265,6 @@
 
 ## 常用命令
 
-    了解 tar, 打包文件夹成文件
     了解 gzip, 压缩文件
     了解 gunzip, 解压文件
     了解 zip, 压缩文件
