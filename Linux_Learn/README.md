@@ -253,7 +253,7 @@
     学习如何使用 lsmod 查看驱动
     学习如何开发 ARM Linux 环境下的应用程序
 
-#### 常用命令
+## 常用命令
 
     了解 tar, 打包文件夹成文件
     了解 gzip, 压缩文件
@@ -263,10 +263,10 @@
 
 ## 需要安装的环境和工具
 
-### wsl 第一个addLeige.sh
+##### wsl 第一个addLeige.sh
 
-### ubuntu 中修改文件夹所有者 change_chownUser.sh
+##### ubuntu 中修改文件夹所有者 change_chownUser.sh
 
-### ubuntn 初始化 linux 开发环境 initLinux.sh
+##### ubuntn 初始化 linux 开发环境 initLinux.sh
 
-### 制作 ubi 文件系统 setUbifs.sh
+##### 制作 ubi 文件系统 setUbifs.sh
