@@ -36,7 +36,7 @@
         gcc     vim     touch       ifconfig    ping        dd
         tar     rm      su          grep        find        apt
         read    file    mknod       mount       mkfs        ubinze  
-        ps      du      sed         crontab
+        ps      du      sed         crontab	alias
     }
     学习编写shell脚本, 编写了简单的脚本, 并成功运行《自动打开梯子访问 github》
     在 MOOC 上找相关课程, 了解 Linux 的整体结构{
