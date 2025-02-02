@@ -11,13 +11,15 @@
     将编译后 uboot uImage 文件下载到开发板
     学习使用 NFS 文件系统
     学习构建 ubi 文件系统, 制作 shell 脚本, 简化制作流程
+    使用 make ARCH=arm CROSS_COMPILE=arm-linux- menuconfig 配置 busybox 和 Linux 的 .config 
+    使用 uboot 中的 mkconfig 制作 uboot Makefile 的配置文件{
+        @$(MKCONFIG) mini6410 arm s3c64xx mini6410 samsung s3c6410 NAND ram256
+    }
     =================================================
     学习构建设备树以及设备树文件的编写规则
     学习编写简单的 Makefile 以及 Makefile 的编写规则
     简单了解6410开发板的硬件设备
-    学习如何制作 uImage 配置内核
-    学习如何制作 busybox 配置文件
-    学习如何制作 uboot Makefile 的配置目标
+    
     制作驱动程序————内核模块
     学习 QT 编程
 
@@ -269,7 +271,7 @@
     学习编写内核模块软件（驱动程序）{
     }
     学习编写 QT 软件{
-
+        设计一个桌宠
     } 
 
 ## 还未执行
