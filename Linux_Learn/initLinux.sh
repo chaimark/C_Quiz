@@ -10,7 +10,8 @@ git config --global user.name chai21sks
 git config --global user.email chai21sks@gmail.com
 echo please open your youtbe.cmd and enter any key to continue
 read -n 1 -s
-git clone https://github.com/chaimark/C_Quiz.git
+git clone git@github.com:chaimark/C_Quiz.git
+#git clone https://github.com/chaimark/C_Quiz.git
 git clone https://github.com/chaimark/Linux_C_Project.git
 cd /home/leige/git_room/Linux_C_Project
 echo please open your youtbe.cmd again and enter any key to continue
