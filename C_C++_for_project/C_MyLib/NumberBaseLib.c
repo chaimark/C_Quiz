@@ -2,15 +2,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 void DoubleOrFloatToBuff(strnew OutBuff, double Number, bool IsDouble) {
     if ((IsDouble) && (OutBuff.MaxLen >= sizeof(double))) {
         memcpy(OutBuff.Name._char, &Number, sizeof(double));
     } else if(OutBuff.MaxLen >= sizeof(false)) {
-        memcpy(OutBuff.Name._char, &Number, sizeof(false));
+        float tempNum = (float)Number;
+        memcpy(OutBuff.Name._char, &tempNum, sizeof(false));
     }
 }
-
 /*
 // 该库中提到的所有进制数全是直接表示, 比如
 // hex(0x125)   //表示 dec(125)
