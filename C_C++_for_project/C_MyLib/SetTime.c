@@ -1,8 +1,8 @@
 #include "SetTime.h"
 #ifdef BSTIM_OPEN_AND_TASK_NUM
 
-static void _SetCloseTask(int TaskAddr);
-static void _InitSetTimeTask(int TaskAddr, uint64_t SetMax10MsNum, void (*TaskFunc)(void));
+void _SetCloseTask(int TaskAddr);
+void _InitSetTimeTask(int TaskAddr, uint64_t SetMax10MsNum, void (*TaskFunc)(void));
 
 // 可自定义的定时任务
 BSTIM_USER_SET_TASK SetTime = {
@@ -12,7 +12,7 @@ BSTIM_USER_SET_TASK SetTime = {
     .NumberOfTimeTask = BSTIM_OPEN_AND_TASK_NUM, // 定时任务数量
 };
 
-static void _SetCloseTask(int TaskAddr) {
+void _SetCloseTask(int TaskAddr) {
     if ((TaskAddr < 0) || (TaskAddr >= BSTIM_OPEN_AND_TASK_NUM)) {
         return;
     }
@@ -21,7 +21,7 @@ static void _SetCloseTask(int TaskAddr) {
     SetTime.Task[TaskAddr].CountNumOnce10Ms = 0; // 复位初始
     SetTime.Task[TaskAddr].TaskFunc = NULL;
 }
-static void _InitSetTimeTask(int TaskAddr, uint64_t SetMax10MsNum, void (*TaskFunc)(void)) {
+void _InitSetTimeTask(int TaskAddr, uint64_t SetMax10MsNum, void (*TaskFunc)(void)) {
     if ((TaskAddr < 0) || (TaskAddr >= BSTIM_OPEN_AND_TASK_NUM)) {
         return;
     }
@@ -54,8 +54,8 @@ void CountSetTimeTask(void) {
 ////////////////////////////////////////////////////
 #ifdef LPTIM_OPEN_AND_TASK_NUM
 
-static void _LPSetCloseTask(int TaskAddr);
-static void _LPInitSetTimeTask(int TaskAddr, uint64_t SetMax250MsNum, void (*TaskFunc)(void));
+void _LPSetCloseTask(int TaskAddr);
+void _LPInitSetTimeTask(int TaskAddr, uint64_t SetMax250MsNum, void (*TaskFunc)(void));
 
 // 可自定义的定时任务
 LPTIM_USER_SET_TASK SetLPTime = {
@@ -65,7 +65,7 @@ LPTIM_USER_SET_TASK SetLPTime = {
     .NumberOfTimeTask = LPTIM_OPEN_AND_TASK_NUM, // 定时任务数量
 };
 
-static void _LPSetCloseTask(int TaskAddr) {
+void _LPSetCloseTask(int TaskAddr) {
     if ((TaskAddr < 0) || (TaskAddr >= LPTIM_OPEN_AND_TASK_NUM)) {
         return;
     }
@@ -74,7 +74,7 @@ static void _LPSetCloseTask(int TaskAddr) {
     SetLPTime.Task[TaskAddr].CountNumOnce250Ms = 0; // 复位初始
     SetLPTime.Task[TaskAddr].TaskFunc = NULL;
 }
-static void _LPInitSetTimeTask(int TaskAddr, uint64_t SetMax250MsNum, void (*TaskFunc)(void)) {
+void _LPInitSetTimeTask(int TaskAddr, uint64_t SetMax250MsNum, void (*TaskFunc)(void)) {
     if ((TaskAddr < 0) || (TaskAddr >= LPTIM_OPEN_AND_TASK_NUM)) {
         return;
     }
@@ -84,13 +84,13 @@ static void _LPInitSetTimeTask(int TaskAddr, uint64_t SetMax250MsNum, void (*Tas
     SetLPTime.Task[TaskAddr].CountNumOnce250Ms = 0; // 复位初始
     SetLPTime.Task[TaskAddr].TaskFunc = TaskFunc;
 }
-#include "mf_config.h"
+// #include "mf_config.h"
 // 计数函数
 void LPCountSetTimeTask(void) {
     /*****************************************************/
-    if (!SetLPTime.Task[IWDTClS].TimeTask_Falge) {  // 8 分钟后没有返回主函数重新复位计数器，复位MCU
-        FL_IWDT_ReloadCounter(IWDT);    // 8 分钟之内 RTC 帮忙喂狗
-    }
+    // if (!SetLPTime.Task[IWDTClS].TimeTask_Falge) {  // 8 分钟后没有返回主函数重新复位计数器，复位MCU
+    //     FL_IWDT_ReloadCounter(IWDT);    // 8 分钟之内 RTC 帮忙喂狗
+    // }
     /*****************************************************/
     for (int TaskAddr = 0; TaskAddr < LPTIM_OPEN_AND_TASK_NUM; TaskAddr++) {
         if (SetLPTime.Task[TaskAddr].isTaskStart == false) {

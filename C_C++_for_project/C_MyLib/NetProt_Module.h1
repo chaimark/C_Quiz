@@ -6,15 +6,15 @@
 #include "StrLib.h"
 #include "PublicLib_No_One.h"
 // 外部引入
-#define REBOOT_DEV_OFF          _Module_PWR_LOW                  // 重启模块标记置高
-#define REBOOT_DEV_ON           _Module_PWR_HIGH                 // 重启模块标记置低
+#define REBOOT_DEV_OFF          NET_RST_OFF                 // 重启模块标记置高
+#define REBOOT_DEV_ON           NET_RST_ON                  // 重启模块标记置低
 #define UartDisableIRQ          NVIC_DisableIRQ(UART0_IRQn) // 关闭中断使能
 #define UartEnableIRQ           NVIC_EnableIRQ(UART0_IRQn)  // 开启中断使能
-#define UART_DATABUFF           UART1Ddata.RxBuf            //接收缓冲区
-#define NowLenOfUartBuff        UART1Ddata.RxLen            //接收缓冲区长度
+#define UART_DATABUFF           UART0Ddata.RxBuf            //接收缓冲区
+#define NowLenOfUartBuff        UART0Ddata.RxLen            //接收缓冲区长度
 
 // 内部定义
-#define IsShortLinkModeFlag // 是否是短连接标记
+// #define IsShortLinkModeFlag // 是否是短连接标记
 #define CmdListMax 2                // 最大队列数
 #define CmdStrLenMax LONG_UARTMAX   // 最大字符串长度
 typedef struct _TableOfCmdTask {
@@ -84,7 +84,7 @@ typedef struct _NetDevATCmdData {   // 成员
 void _DataInstallation(strnew OutStr, struct _NetDevATCmdData This); // 设置或查询 AT指令 的装载方法
 bool _DoingATCmdResData(struct _NetDevATCmdData This);               // 处理指令返回的方法
 extern NetDevATCmd * NetDevice_ATData;
-extern void NetAT_Init(void);
+extern void MQTT_NetAT_Init(void);
 
 extern bool _FindStr_WaitTime(strnew FindStr, int MaxTimeMs, char ** OutNote);
 #define _FindStr_WaitTime2(str, timeMax)  _FindStr_WaitTime(str, timeMax, NULL)
@@ -93,7 +93,8 @@ extern bool _FindStr_WaitTime(strnew FindStr, int MaxTimeMs, char ** OutNote);
 #define GET_MACRO(_1, _2, _3, NAME, ...) NAME
 #define FindStr_WaitTime(...) GET_MACRO(__VA_ARGS__, _FindStr_WaitTime3, _FindStr_WaitTime2)(__VA_ARGS__)
 
-#include "../Interflow/_Module_ATCmd_FunctionSum.h"
+#include "../C_MyLib/4G_ATCmd_FunctionSum.h"
+#include "../C_MyLib/NET_ATCmd_FunctionSum.h"
 #endif
 
 

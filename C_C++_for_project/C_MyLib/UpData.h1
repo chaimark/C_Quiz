@@ -9,13 +9,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include "fm33le0xx_fl_flash.h"
-// #define MyPrintf(...)  printf(__VA_ARGS__)
-#define MyPrintf(...)  FL_DelayMs(10)
+#include "fm33lc0xx_fl_flash.h"
+#define MyPrintf(...)  printf(__VA_ARGS__)
+// #define MyPrintf(...)  FL_DelayMs(10)
 
 #if (ISBootLoader == 0)
-#include "../Interflow/JsonDataAnalyzeLib.h"
-#include "../Interflow/NumberBaseLib.h"
+#include "../C_MyLib/JsonDataAnalyzeLib.h"
+#include "../C_MyLib/NumberBaseLib.h"
 #endif
 
 // PAGE_SIZE == 512
@@ -23,7 +23,7 @@
 int flash_write_page(uint32_t addr, uint8_t * buf);
 void flash_read_page(uint32_t addr, uint8_t * buf);
 
-#define FM33LC026_FLASH_EN // 选择打开 FM33LC026 的 flash
+// #define FM33LC026_FLASH_EN // 选择打开 FM33LC026 的 flash
 #ifdef FM33LC026_FLASH_EN
 /***********FM33LC026****************/
 #define UPDATA_PAGE_SIGN 0x1F000

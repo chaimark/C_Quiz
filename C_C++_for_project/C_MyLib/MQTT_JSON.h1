@@ -1,0 +1,39 @@
+#ifndef __MQTT_JSON_H
+#define __MQTT_JSON_H
+
+#include <string.h>
+#include <stdbool.h>
+#include "StrLib.h"
+#include "Define.h"
+#include "TimerCopyReading.h"
+#include "TimerMainReading.h"
+#include "ImmediatelyReading.h"
+#include "../C_MyLib/JsonDataDoneLib.h"
+#include "../C_MyLib/4G_ATCmd_FunctionSum.h"
+#include "../C_MyLib/NET_ATCmd_FunctionSum.h"
+
+typedef struct JSONNODE_S {
+    const char * node;    // 节点信息
+    const unsigned char type;  // 0:整数，其他保留：几位位小数，  0xaa：字符串
+} JSONNODE_T;
+
+#define JSON_GW_SIZE 11
+#define JSON_TIME_SIZE 19
+#define JSON_ME_SIZE 14
+#define JSON_NODE_T_SIZE sizeof(JSONNODE_T)
+
+typedef struct METERID_S {
+    unsigned char meterIds[7]; // 节点信息
+} METERID_T;
+
+extern void JSON_Send_Copy_Statistics(void);
+extern void JSON_Send_Main_Copy_Meter_Data(unsigned char * addr, unsigned char * data, unsigned char lentgh);
+extern void JSON_Send_Immediately_Main_Copy_Meter_Data(unsigned char port_num, unsigned char * data, unsigned char lentgh);
+
+extern bool MQTT_Important_Even_Flag;
+extern int MQTT_JSON_Analysis(strnew JsonStr);
+extern void Add_HeadData(bool hasRST, newJsonList HYMqttJsonData);
+extern void JSON_Send_GW_Infor(bool hasRST);
+
+#endif 
+

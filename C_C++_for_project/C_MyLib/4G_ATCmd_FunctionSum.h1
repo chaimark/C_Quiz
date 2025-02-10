@@ -1,0 +1,55 @@
+#ifndef _4G_ATCMD_FUNCTIONSUM_H
+#define _4G_ATCMD_FUNCTIONSUM_H
+#include "PublicLib_No_One.h"
+
+#ifdef _4G_ATCMD_FUNCTIONSUM_H
+#include <stdint.h>
+#include "StrLib.h"
+#include "PublicLib_No_One.h"
+#include "NetProt_Module.h"
+
+extern void sendDataBy4GProt(char * txBuffer, int length);
+#define IncludeUART0_4G_BAND UART0_BAND   // 需要引入外部变量或者常量
+
+// 所有 AT指令 《发送时》 需要的用于 《组织指令》 的函数名
+typedef enum _SendFun_4G {  // 发送AT指令时调用什么函数发送，对应的函数名
+    easyATCmdDataSendLoadFun,   // 简单AT 指令装载
+    setATCmdWillexLoadFun,
+    openMqttServerLoadFun,
+    setMassageSubLoadFun,
+} SendFun_4G;
+
+// 所有 AT指令 《回复时》 需要的用于 《处理回复》 的函数名
+typedef enum _receiveFun_4G {  // 发送AT指令时调用什么函数发送，对应的函数名
+    ResetTrueDoingFun_4G, // 作为特殊标记，用于忽略模组返回强制跳过某条指令
+    easyATCmdData_4G_DoingFun, // 简单AT 指令处理
+    checkOpenMqttServerDoingFun,
+    checkLinkMqttNetDoingFun,
+    checkMassageSubDoingFun,
+    getCCIDDataDoingFun,
+    getRSSIDataDoingFun,
+    getCSQDataDoingFun,
+    getCCLKDataDoingFun,
+} receiveFun_4G;
+
+extern NetDevATCmd NetDevice_ATData_4G[ATCMD_MAXNUMBER];
+extern void DataInstallation_4G(strnew OutStr, struct _NetDevATCmdData This);
+extern bool DoingATCmdResData_4G(struct _NetDevATCmdData This);
+extern bool checkLinkStat_4G(void);
+extern bool isMQTTLinkOnleng_4G(void);
+extern bool EnterATMode_4G(void);
+
+/****************************************/
+
+typedef struct _EC20RunData {
+    char EC200T_VER[30];
+    char EC20T_CCID[30];
+    char EC20T_IMEI[30];
+    char EC20T_CSQ[5];
+    int EC20T_RSSI;
+    int EC20T_SINR;
+} EC20RunData;
+extern EC20RunData DataOfEC20_4G;
+#endif
+
+#endif

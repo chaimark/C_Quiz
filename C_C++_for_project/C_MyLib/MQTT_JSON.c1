@@ -1,0 +1,507 @@
+#include "MQTT_JSON.h"
+#include "RTC.h"
+#include "UpData.h"
+#include "CH340_LPUart1.h"
+#include "../C_MyLib/NumberBaseLib.h"
+#include "../C_MyLib/StrLib.h"
+#include "../C_MyLib/NetProt_Module.h"
+#include "../C_MyLib/JsonDataAnalyzeLib.h"
+#include "../C_MyLib/AT24CXXDataLoader.h"
+#include "../C_MyLib/JsonDataDoneLib.h"
+
+METERID_T Main_MeterId[20] = {0}; // 主表仪表号码缓存 20只
+METERID_T Copy_MeterId[20] = {0}; // 辅表仪表号码缓存 20只
+bool MQTT_Important_Even_Flag = false; // MQTT重要事件标志
+
+struct _MQTT_JSON {
+    struct _GW {
+        JsonItem GWClassP;
+        JsonItem gw_id;     // 网关ID
+        JsonItem AckNum;    // AckNum
+    }GW;
+    struct _data {
+        JsonItem dataClassP;
+        JsonItem AT24DataJSON;          // AT24CXX数据
+        JsonItem stat;                  // 状态
+        JsonItem NowPackNum;            // 当前升级包号
+        JsonItem CSQ;                   // 信号强度
+        JsonItem RSSI;                  // 信号强度
+        JsonItem SINR;                  // 信号强度
+        JsonItem CCID;                  // CCID
+        JsonItem GW_Ver;                // 网关版本
+        JsonItem has_rst;               // 重连次数
+        JsonItem MBUS_mV;               // 电压
+        JsonItem MBUS_mA;               // 电流
+        JsonItem GW_model;              // 工作模式
+        JsonItem copy_statistics;       // 复表上报统计
+        JsonItem not_intimer_interval;  // 非定时上报间隔
+        JsonItem username;              // 用户名
+        JsonItem password;              // 密码
+        JsonItem remote_url;            // 远程地址
+        JsonItem remote_port;           // 远程地址
+        JsonItem main_interval;         // 主表上报间隔
+        JsonItem copy_interval;         // 复表上报间隔
+        JsonItem heating_start;         // 供暖开始时间
+        JsonItem heating_end;           // 供暖结束时间
+
+        JsonItem meter_id;              // 仪表ID
+        JsonItem meter_data;            // 仪表数据
+        JsonItem transparent_port;      // 透传端口
+
+        JsonItem main_meter_total;      // 总表数
+        struct _main_meter_id {
+            JsonItem main_meter_id_p;   // 主表仪表ID数组
+            JsonItem idStr;             // 主表仪表ID数组
+        }main_meter_id;
+
+        JsonItem copy_meter_total;      // 复表数
+        JsonItem copy_groups_num;       // 复表组数
+        struct _copy_meter_id {
+            JsonItem copy_meter_id_P;   // 复表仪表ID数组
+            JsonItem idStr;             // 复表仪表ID数组
+        }copy_meter_id;
+    }data;
+}HY_MQTT_JSON;
+
+/***************************************************************/
+// 心跳上报信息
+void Add_HeadData(bool hasRST, newJsonList HYMqttJsonData) {
+    if (UP_Mode_EC20_ON) {
+#ifdef _4G_ATCMD_FUNCTIONSUM_H
+        HY_MQTT_JSON.data.CSQ.var._char = DataOfEC20_4G.EC20T_CSQ;
+        HY_MQTT_JSON.data.RSSI.var.Dataint = DataOfEC20_4G.EC20T_RSSI;
+        HY_MQTT_JSON.data.SINR.var.Dataint = DataOfEC20_4G.EC20T_SINR;
+        HY_MQTT_JSON.data.CCID.var._char = DataOfEC20_4G.EC20T_CCID;
+#endif
+    } else {
+#ifdef _NET_ATCMD_FUNCTIONSUM_H
+        HY_MQTT_JSON.data.CSQ.var._char = "99,99";
+        HY_MQTT_JSON.data.RSSI.var.Dataint = -100;
+        HY_MQTT_JSON.data.SINR.var.Dataint = 0;
+        HY_MQTT_JSON.data.CCID.var._char = "00000000000000000000";
+#endif
+    }
+    HY_MQTT_JSON.data.GW_Ver.var.Dataint = SOFT_VERSION;
+    HY_MQTT_JSON.data.has_rst.var.Dataint = hasRST;
+    HY_MQTT_JSON.data.MBUS_mV.var.Dataint = Current_MBUS_MV_Value;
+    HY_MQTT_JSON.data.MBUS_mA.var.Dataint = Current_MBUS_MA_Value;
+
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.CSQ, "CSQ:%s;%d", HY_MQTT_JSON.data.CSQ.var._char, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.RSSI, "RSSI:%d;%d", HY_MQTT_JSON.data.RSSI.var.Dataint, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.SINR, "SINR:%d;%d", HY_MQTT_JSON.data.SINR.var.Dataint, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.CCID, "CCID:%s;%d", HY_MQTT_JSON.data.CCID.var._char, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.GW_Ver, "GW_Ver:%d;%d", HY_MQTT_JSON.data.GW_Ver.var.Dataint, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.has_rst, "has_rst:%d;%d", HY_MQTT_JSON.data.has_rst.var.Dataint, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.MBUS_mV, "MBUS_mV:%d;%d", HY_MQTT_JSON.data.MBUS_mV.var.Dataint, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.MBUS_mA, "MBUS_mA:%d;%d", HY_MQTT_JSON.data.MBUS_mA.var.Dataint, 0);
+}
+// 副标周期内统计
+void JSON_Send_Copy_Statistics(void) {
+    memset(&HY_MQTT_JSON, 0, sizeof(HY_MQTT_JSON));
+    newJsonList HYMqttJsonData = NEW_JSON_LIST(&HYMqttJsonData);
+
+    char IDTemp[13] = {0};
+    BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+    HY_MQTT_JSON.GW.gw_id.var._char = &IDTemp[1];
+    HY_MQTT_JSON.data.copy_statistics.var.Dataint = AT24CXX_Manager_NET.copy_statistics;
+
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.GWClassP, "gw:%lp;%d", &HY_MQTT_JSON.GW, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.gw_id, "gw_id:%s;%d", HY_MQTT_JSON.GW.gw_id.var._char, 1);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.dataClassP, "data:%lp;%d", &HY_MQTT_JSON.data, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.copy_statistics, "copy_statistics:%d;%d", HY_MQTT_JSON.data.copy_statistics.var.Dataint, 1);
+
+    HYMqttJsonData.OutPushJsonString(NEW_NAME(UART0Ddata.TxBuf), &HYMqttJsonData);
+    sendDataByTTLProt(UART0Ddata.TxBuf, strlen(UART0Ddata.TxBuf));
+    memset(UART0Ddata.TxBuf, 0, ARR_SIZE(UART0Ddata.TxBuf));
+}
+// 上报仪表数据
+void JSON_Send_Main_Copy_Meter_Data(unsigned char * addr, unsigned char * data, unsigned char lentgh) {
+    if (HY_FLAG == true) {
+        memset(&HY_MQTT_JSON, 0, sizeof(HY_MQTT_JSON));
+        newJsonList HYMqttJsonData = NEW_JSON_LIST(&HYMqttJsonData);
+
+        char IDTemp[13] = {0};
+        BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+        HY_MQTT_JSON.GW.gw_id.var._char = &IDTemp[1];
+        char meter_id_Str[13] = {0};
+        newstrobj(meter_id_Hex, 1);
+        meter_id_Hex.Name._char = (char *)addr;
+        meter_id_Hex.MaxLen = 6;
+        BCD_To_String(NEW_NAME(meter_id_Str), meter_id_Hex);
+        HY_MQTT_JSON.data.meter_id.var._char = meter_id_Str;
+
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.GWClassP, "gw:%lp;%d", &HY_MQTT_JSON.GW, 0);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.gw_id, "gw_id:%s;%d", HY_MQTT_JSON.GW.gw_id.var._char, 1);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.dataClassP, "data:%lp;%d", &HY_MQTT_JSON.data, 0);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.meter_id, "meter_id:%s;%d", HY_MQTT_JSON.data.meter_id.var._char, 1);
+        newString(temp_char, 256);
+        HEX2ToASCII((char *)data, lentgh, temp_char.Name._char, temp_char.MaxLen);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.meter_data, "meter_data:%s;%d", temp_char.Name._char, 1);
+
+        HYMqttJsonData.OutPushJsonString(NEW_NAME(UART0Ddata.TxBuf), &HYMqttJsonData);
+    }
+    sendDataByTTLProt(UART0Ddata.TxBuf, strlen(UART0Ddata.TxBuf));
+    memset(UART0Ddata.TxBuf, 0, ARR_SIZE(UART0Ddata.TxBuf));
+}
+// 透传数据上报
+void JSON_Send_Immediately_Main_Copy_Meter_Data(unsigned char port_num, unsigned char * data, unsigned char lentgh) {
+    if (HY_FLAG == true) {
+        memset(&HY_MQTT_JSON, 0, sizeof(HY_MQTT_JSON));
+        newJsonList HYMqttJsonData = NEW_JSON_LIST(&HYMqttJsonData);
+
+        char IDTemp[13] = {0};
+        BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+        HY_MQTT_JSON.GW.gw_id.var._char = &IDTemp[1];
+        HY_MQTT_JSON.data.transparent_port.var.Dataint = port_num;
+
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.GWClassP, "gw:%lp;%d", &HY_MQTT_JSON.GW, 0);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.gw_id, "gw_id:%s;%d", HY_MQTT_JSON.GW.gw_id.var._char, 1);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.dataClassP, "data:%lp;%d", &HY_MQTT_JSON.data, 0);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.transparent_port, "transparent_port:%s;%d", HY_MQTT_JSON.data.transparent_port.var.Dataint, 1);
+        newString(temp_char, 256);
+        HEX2ToASCII((char *)data, lentgh, temp_char.Name._char, temp_char.MaxLen);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.meter_data, "meter_data:%s;%d", temp_char.Name._char, 1);
+
+        HYMqttJsonData.OutPushJsonString(NEW_NAME(UART0Ddata.TxBuf), &HYMqttJsonData);
+    }
+    sendDataByTTLProt(UART0Ddata.TxBuf, strlen(UART0Ddata.TxBuf));
+    memset(UART0Ddata.TxBuf, 0, ARR_SIZE(UART0Ddata.TxBuf));
+}
+/***************************************************************/
+// 读主表表号
+static void JSON_Send_Read_Main_Meter_Id(newJsonList dataJson, JsonObject CmdJsonObj, strnew MainIDStr) {
+    HY_MQTT_JSON.data.main_meter_total.var.Dataint = AT24CXX_Manager_NET.main_meter_total;
+    for (int i = 0; i < 20; i++) {
+        for (int j = 0; j < 7; j++) {
+            Main_MeterId[i].meterIds[j] = EEprom_Byte1Read(EEPROM_MAIN_METER_START_ADDR + i * 60 + j);
+        }
+    }
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.main_meter_total, "main_meter_total:%d;%d", HY_MQTT_JSON.data.main_meter_total.var.Dataint, 0);
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.main_meter_id.main_meter_id_p, "main_meter_id:%p;%d", &HY_MQTT_JSON.data.main_meter_id, 0);
+    newString(TempStrID, 15);
+    for (int i = 0; i < 20; i++) {
+        if ((Main_MeterId[i].meterIds[0] != 0x00) && (Main_MeterId[i].meterIds[0] != 0xFF)) {
+            memset(TempStrID.Name._char, 0x00, 15);
+            BCD_To_String(TempStrID, NEW_NAME(Main_MeterId[i].meterIds));
+            catString(MainIDStr.Name._char, "\"", MainIDStr.MaxLen, 1);
+            catString(MainIDStr.Name._char, TempStrID.Name._char, MainIDStr.MaxLen, 14);
+            catString(MainIDStr.Name._char, "\",", MainIDStr.MaxLen, 2);
+        }
+    }
+    MainIDStr.Name._char[MainIDStr.getStrlen(&MainIDStr) - 1] = 0;
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.copy_meter_id.idStr, ":%ls;%d", MainIDStr.Name._char, 0);
+}
+// 写主表表号
+static void JSON_Send_Write_Main_Meter_Id(newJsonList dataJson, JsonObject CmdJsonObj) {
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "main_meter_total") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "MainMeterToWrite:%s;%d", "fail", 0);
+        return;
+    } else if (CmdJsonObj.isJsonNull(&CmdJsonObj, "main_meter_id") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "MainMeterToWrite:%s;%d", "fail", 0);
+        return;
+    }
+    newString(IdArray, 500);
+    int main_meter_total = CmdJsonObj.getInt(&CmdJsonObj, "main_meter_total");
+    JsonArray MeterId = CmdJsonObj.getArray(&CmdJsonObj, "main_meter_id", IdArray);
+    if (main_meter_total < 0 || main_meter_total > 20 || MeterId.sizeItemNum(&MeterId) > 20) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "MainMeterToWrite:%s;%d", "fail", 0);
+        return;
+    }
+
+    // 最多 20 个
+    AT24CXX_Manager_NET.main_meter_total = main_meter_total;
+    EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.main_meter_total, sizeof(AT24CXX_Manager_NET.main_meter_total));
+    memset(&Main_MeterId, 0x00, sizeof(Main_MeterId));
+    for (int i = 0; i < MeterId.sizeItemNum(&MeterId); i++) {
+        newString(meterIds, 15);
+        MeterId.get(&MeterId, meterIds, i);
+        ASCIIToHEX2(meterIds.Name._char, meterIds.getStrlen(&meterIds), (char *)Main_MeterId[i].meterIds, ARR_SIZE(Main_MeterId[i].meterIds));
+    }
+    for (int i = 0; i < 20; i++) { // 保存仪表号码
+        for (int j = 0; j < 7; j++)
+            EEprom_Byte1Write(EEPROM_MAIN_METER_START_ADDR + i * 60 + j, Main_MeterId[i].meterIds[j]);
+    }
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "MainMeterToWrite:%s;%d", "OK", 0);
+    return;
+}
+// 读辅表表号
+static void JSON_Send_Read_Copy_Meter_Id(newJsonList dataJson, JsonObject CmdJsonObj, strnew CopyIDStr) {
+    HY_MQTT_JSON.data.copy_meter_total.var.Dataint = AT24CXX_Manager_NET.copy_meter_total;
+    int groups_num = CmdJsonObj.getInt(&CmdJsonObj, "copy_groups_num");
+    if ((groups_num > 12) || (groups_num < 0)) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "CopyMeterToRead:%s;%d", "fail", 0);
+        return;
+    }
+    HY_MQTT_JSON.data.copy_groups_num.var.Dataint = groups_num;
+    for (int i = 0; i < 20; i++) {
+        for (int j = 0; j < 7; j++) {
+            Copy_MeterId[i].meterIds[j] = EEprom_Byte1Read(EEPROM_COPY_METER_START_ADDR + (groups_num - 1) * 1200 + i * 60 + j);
+        }
+    }
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.copy_meter_total, "copy_meter_total:%d;%d", HY_MQTT_JSON.data.copy_meter_total.var.Dataint, 0);
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.copy_groups_num, "copy_groups_num:%d;%d", HY_MQTT_JSON.data.copy_groups_num.var.Dataint, 0);
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.copy_meter_id.copy_meter_id_P, "copy_meter_id:%p;%d", &HY_MQTT_JSON.data.copy_meter_id, 0);
+    newString(TempStrID, 15);
+    for (int i = 0; i < 20; i++) {
+        if ((Copy_MeterId[i].meterIds[0] != 0x00) && (Copy_MeterId[i].meterIds[0] != 0xFF)) {
+            memset(TempStrID.Name._char, 0x00, 15);
+            BCD_To_String(TempStrID, NEW_NAME(Copy_MeterId[i].meterIds));
+            catString(CopyIDStr.Name._char, "\"", CopyIDStr.MaxLen, 1);
+            catString(CopyIDStr.Name._char, TempStrID.Name._char, CopyIDStr.MaxLen, 14);
+            catString(CopyIDStr.Name._char, "\",", CopyIDStr.MaxLen, 2);
+        }
+    }
+    CopyIDStr.Name._char[CopyIDStr.getStrlen(&CopyIDStr) - 1] = 0;
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.copy_meter_id.idStr, ":%s;%d", CopyIDStr.Name._char, 0);
+}
+// 写辅表表号
+static void JSON_Send_Write_Copy_Meter_Id(newJsonList dataJson, JsonObject CmdJsonObj) {
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "copy_groups_num") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "CopyMeterToWrite:%s;%d", "fail", 0);
+        return;
+    }
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "copy_meter_total") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "CopyMeterToWrite:%s;%d", "fail", 0);
+        return;
+    }
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "copy_meter_id") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "CopyMeterToWrite:%s;%d", "fail", 0);
+        return;
+    }
+    newString(IdArray, 500);
+    int copy_meter_total = CmdJsonObj.getInt(&CmdJsonObj, "copy_meter_total");
+    JsonArray MeterId = CmdJsonObj.getArray(&CmdJsonObj, "copy_meter_id", IdArray);
+    if (copy_meter_total < 0 || copy_meter_total > 240 || MeterId.sizeItemNum(&MeterId) > 240 || MeterId.sizeItemNum(&MeterId) == 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "CopyMeterToWrite:%s;%d", "fail", 0);
+        return;
+    }
+    int copy_groups_num = CmdJsonObj.getInt(&CmdJsonObj, "copy_groups_num");
+    if ((copy_groups_num > 12) || (copy_groups_num < 0)) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "CopyMeterToWrite:%s;%d", "fail", 0);
+        return;
+    }
+    // 最多 240 个
+    AT24CXX_Manager_NET.copy_meter_total = copy_meter_total;
+    EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.copy_meter_total, sizeof(AT24CXX_Manager_NET.copy_meter_total));
+    // EEprom_Byte1Write(EEPROM_COPY_METER_TOTAL_ADDR, copy_meter_total);
+    memset(&Copy_MeterId, 0x00, sizeof(Copy_MeterId));
+    for (int i = 0; i < MeterId.sizeItemNum(&MeterId); i++) {
+        char meterIds[15] = {0};
+        MeterId.get(&MeterId, NEW_NAME(meterIds), i);
+        ASCIIToHEX2(meterIds, strlen(meterIds), (char *)Copy_MeterId[i].meterIds, ARR_SIZE(Copy_MeterId[i].meterIds));
+    }
+    int groups_num = CmdJsonObj.getInt(&CmdJsonObj, "copy_groups_num");  // 每组20只  最多12组
+    for (int i = 0; i < 20; i++) { // 保存仪表号码
+        for (int j = 0; j < 7; j++)
+            EEprom_Byte1Write(EEPROM_COPY_METER_START_ADDR + (groups_num - 1) * 1200 + i * 60 + j, Copy_MeterId[i].meterIds[j]);
+    }
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "CopyMeterToWrite:%s;%d", "OK", 0);
+}
+// 仪表透传数据上传/透传仪表操作命令
+static void CmdOfTransparent(newJsonList dataJson, JsonObject CmdJsonObj) {
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "transparent_port") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "transparent:%s;%d", "fail", 0);
+        return;
+    }
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "transparent_count") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "transparent:%s;%d", "fail", 0);
+        return;
+    }
+    int transparent_port = CmdJsonObj.getInt(&CmdJsonObj, "transparent_port");
+    int transparent_count = CmdJsonObj.getInt(&CmdJsonObj, "transparent_count");
+    if ((transparent_port > 3) || (transparent_port < 0) || (transparent_count > 20) || (transparent_count < 0)) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "transparent:%s;%d", "fail", 0);
+        return;
+    }
+    CmdJsonObj.getString(&CmdJsonObj, "transparent", NEW_NAME(imm_Read.immediately_TXBuffer));
+    imm_Read.immediately_Ports = transparent_port;
+    imm_Read.immediately_ReReading_Count = transparent_count;
+    imm_Read.immediately_TX_Len = ASCIIToHEX2((char *)imm_Read.immediately_TXBuffer, strlen((char *)imm_Read.immediately_TXBuffer), (char *)imm_Read.immediately_TXBuffer, imm_Read.immediately_TX_Len);
+    read_Main_Meter_In_Timer_In_Main_Flage = 0;
+    read_Copy_Meter_In_Timer_In_Main_Flage = 0;
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "transparent:%s;%d", "OK", 0);
+}
+// 立即启动抄表
+static void CmdOfImmediately(newJsonList dataJson, JsonObject CmdJsonObj) {
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "main_immediately") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "immediately:%s;%d", "fail", 0);
+        return;
+    }
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "copy_immediately") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "immediately:%s;%d", "fail", 0);
+        return;
+    }
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "up_immediately") < 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "immediately:%s;%d", "fail", 0);
+        return;
+    }
+    uint8_t main_immediately = CmdJsonObj.getInt(&CmdJsonObj, "main_immediately");
+    uint8_t copy_immediately = CmdJsonObj.getInt(&CmdJsonObj, "copy_immediately");
+    uint8_t up_immediately = CmdJsonObj.getInt(&CmdJsonObj, "up_immediately");
+    if (main_immediately + copy_immediately + up_immediately > 1) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "immediately:%s;%d", "fail", 0);
+        return;
+    }
+    read_Main_Meter_In_Timer_In_Main_Flage = main_immediately;
+    read_Copy_Meter_In_Timer_In_Main_Flage = copy_immediately;
+    up_Immediately_History_In_Timer_In_Main_Flage = up_immediately;
+    dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "immediately:%s;%d", "OK", 0);
+}
+void Other_Cmd_Of_User(JsonObject CmdJsonObj, strnew Outbuff, const char * SetCmdStr) {
+    newJsonList dataJson = NEW_JSON_LIST(&dataJson);
+    newString(CmdStr, 50);
+    CmdJsonObj.getString(&CmdJsonObj, "SetCmd", CmdStr);
+    // Read SOFT_VERSION
+    if (strcmp(SetCmdStr, "ReadBoard") == 0) {
+        dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.GW_Ver, "GW_Ver:%d;%d", SOFT_VERSION, 0);
+    } else if (strcmp(SetCmdStr, "ReadHeart") == 0) {
+        Add_HeadData((Now_NetDevParameter.ReBootCount > 0 ? true : false), dataJson);
+    }
+    // updatapram
+    if ((CmdJsonObj.isJsonNull(&CmdJsonObj, "PackLen") >= 0) || (CmdJsonObj.isJsonNull(&CmdJsonObj, "CsCheckNum") >= 0)) {
+        MQTT_Important_Even_Flag = true;    // 重要事件, 闪烁 LED 灯        
+        int temp = UpData_Receive_Hex(CmdJsonObj);
+        if (temp == 0) {
+            dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "upgrades:%s;%d", "start", 0);
+        } else if (temp == 1) {
+            dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "upgrades:%s;%d", "fail", 0);
+            dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.NowPackNum, "NowPackNum:%d;%d", UpdataData.NowPackNum, 0);
+        } else if (temp == 2) {
+            dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "upgrades:%s;%d", "OK", 0);
+            dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.NowPackNum, "NowPackNum:%d;%d", UpdataData.NowPackNum, 0);
+        } else if (temp == 3) {
+            dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "upgrades:%s;%d", "over", 0);
+            Reboot.EC20_ReBoot_In_RTC_By_1Second(&Reboot, 5);
+        }
+    }
+    // It is read or write that Meter of main.
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "MainMeter") >= 0) {
+        CmdJsonObj.getString(&CmdJsonObj, "MainMeter", CmdStr);
+        if (strcmp(CmdStr.Name._char, "Read") == 0) {
+            newString(MainIDStr, 500);
+            JSON_Send_Read_Main_Meter_Id(dataJson, CmdJsonObj, MainIDStr);
+        } else if (strcmp(CmdStr.Name._char, "Write") == 0) {
+            MQTT_Important_Even_Flag = true;    // 重要事件, 闪烁 LED 灯
+            JSON_Send_Write_Main_Meter_Id(dataJson, CmdJsonObj);
+        }
+    }
+    // It is read or write that Meter of copy.
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "CopyMeter") >= 0) {
+        CmdJsonObj.getString(&CmdJsonObj, "CopyMeter", CmdStr);
+        if (strcmp(CmdStr.Name._char, "Read") == 0) {
+            if (CmdJsonObj.isJsonNull(&CmdJsonObj, "copy_groups_num") >= 0) {
+                newString(CopyIDStr, 500);
+                JSON_Send_Read_Copy_Meter_Id(dataJson, CmdJsonObj, CopyIDStr);
+            } else {
+                dataJson.setJsonItemData(&dataJson, &HY_MQTT_JSON.data.stat, "CopyMeterToRead:%s;%d", "fail", 0);
+            }
+        } else if (strcmp(CmdStr.Name._char, "Write") == 0) {
+            MQTT_Important_Even_Flag = true;    // 重要事件, 闪烁 LED 灯
+            JSON_Send_Write_Copy_Meter_Id(dataJson, CmdJsonObj);
+        }
+    }
+    // 仪表透传数据上传/透传仪表操作命令
+    if ((CmdJsonObj.isJsonNull(&CmdJsonObj, "transparent") >= 0) || (CmdJsonObj.isJsonNull(&CmdJsonObj, "transparent_count") >= 0) || (CmdJsonObj.isJsonNull(&CmdJsonObj, "transparent_port") >= 0)) {
+        CmdOfTransparent(dataJson, CmdJsonObj);
+    }
+    // 立即启动抄表
+    if ((CmdJsonObj.isJsonNull(&CmdJsonObj, "main_immediately") >= 0) || (CmdJsonObj.isJsonNull(&CmdJsonObj, "copy_immediately") >= 0) || (CmdJsonObj.isJsonNull(&CmdJsonObj, "up_immediately") >= 0)) {
+        CmdOfImmediately(dataJson, CmdJsonObj);
+    }
+    if (MQTT_Important_Even_Flag == true) {
+        RTC_TASK.InitSetTimeTask(CloseLEDFlag, 30, closeLED_ImportantFlag); // 重要事件, 关闭闪烁
+    }
+    // 重启
+    if (CmdJsonObj.getBool(&CmdJsonObj, "Reboot")) {
+        Reboot.EC20_ReBoot_In_RTC_By_1Second(&Reboot, 3); // 重启
+    }
+    dataJson.OutPushJsonString(Outbuff, &dataJson);
+}
+//{"gw": {"gw_id": "02345678903","Read"/"Write":"AT24DataJSON","SetCmd":"ReadBoard"},"data": {}}
+int MQTT_JSON_Analysis(strnew JsonStr) {
+#ifdef _4G_ATCMD_FUNCTIONSUM_H
+    if (strstr(JsonStr.Name._char, "+QMTRECV:") == NULL) {
+        return -1;
+    }
+    JsonStr.Name._char = strstr(JsonStr.Name._char, "{\"gw\":");
+    JsonStr.MaxLen -= strlen("{\"gw\":");
+#endif
+    memset(UART0Ddata.TxBuf, 0x00, LONG_UARTMAX);
+    UART0Ddata.TxLen = 0;
+    strnew SendTxStr = NEW_NAME(UART0Ddata.TxBuf);
+    JsonObject CmdJsonObj = newJsonObjectByString(JsonStr);
+    newString(gwStr, 50);
+    JsonObject gwObj = CmdJsonObj.getObject(&CmdJsonObj, "gw", gwStr);
+    // 核对网关 ID
+    newString(gw_id_1, 15);
+    gwObj.getString(&gwObj, "gw_id", gw_id_1);
+    char IDTemp[13] = {0};
+    BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+    if (strcmp(gw_id_1.Name._char, &IDTemp[1]) != 0) {
+        return -1;
+    }
+    memset(&HY_MQTT_JSON, 0, sizeof(HY_MQTT_JSON));
+    newJsonList HYMqttJsonData = NEW_JSON_LIST(&HYMqttJsonData);
+    HY_MQTT_JSON.GW.gw_id.var._char = IDTemp;
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.GWClassP, "gw:%lp;%d", &HY_MQTT_JSON.GW, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.gw_id, "gw_id:%s;%d", &HY_MQTT_JSON.GW.gw_id.var._char[1], 1);
+    if (gwObj.isJsonNull(&gwObj, "AckNum") >= 0) {
+        HY_MQTT_JSON.GW.AckNum.var.Dataint = gwObj.getInt(&gwObj, "AckNum");
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.AckNum, "AckNum:%d;%d", HY_MQTT_JSON.GW.AckNum.var.Dataint, 1);
+    }
+    UartDisableIRQ; // 暂时关闭串口监控
+    if (gwObj.isJsonNull(&gwObj, "Read") >= 0) {
+        // 通用功能，读 AT_json
+        newString(CmdStr, 50);
+        gwObj.getString(&gwObj, "Read", CmdStr);
+        if (strcmp(CmdStr.Name._char, "AT24DataJSON") == 0) {
+            Send_AT_JSON(NEW_NAME(Now_NetDevParameter.NetDataBuff)); // 获取 data Str
+        }
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.dataClassP, "data:%ls;%d", Now_NetDevParameter.NetDataBuff, 0);
+    } else if (gwObj.isJsonNull(&gwObj, "Write") >= 0) {
+        // 通用功能，设 AT_json
+        newString(CmdStr, 50);
+        gwObj.getString(&gwObj, "Write", CmdStr);
+        if (strcmp(CmdStr.Name._char, "AT24DataJSON") == 0) {
+            Weite_AT_JSON(CmdJsonObj.getObject(&CmdJsonObj, "data", JsonStr));
+        }
+        HY_MQTT_JSON.data.stat.var.Dataint = 2;
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.dataClassP, "data:%lp;%d", &HY_MQTT_JSON.data, 0);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.stat, "stat:%d;%d", HY_MQTT_JSON.data.stat.var.Dataint, 1);
+    } else if (gwObj.isJsonNull(&gwObj, "SetCmd") >= 0) {
+        // 通用功能，执行 Cmd
+        newString(CmdStr, 50);
+        gwObj.getString(&gwObj, "SetCmd", CmdStr);
+        Other_Cmd_Of_User(CmdJsonObj.getObject(&CmdJsonObj, "data", JsonStr), NEW_NAME(Now_NetDevParameter.NetDataBuff), CmdStr.Name._char);
+        HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.dataClassP, "data:%ls;%d", Now_NetDevParameter.NetDataBuff, 0);
+    }
+    HYMqttJsonData.OutPushJsonString(SendTxStr, &HYMqttJsonData);
+    memset(&Now_NetDevParameter.NetDataBuff, 0, CmdStrLenMax);
+    for (int i = 0; i < 2; i++) {
+        sendDataByTTLProt(SendTxStr.Name._char, SendTxStr.getStrlen(&SendTxStr));
+        memset(SendTxStr.Name._char, 0, SendTxStr.MaxLen);
+        if (FindStr_WaitTime(NEW_NAME("OK"), 5000) == true) {
+            break;
+        }
+    }
+    UartEnableIRQ;  // 重新打卡串口监控
+    return 1;
+}
+void JSON_Send_GW_Infor(bool hasRST) {
+    memset(&HY_MQTT_JSON, 0, sizeof(HY_MQTT_JSON));
+    char IDTemp[13] = {0};
+    BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+    newJsonList HYMqttJsonData = NEW_JSON_LIST(&HYMqttJsonData);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.GWClassP, "gw:%lp;%d", &HY_MQTT_JSON.GW, 0);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.GW.gw_id, "gw_id:%s;%d", &IDTemp[1], 1);
+    newJsonList DataJson = NEW_JSON_LIST(&DataJson);
+    strnew Outbuff = NEW_NAME(Now_NetDevParameter.NetDataBuff);
+    Add_HeadData((Now_NetDevParameter.ReBootCount > 0 ? true : false), DataJson);
+    DataJson.OutPushJsonString(Outbuff, &DataJson);
+    HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.dataClassP, "data:%ls;%d", Outbuff.Name._char, 0);
+    HYMqttJsonData.OutPushJsonString(NEW_NAME(UART0Ddata.TxBuf), &HYMqttJsonData);
+    sendDataByTTLProt(UART0Ddata.TxBuf, strlen(UART0Ddata.TxBuf));
+    memset(UART0Ddata.TxBuf, 0, UART0Ddata.TxLen);
+    memset(Now_NetDevParameter.NetDataBuff, 0, ARR_SIZE(Now_NetDevParameter.NetDataBuff));
+}
+

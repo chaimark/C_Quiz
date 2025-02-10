@@ -1,0 +1,420 @@
+#include "4G_ATCmd_FunctionSum.h"
+#include "NetProt_Module.h"
+#include "NumberBaseLib.h"
+#include "AT24CXXDataLoader.h"
+#ifdef _4G_ATCMD_FUNCTIONSUM_H
+
+// 一些打印
+static const char * QMTOPEN_Str[] = {
+    "sucess",           // 0 打开网络成功
+    "err param ",       // 1 参数错误
+    "err id",           // 2 MQTT 标识符被占用
+    "err PDP",          // 3 激活 PDP 失败
+    "err url",          // 4 域名解析失败
+    "err disconn",      // 5 网络断开导致错误
+};
+// 连接服务器
+static const char * QMTOPEN_CONN_Code[] = {
+    "sucess",           // 0 接受连接
+    "err Ver",          // 1 拒绝连接： 不接受的协议版本
+    "err Id",           // 2 拒绝连接：标识符被拒绝
+    "err Host",         // 3 拒绝连接：服务器不可用
+    "err Login",        // 4 拒绝连接： 错误的用户名或密码0
+    "err unLic",        // 5 拒绝连接：未授权
+};
+// status
+static const char * QMTSTAT_Code[] = {
+    "sucess",           // 0
+    "err open",         // 1        | 连接被服务器断开或者重置
+    "err ping",         // 2        | 发送 PINGREQ 包超时或者失败
+    "err conn",         // 3        | 发送 CONNECT 包超时或者失败
+    "err ack",          // 4        | 接收 CONNACK 包超时或者失败
+    "rec disconn",      // 5        | 客户端向服务器发送 DISCONNECT 包
+    "err send",         // 6        | 因为发送数据包总是失败，
+    "err Host",         // 7        | 链路不工作或者服务器不可用
+    "client disconn",   // 8        | 客户端主动断开 MQTT 连接
+    // 9~255    | 留作将来使用
+};
+
+EC20RunData DataOfEC20_4G;
+// *********************************************************************************
+// 发送报文
+void sendDataBy4GProt(char * txBuffer, int length) {
+    ClearNetDataBuff();
+    if ((Now_NetDevParameter.NowNetOnlineFlag) && (strstr(txBuffer, "AT+") == NULL)) { // 如果是裸数据透传，需要先发 AT+QMTPUBEX
+        char MQTT_4G_Sendcmd[64];
+        char MQTT_4G_publish[24] = {0};
+        char IDTemp[13] = {0};
+        BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+        sprintf(MQTT_4G_publish, "hy/gw/set/%s", &IDTemp[1]);
+        sprintf(MQTT_4G_Sendcmd, "AT+QMTPUBEX=0,0,0,0,\"%s\",%d\r\n", MQTT_4G_publish, length);
+        Uart0Send((unsigned char *)MQTT_4G_Sendcmd, strlen(MQTT_4G_Sendcmd));
+        if (FindStr_WaitTime(NEW_NAME(">"), 5000) == false) {
+            return;
+        }
+    }
+    Uart0Send((unsigned char *)txBuffer, length);
+}
+// 校时
+void checkTime_By4GModele(void) {
+    RTC_TASK.InitSetTimeTask(DayOverCclkTask, MinToSec(HourToMin(AT24CXX_Manager_NET.DaysNumberOfCCLK * 24)), checkTime_By4GModele); // 604,800
+    int Min15Cont = 0;
+    FL_RTC_InitTypeDef NB_Time_Data = {0};
+    char * KeyP = NULL;
+    ClearNetDataBuff();
+    sendDataBy4GProt("AT+CCLK?\r\n", strlen("AT+CCLK?\r\n"));
+    for (int i = 0; i < 2; i++) {
+        if (FindStr_WaitTime(NEW_NAME("+CCLK:"), 500, &KeyP) == true) {
+            break;
+        }
+        ClearNetDataBuff();
+    }
+    if (KeyP == NULL) {
+        return;
+    }
+    sscanf(KeyP, "+CCLK: \"%d/%d/%d,%d:%d:%d+%d\"", &NB_Time_Data.year, &NB_Time_Data.month, &NB_Time_Data.day,
+        &NB_Time_Data.hour, &NB_Time_Data.minute, &NB_Time_Data.second, &Min15Cont);
+    NB_Time_Data.hour += (Min15Cont != 0 ? (Min15Cont * 15) / 60 : 8);
+
+    NB_Time_Data.year = (uint32_t)anyBaseToAnyBase((uint64_t)NB_Time_Data.year, 16, 10); // 将 NB_Time_Data.year 16进制转换成10进制
+    NB_Time_Data.month = (uint32_t)anyBaseToAnyBase((uint64_t)NB_Time_Data.month, 16, 10); // 将 NB_Time_Data.month 16进制转换成10进制
+    NB_Time_Data.day = (uint32_t)anyBaseToAnyBase((uint64_t)NB_Time_Data.day, 16, 10); // 将 NB_Time_Data.day 16进制转换成10进制
+    NB_Time_Data.hour = (uint32_t)anyBaseToAnyBase((uint64_t)NB_Time_Data.hour, 16, 10); // 将 NB_Time_Data.hour 16进制转换成10进制
+    NB_Time_Data.minute = (uint32_t)anyBaseToAnyBase((uint64_t)NB_Time_Data.minute, 16, 10); // 将 NB_Time_Data.minute 16进制转换成10进制
+    NB_Time_Data.second = (uint32_t)anyBaseToAnyBase((uint64_t)NB_Time_Data.second, 16, 10); // 将 NB_Time_Data.second 16进制转换成10进制
+    NB_Time_Data.week = getDayOfWeek(NB_Time_Data.year, NB_Time_Data.month, NB_Time_Data.day);
+    if (!checkTimeFrom(NB_Time_Data)) {
+        return;    // 时间错误
+    }
+    newString(NowTimeData, 32);
+    sprintf(NowTimeData.Name._char, "20%02x-%02x-%02x %02x:%02x:%02x", NB_Time_Data.year, NB_Time_Data.month, NB_Time_Data.day, NB_Time_Data.hour, NB_Time_Data.minute, NB_Time_Data.second);
+    setRtcDate(NowTimeData, true); // 设置时间
+    Now_NetDevParameter.isWriteEEprom = true;
+}
+void checkRSSI_By4GModele(void) {
+    RTC_TASK.InitSetTimeTask(GetRSSIBy4G, MinToSec(HourToMin(1)), checkRSSI_By4GModele); // 每获取 RSSI
+    char * KeyP = NULL;
+    ClearNetDataBuff();
+    sendDataBy4GProt("AT+QENG=\"servingcell\"\r\n", strlen("AT+QENG=\"servingcell\"\r\n"));
+    for (int i = 0; i < 2; i++) {
+        if (FindStr_WaitTime(NEW_NAME("+QENG: \"servingcell\""), 500, &KeyP) == true) {
+            break;
+        }
+        ClearNetDataBuff();
+    }
+    if (KeyP == NULL) {
+        return;
+    }
+    KeyP = myStrstrCont(Now_NetDevParameter.NetDataBuff, ",", Now_NetDevParameter.NetDataBuff_NowLen, 12);
+    if (KeyP == NULL) {
+        return;
+    }
+    DataOfEC20_4G.EC20T_RSSI = doneAsciiStrToAnyBaseNumberData((KeyP + 1), 16);
+
+    KeyP = myStrstrCont(Now_NetDevParameter.NetDataBuff, ",", Now_NetDevParameter.NetDataBuff_NowLen, 13);
+    if (KeyP == NULL) {
+        return;
+    }
+    DataOfEC20_4G.EC20T_SINR = doneAsciiStrToAnyBaseNumberData((KeyP + 1), 16);
+    return;
+}
+// 定义AT指令
+struct _NetDevATCmdData NetDevice_ATData_4G[ATCMD_MAXNUMBER] = {
+    {0,1,"ATE1\r\n","OK",true,3,3,1000,false,easyATCmdDataSendLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL},                            // 备用
+    {1,2,"ATE1\r\n","OK",true,3,3,1000,false,easyATCmdDataSendLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL},                            // 设置回显
+    {2,3,"ATI\r\n","Revision",true,3,3,1000,false,easyATCmdDataSendLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL},                       // 查询模块信息
+    {3,4,"AT+CPIN?\r\n","READY",true,3,3,1000,false,easyATCmdDataSendLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL},                     // 查询模块是否解锁
+    {4,5,"AT+CREG?\r\n","+CREG:",true,3,3,1000,false,easyATCmdDataSendLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL},                    // 查询模块是否注册上网络
+    {5,6,"AT+CGREG?\r\n","+CGREG:",true,3,3,1000,false,easyATCmdDataSendLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL},                  // 查询模块是否注册上网络
+    {6,7,"AT+CCID\r\n","+CCID:",true,3,3,1000,false,easyATCmdDataSendLoadFun,getCCIDDataDoingFun, NULL, NULL},                           // 获取CCID
+    {7,8,"AT+QENG=\"servingcell\"\r\n","OK",true,3,3,1000,false,easyATCmdDataSendLoadFun,getRSSIDataDoingFun, NULL, NULL},               // 获取信号强度
+    {8,9,"AT+CSQ\r\n","+CSQ:",true,3,3,1000,false,easyATCmdDataSendLoadFun,getCSQDataDoingFun, NULL, NULL},                              // 获取CSQ
+    {9,10,"AT+CCLK?\r\n","+CCLK: ",true,3,3,1000,false,easyATCmdDataSendLoadFun,getCCLKDataDoingFun, NULL, NULL},                        // 获取时间
+    {10,11,"AT+QMTCFG=\"version\",0,4\r\n","OK",true,3,3,1000,false,easyATCmdDataSendLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL},     // 设备MQTT版本
+    {11,12,"AT+QMTCFG=\"qmtping\",0,60\r\n","OK",true,3,3,1000,false,easyATCmdDataSendLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL},    // 设置心跳
+    {12,13,"AT+QMTCFG=\"recv/mode\",0,0,1\r\n","OK",true,3,3,1000,false,easyATCmdDataSendLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL}, // 设置消息上报形式
+    {13,14,"AT+QMTCFG=\"willex\",","OK",true,3,3,1000,false,setATCmdWillexLoadFun,easyATCmdData_4G_DoingFun, NULL, NULL},                // 设置遗嘱
+    {14,15,"AT+QMTOPEN=","+QMTOPEN:",true,3,3,1000,false,openMqttServerLoadFun,checkOpenMqttServerDoingFun, NULL, NULL},                 // 连接MQTT服务器
+    {15,16,"ATE1\r\n","OK",true,3,3,1000,false,easyATCmdDataSendLoadFun,checkLinkMqttNetDoingFun, NULL, NULL},                           // 连接MQTT服务器
+    {16,17,"AT+QMTSUB=","+QMTSUB:",true,3,5,false,setMassageSubLoadFun,checkMassageSubDoingFun, NULL, NULL},                             // 订阅主题
+    {17,-1,"AT+QENG=\"servingcell\"\r\n","OK",true,3,3,1000,false,easyATCmdDataSendLoadFun,getRSSIDataDoingFun, NULL, NULL},             // 获取信号强度
+    {18,-1,"","",false,3,3,1000,false,easyATCmdDataSendLoadFun,ResetTrueDoingFun_4G, NULL, NULL},
+};
+
+// *********************************************************************************//
+// 简单指令装载
+void easyATCmdDataSend(strnew OutStr, NetDevATCmd NowATCmd) {
+    copyString(OutStr.Name._char, NowATCmd.ATCmd, OutStr.MaxLen, strlen(NowATCmd.ATCmd));
+}
+// 设置遗嘱
+void setATCmdWillex(strnew OutStr, NetDevATCmd NowATCmd) {
+    char IDTemp[13] = {0};
+    BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+    char TempPath[40] = {0};
+    sprintf(TempPath, "hy/gw/get/%s", &IDTemp[1]);
+    newString(willexStr, 100);
+    sprintf(willexStr.Name._char, "AT+QMTCFG=\"willex\",0,1,1,0,\"%s/\",79\r\n", TempPath);
+    sendDataBy4GProt(willexStr.Name._char, willexStr.getStrlen(&willexStr));
+    FindStr_WaitTime(NEW_NAME(">"), 5000);
+    sprintf(OutStr.Name._char, "{\"gw\":{\"gw_id\":\"%s\"},\"data\":{\"stat\":0}}", &IDTemp[1]);
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+}
+// 打开MQTT客户端
+void openMqttServer(strnew OutStr, NetDevATCmd NowATCmd) {
+    sprintf(OutStr.Name._char, "AT+QMTOPEN=0,\"%s\",%d\r\n", AT24CXX_Manager_NET.remote_url, AT24CXX_Manager_NET.remote_port);
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+}
+// 设置订阅信息
+void setMassageSub(strnew OutStr, NetDevATCmd NowATCmd) {
+    char IDTemp[13] = {0};
+    BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+    sprintf(OutStr.Name._char, "AT+QMTSUB=0,1,\"hy/gw/get/%s/#\",2\r\n", &IDTemp[1]);
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+}
+//========================接受模组反馈的信息，判断是否发送成功，或执行其他操作===================================//
+// 简单指令处理
+bool easy4G_ATCmdDataDoing(NetDevATCmd NowATCmd) {
+    if (myStrstr(Now_NetDevParameter.NetDataBuff, NowATCmd.SucessStr, Now_NetDevParameter.NetDataBuff_NowLen) != NULL)
+        return true;
+    else
+        return false;
+}
+// 检查是否打开MQTT客户端
+bool checkOpenMqttServer(NetDevATCmd NowATCmd) {
+    char * KeyP = NULL;
+    for (int i = 0; i < 2; i++) {
+        if (FindStr_WaitTime(NEW_NAME("+QMTOPEN: 0,"), 1000, &KeyP) == true) {
+            KeyP += strlen("+QMTOPEN: 0,");
+            break;
+        }
+        ClearNetDataBuff();
+    }
+    if (KeyP != NULL) {
+        int8_t res = doneAsciiStrToAnyBaseNumberData(KeyP, 16);
+        if (res <= -1) {
+            printf("mqtt open: fail\r\n"); // -1
+        } else if (res < 6) {
+            printf("mqtt open: %s\r\n", QMTOPEN_Str[res]);
+        }
+        if (res != 0 && res != 2) {
+            return false; // 未打开 MQTT 客户端实例
+        }
+    }
+    //////////////////////////////////////////////////////////
+    return true;
+}
+// 检查是否连接到MQTT服务器
+bool checkLinkMqttNet(NetDevATCmd NowATCmd) {
+    char * KeyP = NULL;
+    if (FindStr_WaitTime(NEW_NAME("OK"), 5000, &KeyP) != true) {
+        return false;
+    }
+    newString(OutStr, 60);
+    char IDTemp[13] = {0};
+    BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+    sprintf(OutStr.Name._char, "AT+QMTCONN=0,\"%s\",\"%s\",\"%s\"\r\n", &IDTemp[1], AT24CXX_Manager_NET.username, AT24CXX_Manager_NET.password);
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+    sendDataBy4GProt(OutStr.Name._char, OutStr.getStrlen(&OutStr));
+    for (int i = 0; i < 6; i++) {
+        if (FindStr_WaitTime(NEW_NAME("+QMTCONN:"), 1000, &KeyP) == true) {
+            KeyP += strlen("+QMTCONN:");
+            KeyP = strchr(KeyP, ',');
+        } else {
+            ClearNetDataBuff();
+        }
+    }
+    if (KeyP != NULL) {
+        if ((*(KeyP + 1) - '0') == 0) {
+            printf("mqtt conn: sucess\r\n"); // 连接成功
+            return true;
+        }
+        // 连接服务器失败 获取错误码
+        int8_t res = doneAsciiStrToAnyBaseNumberData(KeyP + 3, 16);
+        if ((*(KeyP + 2) == ',') && (res < 6)) {
+            printf("mqtt conn: fail, %s\r\n", QMTOPEN_CONN_Code[res]);
+        }
+    }
+    return false;
+}
+// 检查是否订阅成功
+bool checkMassageSub(NetDevATCmd NowATCmd) {
+    char * KeyP = NULL;
+    for (int i = 0; i < 2; i++) {
+        if (FindStr_WaitTime(NEW_NAME("+QMTSUB:"), 500, &KeyP) == true) {
+            KeyP += strlen("+QMTSUB:");
+            KeyP = strchr(KeyP, ',');
+            break;
+        }
+        ClearNetDataBuff();
+    }
+    if (KeyP != NULL) {
+        if (*(KeyP + 2) == ',') {
+            KeyP += 2;
+            int8_t res = doneAsciiStrToAnyBaseNumberData((KeyP + 1), 16);
+            if (res == 0) {
+                printf("mqtt sub: sucess\r\n"); // 连接成功
+                return true;
+            }
+            printf("mqtt sub: fail.\r\n");
+        }
+    }
+    return false;
+}
+int strlenOf_r_n(char * FindStr) {
+    char * P_Note = strstr(FindStr, "\r\n");
+    int OutLen = P_Note - FindStr;
+    return OutLen;
+}
+bool getCCIDData(NetDevATCmd NowATCmd) {
+    char * KeyP = NULL;
+    KeyP = myStrstr(Now_NetDevParameter.NetDataBuff, "+CCID:", Now_NetDevParameter.NetDataBuff_NowLen);
+    if (KeyP == NULL) {
+        return false;
+    }
+    KeyP += strlen("+CCID:");
+    while ((*KeyP) == ' ') {
+        KeyP++;
+    }
+    copyString(DataOfEC20_4G.EC20T_CCID, KeyP, ARR_SIZE(DataOfEC20_4G.EC20T_CCID), strlenOf_r_n(KeyP));
+    return true;
+}
+bool getRSSIData(NetDevATCmd NowATCmd) {
+    checkRSSI_By4GModele();
+    return true;
+}
+bool getCSQData(NetDevATCmd NowATCmd) {
+    char * KeyP = NULL;
+    KeyP = myStrstr(Now_NetDevParameter.NetDataBuff, "+CSQ:", Now_NetDevParameter.NetDataBuff_NowLen);
+    if (KeyP == NULL) {
+        return false;
+    }
+    KeyP += strlen("+CSQ:");
+    while ((*KeyP) == ' ') {
+        KeyP++;
+    }
+    copyString(DataOfEC20_4G.EC20T_CSQ, KeyP, ARR_SIZE(DataOfEC20_4G.EC20T_CSQ), strlenOf_r_n(KeyP));
+    return true;
+}
+bool getCCLKData(NetDevATCmd NowATCmd) {
+    checkTime_By4GModele();
+    return true;
+}
+
+// 设置或查询 AT指令 的装载方法
+void DataInstallation_4G(strnew OutStr, struct _NetDevATCmdData This) {
+    // 调用实际装载的函数
+    switch (This.LoadATSendFunName) {
+        case easyATCmdDataSendLoadFun:
+            easyATCmdDataSend(OutStr, This);
+            break;
+        case setATCmdWillexLoadFun:
+            setATCmdWillex(OutStr, This);
+            break;
+        case openMqttServerLoadFun:
+            openMqttServer(OutStr, This);
+            break;
+        case setMassageSubLoadFun:
+            setMassageSub(OutStr, This);
+            break;
+    }
+}
+// 处理指令返回的方法
+bool DoingATCmdResData_4G(struct _NetDevATCmdData This) {
+    bool ResFlag = false;
+    // 调用实际处理回复的函数
+    switch (This.DoingATReceiveFunName) {
+        case ResetTrueDoingFun_4G:
+            ResFlag = true;
+            break;
+        case easyATCmdData_4G_DoingFun:
+            ResFlag = easy4G_ATCmdDataDoing(This);
+            break;
+        case checkOpenMqttServerDoingFun:
+            ResFlag = checkOpenMqttServer(This);
+            break;
+        case checkLinkMqttNetDoingFun:
+            ResFlag = checkLinkMqttNet(This);
+            break;
+        case checkMassageSubDoingFun:
+            ResFlag = checkMassageSub(This);
+            break;
+        case getCCIDDataDoingFun:
+            ResFlag = getCCIDData(This);
+            break;
+        case getRSSIDataDoingFun:
+            ResFlag = getRSSIData(This);
+            break;
+        case getCSQDataDoingFun:
+            ResFlag = getCSQData(This);
+            break;
+        case getCCLKDataDoingFun:
+            ResFlag = getCCLKData(This);
+            break;
+    }
+    return ResFlag;
+}
+// 4G 只能监控模组的自动弹出
+bool checkLinkStat_4G(void) {
+    char * KeyP = NULL;
+    if (FindStr_WaitTime(NEW_NAME("+QMTSTAT:"), 10, &KeyP) == false) {
+        return Now_NetDevParameter.NowNetOnlineFlag;
+    }
+    if ((KeyP = strchr(KeyP, ',')) == NULL) {
+        return false;
+    }
+    int res = doneAsciiStrToAnyBaseNumberData(++KeyP, 16);
+    printf("mqtt status: %s\r\n", QMTSTAT_Code[res]);
+    ClearNetDataBuff();
+    return false;
+}
+// 判断是否联网成功
+bool isMQTTLinkOnleng_4G(void) {
+    newString(OutStr, 128);     // 需要 ping 百度
+    sprintf(OutStr.Name._char, "AT+QPING=1,\"%s\",2,4\r\n", AT24CXX_Manager_NET.remote_url);
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+    sendDataBy4GProt(OutStr.Name._char, OutStr.getStrlen(&OutStr));
+    for (int i = 0; i < 6; i++) {
+        if (FindStr_WaitTime(NEW_NAME("+QPING:"), 1000) == true) {
+            return true;
+        } else {
+            ClearNetDataBuff();
+        }
+    }
+    return false;
+}
+bool EnterATMode_4G(void) {
+    VBAT_29302_CTL_ON;
+    FL_DelayMs(1000);
+
+    V33_PWR_CTL_ON;
+    EC20_WAKEUP_IN_L;
+    EC20_PWR_KEY_L;
+    for (int i = 0; i < 3; i++) {
+        char j = 30;
+        FL_DelayMs(500);
+        EC20_PWR_KEY_H;
+        FL_DelayMs(1000);
+        EC20_PWR_KEY_L;
+        FL_DelayMs(1000);
+        EC20_PWR_KEY_H;
+        do {
+            FL_DelayMs(500);
+            if (EC20_STATUS_VALUE == 0) {
+                j = 0;
+                FL_DelayMs(2);
+                break;
+            } else
+                return true;
+        } while (j--);
+    }
+    return true;
+}
+/////////////////////////////////////
+// 主动获取指令,并返回是否有指令已存入缓存区
+// bool UserGetDownCmd__XXX(void) {}
+#endif

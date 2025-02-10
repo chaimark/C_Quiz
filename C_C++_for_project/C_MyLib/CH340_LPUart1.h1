@@ -1,0 +1,13 @@
+#ifndef CH340_LPUART1_H
+#define CH340_LPUART1_H
+
+#include <stdint.h>
+#include "StrLib.h"
+#include "../C_MyLib/JsonDataAnalyzeLib.h"
+#include "../C_MyLib/JsonDataDoneLib.h"
+#include "../C_MyLib/JsonCheckFun.h"
+
+extern void Send_AT_JSON(strnew Outbuff);
+extern void Weite_AT_JSON(JsonObject CmdJsonObj);
+extern void Modfiy_Parameter_By_CH340(strnew CH340_CMD_Buff);
+#endif

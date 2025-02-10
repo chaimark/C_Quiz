@@ -5,9 +5,9 @@
 void DoubleOrFloatToBuff(strnew OutBuff, double Number, bool IsDouble) {
     if ((IsDouble) && (OutBuff.MaxLen >= sizeof(double))) {
         memcpy(OutBuff.Name._char, &Number, sizeof(double));
-    } else if(OutBuff.MaxLen >= sizeof(false)) {
+    } else if(OutBuff.MaxLen >= sizeof(float)) {
         float tempNum = (float)Number;
-        memcpy(OutBuff.Name._char, &tempNum, sizeof(false));
+        memcpy(OutBuff.Name._char, &tempNum, sizeof(float));
     }
 }
 /*

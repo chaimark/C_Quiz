@@ -11,7 +11,9 @@
         "string.h": "c",
         "stdbool.h": "c",
         "winexcel.h": "c",
-        "numberbaselib.h": "c"
+        "numberbaselib.h": "c",
+        "at24cxxdataloader.h": "c",
+        "wifi_interaction.h": "c"
     },
     "C_Cpp.vcFormat.indent.preserveComments": false
 }

@@ -1,0 +1,272 @@
+#include "NET_ATCmd_FunctionSum.h"
+#include "NetProt_Module.h"
+#include "NumberBaseLib.h"
+#include "AT24CXXDataLoader.h"
+#ifdef _NET_ATCMD_FUNCTIONSUM_H
+
+#define NowNETCtrol_UartNum 2
+// 发送报文
+void sendDataByNetProt(char * SendCmd, int SendCmdLen) {
+    ClearNetDataBuff();
+    Uart0Send((unsigned char *)SendCmd, SendCmdLen);
+}
+// 定义AT指令
+struct _NetDevATCmdData NetDevice_ATData_NET[ATCMD_MAXNUMBER] = {
+    {0,1,"AT+E=ON\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置回显使能
+    {1,2,"AT+UART2=115200,8,1,NONE,NFC\r\n","+OK",false,3,3,1000,false,setBandDataLoadFun,ResetTrueDoingFun_NET, NULL, NULL},	//查询/设置N号串口接口参数
+    {2,3,"AT+UARTCLBUF=ON\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置连接前是否清理串口缓存
+    {3,4,"AT+DNSTYPE=AUTO\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置模块DNS获取方式
+    {4,5,"AT+WANN=STATIC,192.168.1.117,255.255.255.0,192.168.1.1\r\n","+OK",true,3,3,1000,false,setWannDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置模块获取到的WAN口IP（DHCP/STATIC）
+    {5,6,"AT+MAXSK2=1\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置N号串口的最大连接数量
+    {6,7,"AT+MQTTEN=ON\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT网关功能状态
+    {7,8,"AT+MQTTLPORT=0\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTTsocket连接本地端口号
+    {8,9,"AT+MQTTAUTH=ON\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT连接验证开启状态
+    {9,10,"AT+MQTTCID=HY_QL\r\n","+OK",true,3,3,1000,false,setMQTTUserIDDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT客户端ID
+    {10,11,"AT+MQTTUSER=ql\r\n","+OK",true,3,3,1000,false,setUserAndPassWordDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT用户名
+    {11,12,"AT+MQTTPSW=ql\r\n","+OK",true,3,3,1000,false,setUserAndPassWordDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT用户密码
+    {12,13,"AT+MQTTPUBCUSEN=OFF\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT主题发布自定义模式
+    {13,14,"AT+MQTTHEARTTM=60\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT心跳时间
+    {14,15,"AT+MQTTPUB=1,ON,hy/gw/set/02345678903,0,MY_PUB,0,OFF,3\r\n","+OK",true,3,3,1000,false,setMQTTMassagePUBFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT的预置发布主题信息
+    {15,16,"AT+MQTTSUB=1,ON,hy/gw/get/02345678903,0,0,&#44,3\r\n","+OK",true,3,3,1000,false,setMQTTMassageSUBFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT的预置订阅主题信息
+    {16,17,"AT+MQTTSER=59.110.170.225,1883\r\n","+OK",true,3,3,1000,false,setRemoteIPDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//查询/设置MQTT网关功能的服务器IP地址，端口号
+    {17,-1,"AT+Z\r\n","+OK",true,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},	//设备重启
+    {18,-1,"","",false,3,3,1000,false,easyATCmdDataLoadFun,easyATCmdData_Net_DoingFun, NULL, NULL},
+};
+
+//======================================发送时的指令装载函数 ================================================//
+void easyATCmdDataLoad(strnew OutStr, NetDevATCmd NowATCmd) {
+    copyString(OutStr.Name._char, NowATCmd.ATCmd, OutStr.MaxLen, strlen(NowATCmd.ATCmd));
+}
+// 需要替换指令，并执行简单装载的指令
+void flagChangeUartIDCmdDataLoad(strnew OutStr, NetDevATCmd NowATCmd) {
+    char AtCmd[100] = {0};
+    copyString(AtCmd, NowATCmd.ATCmd, 100, strlen(NowATCmd.ATCmd));
+
+    char * pAddr = NULL;
+    if ((pAddr = myStrstr(AtCmd, "SOCKLKA", strlen(AtCmd))) != NULL) {
+        pAddr += strlen("SOCKLKA") + 1;
+    } else if ((pAddr = myStrstr(AtCmd, "MAXSK", strlen(AtCmd))) != NULL) {
+        pAddr += strlen("MAXSK") + 1;
+    } else if ((pAddr = myStrstr(AtCmd, "TCPSE", strlen(AtCmd))) != NULL) {
+        pAddr += strlen("TCPSE") + 1;
+    }
+    (*pAddr) = NowNETCtrol_UartNum + '0'; // 修改为使用串口2
+    copyString(OutStr.Name._char, AtCmd, OutStr.MaxLen, strlen(AtCmd));
+}
+// 波特率设置特殊处理
+void setDevBandCmsDataLoad(strnew OutStr, NetDevATCmd NowATCmd) {
+    // AT+UART2=9600,8,1,NONE,NFC\r\n
+    char BandData[16] = {"2000000"};
+    int ArrayLen = doneBaseNumberDataToAsciiStr(BandData, 16, IncludeUART0_NET_BAND, 16);
+    BandData[(ArrayLen < 16) ? ArrayLen : (ArrayLen--)] = '\0';
+    memset(OutStr.Name._char, 0, OutStr.MaxLen);
+    sprintf(OutStr.Name._char, "AT+UART2=%s,8,1,NONE,NFC\r\n", BandData);
+}
+// 网口设置特殊处理
+void setWannCmdDataLoad(strnew OutStr, NetDevATCmd NowATCmd) {
+    // AT+WANN=STATIC,192.168.0.7,255.255.255.0,192.168.0.1\r\n
+    memset(OutStr.Name._char, 0, OutStr.MaxLen);
+    sprintf(OutStr.Name._char, "AT+WANN=STATIC,%s,%s,%s\r\n", AT24CXX_Manager_NET.NET_Local_IP, AT24CXX_Manager_NET.NET_Local_MASK, AT24CXX_Manager_NET.NET_Local_GATEWAY);
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+}
+// 目标IP特殊处理
+void setRemoteIPCmdDataLoad(strnew OutStr, NetDevATCmd NowATCmd) {
+    // AT+SOCKA2=TCPC,59.110.170.225,1883\r\n
+    memset(OutStr.Name._char, 0, OutStr.MaxLen);
+    if (myStrstr(NowATCmd.ATCmd, "SOCKA", strlen(NowATCmd.ATCmd)) != NULL) {
+        sprintf(OutStr.Name._char, "AT+SOCKA2=TCPC,%s,%d\r\n", AT24CXX_Manager_NET.remote_url, AT24CXX_Manager_NET.remote_port);
+    } else if (myStrstr(NowATCmd.ATCmd, "MQTTSER", strlen(NowATCmd.ATCmd)) != NULL) {
+        sprintf(OutStr.Name._char, "AT+MQTTSER=%s,%d\r\n", AT24CXX_Manager_NET.remote_url, AT24CXX_Manager_NET.remote_port);
+    } else {
+        copyString(OutStr.Name._char, NowATCmd.ATCmd, OutStr.MaxLen, strlen(NowATCmd.ATCmd));
+    }
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+}
+
+// MQTT 用户名与密码特殊处理
+void setUserAndPassWordDataLoad(strnew OutStr, NetDevATCmd NowATCmd) {
+    memset(OutStr.Name._char, 0, OutStr.MaxLen);
+    if (strcmp(NowATCmd.ATCmd, "AT+MQTTUSER=ql\r\n") == 0) {
+        sprintf(OutStr.Name._char, "AT+MQTTUSER=%s\r\n", AT24CXX_Manager_NET.username);
+    } else if (strcmp(NowATCmd.ATCmd, "AT+MQTTPSW=ql\r\n") == 0) {
+        sprintf(OutStr.Name._char, "AT+MQTTPSW=%s\r\n", AT24CXX_Manager_NET.password);
+    } else {
+        copyString(OutStr.Name._char, NowATCmd.ATCmd, OutStr.MaxLen, strlen(NowATCmd.ATCmd));
+    }
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+}
+// MQTT 主题发布处理
+void setMQTTMassagePUBCmdDataLoad(strnew OutStr, NetDevATCmd NowATCmd) {
+    static uint8_t My_PUSName_I = 0;
+    // AT+MQTTPUB=1,ON,hy/gw/get/02345678903,0,1,1,OFF,2
+    memset(OutStr.Name._char, 0, OutStr.MaxLen);
+    char IDTemp[13] = {0};
+    BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+    sprintf(OutStr.Name._char, "AT+MQTTPUB=1,ON,hy/gw/set/%s,0,%d,0,OFF,3\r\n", &IDTemp[1], My_PUSName_I++);
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+}
+// MQTT 主题订阅处理
+void setMQTTMassageSUBCmdDataLoad(strnew OutStr, NetDevATCmd NowATCmd) {
+    // AT+MQTTSUB=1,ON,/hy/gw/#,0,1,&#44,2
+    memset(OutStr.Name._char, 0, OutStr.MaxLen);
+    char IDTemp[13] = {0};
+    BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+    sprintf(OutStr.Name._char, "AT+MQTTSUB=1,ON,hy/gw/get/%s,0,0,&#44,3\r\n", &IDTemp[1]);
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+}
+// MQTT 客户端ID特殊处理
+void setMQTTUserIDDataLoad(strnew OutStr, NetDevATCmd NowATCmd) {
+    #warning("MQTT 客户端ID特殊处理,待完善");
+    memset(OutStr.Name._char, 0, OutStr.MaxLen);
+    if (myStrstr(NowATCmd.ATCmd, "MQTTCID", strlen(NowATCmd.ATCmd)) != NULL) {
+        char MQTTID[50] = {0};
+        catString(MQTTID, "_", 100, 1);
+        catString(MQTTID, WT_DATA.productkey, 100, strlen(WT_DATA.productkey));
+        catString(MQTTID, "_", 100, 1);
+        char IDTemp[13] = {0};
+        BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+        catString(MQTTID, &IDTemp[1], 100, 11);
+
+        sprintf(OutStr.Name._char, "AT+MQTTCID=%s\r\n", MQTTID);
+    } else {
+        copyString(OutStr.Name._char, NowATCmd.ATCmd, OutStr.MaxLen, strlen(NowATCmd.ATCmd));
+    }
+    int ArrayLen = OutStr.getStrlen(&OutStr);
+    OutStr.Name._char[(ArrayLen < OutStr.MaxLen) ? ArrayLen : (OutStr.MaxLen - 1)] = '\0';
+}
+
+//========================接受模组反馈的信息，判断是否发送成功，或执行其他操作===================================//
+bool easyNet_ATCmdDataDoing(NetDevATCmd NowATCmd) {
+    if (myStrstr(Now_NetDevParameter.NetDataBuff, NowATCmd.SucessStr, Now_NetDevParameter.NetDataBuff_NowLen) != NULL)
+        return true;
+    else
+        return false;
+}
+// 重启指令特殊处理
+bool ReBootDevATCmdDoing(NetDevATCmd NowATCmd) {
+    bool ReFalg = easyNet_ATCmdDataDoing(NowATCmd);
+    IncludeDelayMs(1000); // 延时等待重启结束
+    return ReFalg;
+}
+
+// 设置或查询 AT指令 的装载方法
+void DataInstallation_NET(strnew OutStr, struct _NetDevATCmdData This) {
+    // 调用实际装载的函数
+    switch (This.LoadATSendFunName) {
+        case flagChangeUartIDFun:
+            flagChangeUartIDCmdDataLoad(OutStr, This);
+            break;
+        case easyATCmdDataLoadFun:
+            easyATCmdDataLoad(OutStr, This);
+            break;
+        case setBandDataLoadFun:
+            setDevBandCmsDataLoad(OutStr, This);
+            break;
+        case setWannDataLoadFun:
+            setWannCmdDataLoad(OutStr, This);
+            break;
+        case setRemoteIPDataLoadFun:
+            setRemoteIPCmdDataLoad(OutStr, This);
+            break;
+        case setUserAndPassWordDataLoadFun:
+            setUserAndPassWordDataLoad(OutStr, This);
+            break;
+        case setMQTTMassagePUBFun:
+            setMQTTMassagePUBCmdDataLoad(OutStr, This);
+            break;
+        case setMQTTMassageSUBFun:
+            setMQTTMassageSUBCmdDataLoad(OutStr, This);
+            break;
+        case setMQTTUserIDDataLoadFun:
+            setMQTTUserIDDataLoad(OutStr, This);
+            break;
+    }
+}
+// 处理指令返回的方法
+bool DoingATCmdResData_NET(struct _NetDevATCmdData This) {
+    bool ResFlag = false;
+    // 调用实际处理回复的函数
+    switch (This.DoingATReceiveFunName) {
+        case ResetTrueDoingFun_NET:
+            ResFlag = true;
+            break;
+        case easyATCmdData_Net_DoingFun:
+            ResFlag = easyNet_ATCmdDataDoing(This);
+            break;
+        case ReBootDevFun:
+            ResFlag = ReBootDevATCmdDoing(This);
+            break;
+    }
+    return ResFlag;
+}
+
+bool isMQTTLinkOnleng_NET(void) {
+    bool ATConfig_Flag = false;
+    char cmdStr[2][2][40] = {{"AT+PING=", "\r\n+OK=SUCCESS"}, {"AT+ENTM\r\n", "\r\n+OK"}};
+    sprintf(cmdStr[0][0], "AT+PING=%s\r\n", AT24CXX_Manager_NET.remote_url);
+    sendDataByNetProt(cmdStr[0][0], strlen(cmdStr[0][0]));
+    for (int i = 0; i < 2; i++) {
+        if (checkUart(10000)) {
+            if (strstr(Now_NetDevParameter.NetDataBuff, cmdStr[0][1]) != NULL) {
+                ATConfig_Flag = true;
+                break;
+            }
+        }
+        ClearNetDataBuff();
+    }
+    for (int i = 0; i < 3; i++) {
+        sendDataByNetProt(cmdStr[1][0], strlen(cmdStr[1][0]));
+        if (FindStr_WaitTime(NEW_NAME(cmdStr[1][1]), 1000) == true) {
+            break;
+        }
+    }
+    return ATConfig_Flag;
+}
+bool EnterATMode_NET(void) {
+    bool ATConfig_Flag;
+    // 先复位模组 ==========
+    REBOOT_DEV_OFF;
+    IncludeDelayMs(500); // 拉低 500 ms
+    REBOOT_DEV_ON;
+    IncludeDelayMs(2000); // 延时等待重启结束
+    // 进入AT模式 ==========
+    // {"AT+ENTM\r\n", "\r\n+OK"}
+    char cmdStr[2][2][20] = {{"+++", "a"}, {"a", "+ok"}};
+    for (int i = 0; i < 2; i++) {
+        sendDataByNetProt(cmdStr[i][0], strlen(cmdStr[i][0]));
+        if (checkUart(0)) {
+            if (myStrstr(Now_NetDevParameter.NetDataBuff, cmdStr[i][1], Now_NetDevParameter.NetDataBuff_NowLen) != NULL) {
+                ATConfig_Flag = true;
+                continue;
+            } else {
+                ATConfig_Flag = false; // 无法进入AT模式，直接退出，等待下一次重启
+                break;
+            }
+        } else {
+            if (i == 0) {
+                sendDataByNetProt("\r\n", strlen("\r\n"));
+                sendDataByNetProt("AT+ENTM\r\n", strlen("AT+ENTM\r\n"));
+                ATConfig_Flag = false; // 无法进入AT模式，直接退出，等待下一次重启
+            }
+            break;
+        }
+    }
+    if (ATConfig_Flag) {
+        sendDataByNetProt("AT+VER\r\n", strlen("AT+VER\r\n"));
+        ATConfig_Flag = FindStr_WaitTime(NEW_NAME("OK"), 1000);
+        printf("Successfully entered the AT mode\r\n");
+    } else {
+        printf("Fail to enter the AT mode\r\n");
+    }
+    return ATConfig_Flag;
+}
+/////////////////////////////////////
+// 主动获取指令,并返回是否有指令已存入缓存区
+// bool UserGetDownCmd__XXX(void) {}
+#endif

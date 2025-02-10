@@ -1,0 +1,451 @@
+/**************************************************************************
+ * @file
+ * @brief LEUART Demo Application
+ * @author Energy Micro AS
+ * @version 1.02
+ ******************************************************************************
+ * @section License
+ * <b>(C) Copyright 2010 Energy Micro AS, http://www.energymicro.com</b>
+ ******************************************************************************
+ *
+ * This source code is the property of Energy Micro AS. The source and compiled
+ * code may only be used on Energy Micro "EFM32" microcontrollers.
+ *
+ * This copyright notice may not be removed from the source code nor changed.
+ *
+ * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Energy Micro AS has no
+ * obligation to support this Software. Energy Micro AS is providing the
+ * Software "AS IS", with no express or implied warranties of any kind,
+ * including, but not limited to, any implied warranties of merchantability
+ * or fitness for any particular purpose or warranties against infringement
+ * of any proprietary rights of a third party.
+ *
+ * Energy Micro AS will not be liable for any consequential, incidental, or
+ * special damages, or any other relief, or for any claim by any third party,
+ * arising from your use of this Software.
+ *
+ *****************************************************************************/
+#include "NetProt_Module.h"
+#include "CH340_LPUart1.h"
+#include "NumberBaseLib.h"
+#include "LPUart.h"
+#include "Define.h"
+#include "RTC.h"
+#include "AT24CXXDataLoader.h"
+#include "../C_MyLib/WIFI_Interaction.h"
+
+unsigned char CH340_LPUART1_RXDATA_Count_Above30 = 0; // 在配置的时候不显示
+unsigned int LEUART0_Count485;
+unsigned char LEUART0_Buffer;
+uint32_t LEUSART0_IF_Flage;
+
+// USB 透传 MUBS ： USB临时串口MBUS
+void USB_To_Path_MUBS(void) {
+    // current_MBUS_OFF_2S_Count=5;
+    VBAT_29302_CTL_OFF;
+    V33_PWR_CTL_OFF;
+    MBUS_OUT_OFF;
+    Select_OFF_EC20_To_UART0;
+    Select_OFF_NET_To_UART0;
+
+    Select_OFF_MBUS_To_UART1;
+    Select_OFF_RS4851_To_UART4;
+    Select_OFF_RS4852_To_LPUART0;
+    Select_OFF_WIR_To_UART1;
+
+    Select_OFF_CH340_To_LPUART1;
+    Select_OFF_CH340_To_MBUS;
+    Select_OFF_CH340_To_RS4851;
+    Select_OFF_CH340_To_RS4852;
+
+    Heart_LED_L;
+    EC20_LED_L;
+    NET_LED_L;
+    CH340_To_LED_L;
+    WIR_LED_L;
+    RS485_LED_L;
+    ERR_LED_L;
+
+    Select_ON_CH340_To_MBUS;
+    MBUS_OUT_ON;
+    UP_Mode_EC20_ON = 0;
+    UP_Mode_NET_ON = 0;
+    UP_Mode_MBUSTOUSB_ON = 0;
+    UP_Mode_WIR_ON = 0;
+    DOWN_Mode_MBUS_ON = 1;
+    DOWN_Mode_RS485_ON = 0;
+    DOWN_Mode_WIR_ON = 0;
+    DEFINE_Mode_SETUSB_ON = 0;
+
+    CH340_To_LED_H;
+}
+// USB 透传 RS4851 ：USB临时串口RS4851
+void USB_To_Path_RS4851(void) {
+    // current_MBUS_OFF_2S_Count=5;
+    VBAT_29302_CTL_OFF;
+    V33_PWR_CTL_OFF;
+    MBUS_OUT_OFF;
+    Select_OFF_EC20_To_UART0;
+    Select_OFF_NET_To_UART0;
+
+    Select_OFF_MBUS_To_UART1;
+    Select_OFF_RS4851_To_UART4;
+    Select_OFF_RS4852_To_LPUART0;
+    Select_OFF_WIR_To_UART1;
+
+    Select_OFF_CH340_To_LPUART1;
+    Select_OFF_CH340_To_MBUS;
+    Select_OFF_CH340_To_RS4851;
+    Select_OFF_CH340_To_RS4852;
+
+    Heart_LED_L;
+    EC20_LED_L;
+    NET_LED_L;
+    CH340_To_LED_L;
+    WIR_LED_L;
+    RS485_LED_L;
+    ERR_LED_L;
+
+    Select_ON_CH340_To_RS4851;
+    UP_Mode_EC20_ON = 0;
+    UP_Mode_NET_ON = 0;
+    UP_Mode_MBUSTOUSB_ON = 0;
+    UP_Mode_WIR_ON = 0;
+    DOWN_Mode_MBUS_ON = 0;
+    DOWN_Mode_RS485_ON = 1;
+    DOWN_Mode_WIR_ON = 0;
+    DEFINE_Mode_SETUSB_ON = 0;
+    CH340_To_LED_H;
+    RS485_LED_H;
+}
+// USB 透传 RS4852 ： USB临时串口RS4852
+void USB_To_Path_RS4852(void) {
+    // current_MBUS_OFF_2S_Count=5;
+    VBAT_29302_CTL_OFF;
+    V33_PWR_CTL_OFF;
+    MBUS_OUT_OFF;
+    Select_OFF_EC20_To_UART0;
+    Select_OFF_NET_To_UART0;
+
+    Select_OFF_MBUS_To_UART1;
+    Select_OFF_RS4851_To_UART4;
+    Select_OFF_RS4852_To_LPUART0;
+    Select_OFF_WIR_To_UART1;
+
+    Select_OFF_CH340_To_LPUART1;
+    Select_OFF_CH340_To_MBUS;
+    Select_OFF_CH340_To_RS4851;
+    Select_OFF_CH340_To_RS4852;
+
+    Heart_LED_L;
+    EC20_LED_L;
+    NET_LED_L;
+    CH340_To_LED_L;
+    WIR_LED_L;
+    RS485_LED_L;
+    ERR_LED_L;
+
+    Select_ON_CH340_To_RS4852;
+    UP_Mode_EC20_ON = 0;
+    UP_Mode_NET_ON = 0;
+    UP_Mode_MBUSTOUSB_ON = 0;
+    UP_Mode_WIR_ON = 0;
+    DOWN_Mode_MBUS_ON = 0;
+    DOWN_Mode_RS485_ON = 1;
+    DOWN_Mode_WIR_ON = 0;
+    DEFINE_Mode_SETUSB_ON = 0;
+    CH340_To_LED_H;
+    RS485_LED_H;
+}
+void Send_AT_JSON(strnew Outbuff) {
+    char IDTemp[13] = {0};
+    BCD_To_String(NEW_NAME(IDTemp), NEW_NAME(AT24CXX_Manager_NET.gw_id));
+    struct _CtrlMainMeter_Manager {
+        JsonItem gw_id;     // 网关ID
+        JsonItem username;  // 登录
+        JsonItem password;
+        JsonItem heating_start;
+        JsonItem heating_end;
+        JsonItem NET_Local_IP;
+        JsonItem NET_Local_MASK;
+        JsonItem NET_Local_GATEWAY;
+        JsonItem remote_url;
+        JsonItem remote_port;
+        JsonItem main_interval;
+        JsonItem copy_interval;
+        JsonItem copy_statistics;
+        JsonItem not_intimer_interval;
+        JsonItem GW_model;
+        JsonItem NetCheckENableFlag;
+        JsonItem IsColorDislay;
+        JsonItem DaysNumberOfCCLK;
+        JsonItem main_meter_total;
+        JsonItem copy_meter_total;
+        JsonItem Time_Data;
+    } AT24DataJSON;
+    newJsonList StenJsonData = NEW_JSON_LIST(&StenJsonData);
+    /************************************************/
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.gw_id, "gw_id:%s;%d", &IDTemp[1], 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.username, "username:%s;%d", AT24CXX_Manager_NET.username, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.password, "password:%s;%d", AT24CXX_Manager_NET.password, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.heating_start, "heating_start:%s;%d", AT24CXX_Manager_NET.heating_start, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.heating_end, "heating_end:%s;%d", AT24CXX_Manager_NET.heating_end, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.NET_Local_IP, "NET_Local_IP:%s;%d", AT24CXX_Manager_NET.NET_Local_IP, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.NET_Local_MASK, "NET_Local_MASK:%s;%d", AT24CXX_Manager_NET.NET_Local_MASK, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.NET_Local_GATEWAY, "NET_Local_GATEWAY:%s;%d", AT24CXX_Manager_NET.NET_Local_GATEWAY, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.remote_url, "remote_url:%s;%d", AT24CXX_Manager_NET.remote_url, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.remote_port, "remote_port:%d;%d", AT24CXX_Manager_NET.remote_port, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.main_interval, "main_interval:%d;%d", AT24CXX_Manager_NET.main_interval, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.copy_interval, "copy_interval:%d;%d", AT24CXX_Manager_NET.copy_interval);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.copy_statistics, "_copy_statistics:%d;%d", AT24CXX_Manager_NET.copy_statistics, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.not_intimer_interval, "not_intimer_interval:%d;%d", AT24CXX_Manager_NET.not_intimer_interval, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.GW_model, "GW_model:%d;%d", AT24CXX_Manager_NET.GW_model, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.NetCheckENableFlag, "NetCheckENableFlag:%d;%d", AT24CXX_Manager_NET.NetCheckENableFlag, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.IsColorDislay, "IsColorDislay:%d;%d", AT24CXX_Manager_NET.IsColorDislay, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.DaysNumberOfCCLK, "DaysNumberOfCCLK:%d;%d", AT24CXX_Manager_NET.DaysNumberOfCCLK, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.main_meter_total, "main_meter_total:%d;%d", AT24CXX_Manager_NET.main_meter_total, 0);
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.copy_meter_total, "copy_meter_total:%d;%d", AT24CXX_Manager_NET.copy_meter_total, 0);
+    char NowTime[20] = {0};
+    getStrNowDataAndTimeByRTC(NowTime);
+    strcpy(AT24DataJSON.Time_Data.var._char, NowTime);
+
+    StenJsonData.setJsonItemData(&StenJsonData, &AT24DataJSON.Time_Data, "Time_Data:%s;%d", NowTime, 0);
+    /************************************************/
+    AddCsToJsonAndPushJsonStr(&StenJsonData, Outbuff);
+    StenJsonData.OutPushJsonString(Outbuff, &StenJsonData);
+}
+void Weite_AT_JSON(JsonObject CmdJsonObj) {
+    char NameStr[][40] = {
+        "gw_id",
+        "username",
+        "password",
+        "heating_start",
+        "heating_end",
+        "NET_Local_IP",
+        "NET_Local_MASK",
+        "NET_Local_GATEWAY",
+        "remote_url",
+        "remote_port",
+        "main_interval",
+        "copy_interval",
+        "copy_statistics",
+        "not_intimer_interval",
+        "GW_model",
+        "NetCheckENableFlag",
+        "IsColorDislay",
+        "DaysNumberOfCCLK",
+        "main_meter_total",
+        "copy_meter_total",
+        "Time_Data",
+    };
+    newString(CmdStr, 100);
+    for (int i = 0; i < sizeof(NameStr) / sizeof(NameStr[0]); i++) {
+        if (CmdJsonObj.isJsonNull(&CmdJsonObj, NameStr[i]) < 0) {
+            continue;
+        }
+        switch (i) {
+            case 0:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], CmdStr);
+                WGID_String_To_BCD(NEW_NAME(AT24CXX_Manager_NET.gw_id), CmdStr);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.gw_id, 6);
+                break;
+            case 1:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], NEW_NAME(AT24CXX_Manager_NET.username));
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.username, sizeof(AT24CXX_Manager_NET.username));
+                break;
+            case 2:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], NEW_NAME(AT24CXX_Manager_NET.password));
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.password, sizeof(AT24CXX_Manager_NET.password));
+                break;
+            case 3:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], NEW_NAME(AT24CXX_Manager_NET.heating_start));
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.heating_start, 10);
+                break;
+            case 4:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], NEW_NAME(AT24CXX_Manager_NET.heating_end));
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.heating_end, 10);
+                break;
+            case 5:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], NEW_NAME(AT24CXX_Manager_NET.NET_Local_IP));
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.NET_Local_IP, sizeof(AT24CXX_Manager_NET.NET_Local_IP));
+                break;
+            case 6:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], NEW_NAME(AT24CXX_Manager_NET.NET_Local_MASK));
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.NET_Local_MASK, sizeof(AT24CXX_Manager_NET.NET_Local_MASK));
+                break;
+            case 7:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], NEW_NAME(AT24CXX_Manager_NET.NET_Local_GATEWAY));
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.NET_Local_GATEWAY, sizeof(AT24CXX_Manager_NET.NET_Local_GATEWAY));
+                break;
+            case 8:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], NEW_NAME(AT24CXX_Manager_NET.remote_url));
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.remote_url, sizeof(AT24CXX_Manager_NET.remote_url));
+                break;
+            case 9:
+                AT24CXX_Manager_NET.remote_port = CmdJsonObj.getInt(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.remote_port, sizeof(AT24CXX_Manager_NET.remote_port));
+                break;
+            case 10:
+                AT24CXX_Manager_NET.main_interval = CmdJsonObj.getInt(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.main_interval, sizeof(AT24CXX_Manager_NET.main_interval));
+                break;
+            case 11:
+                AT24CXX_Manager_NET.copy_interval = CmdJsonObj.getInt(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.copy_interval, sizeof(AT24CXX_Manager_NET.copy_interval));
+                break;
+            case 12:
+                AT24CXX_Manager_NET.copy_statistics = CmdJsonObj.getInt(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.copy_statistics, sizeof(AT24CXX_Manager_NET.copy_statistics));
+                break;
+            case 13:
+                AT24CXX_Manager_NET.not_intimer_interval = CmdJsonObj.getInt(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.not_intimer_interval, sizeof(AT24CXX_Manager_NET.not_intimer_interval));
+                break;
+            case 14:
+                AT24CXX_Manager_NET.GW_model = CmdJsonObj.getInt(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.GW_model, sizeof(AT24CXX_Manager_NET.GW_model));
+                break;
+            case 15:
+                AT24CXX_Manager_NET.NetCheckENableFlag = CmdJsonObj.getBool(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.NetCheckENableFlag, sizeof(AT24CXX_Manager_NET.NetCheckENableFlag));
+                break;
+            case 16:
+                AT24CXX_Manager_NET.IsColorDislay = CmdJsonObj.getBool(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.IsColorDislay, sizeof(AT24CXX_Manager_NET.IsColorDislay));
+                break;
+            case 17:
+                AT24CXX_Manager_NET.DaysNumberOfCCLK = CmdJsonObj.getBool(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.DaysNumberOfCCLK, sizeof(AT24CXX_Manager_NET.DaysNumberOfCCLK));
+                break;
+            case 18:
+                AT24CXX_Manager_NET.main_meter_total = CmdJsonObj.getBool(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.main_meter_total, sizeof(AT24CXX_Manager_NET.main_meter_total));
+                break;
+            case 19:
+                AT24CXX_Manager_NET.copy_meter_total = CmdJsonObj.getBool(&CmdJsonObj, NameStr[i]);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.copy_meter_total, sizeof(AT24CXX_Manager_NET.copy_meter_total));
+                break;
+            case 20:
+                CmdJsonObj.getString(&CmdJsonObj, NameStr[i], CmdStr);
+                setRtcDate(CmdStr, true);
+                EEprom_AT24C0XXData_Write(&AT24CXX_Manager_NET.Time_Data, sizeof(AT24CXX_Manager_NET.Time_Data));
+                break;
+        }
+    }
+}
+void SetSystem_JSON(JsonObject CmdJsonObj, strnew Outbuff) {
+    struct _SystemJson {
+        JsonItem SOFT_VERSION;  // 软件版本
+        JsonItem PathSwitch;    // 片选结果
+        JsonItem MUBS_B;        // 临时串口波特率
+        JsonItem RS4851_B;      // RS4851波特率
+        JsonItem RS4852_B;      // RS4852波特率
+        JsonItem ReadMA;        // 电流
+        JsonItem ReadMV;        // 电压
+    }SystemJson;
+    newJsonList StenJsonDataList = NEW_JSON_LIST(&StenJsonDataList);
+    newString(CmdStr, 15);
+    CmdJsonObj.getString(&CmdJsonObj, "SetCmd", CmdStr);
+    if (strcmp(CmdStr.Name._char, "ReadBoard") == 0) {
+        StenJsonDataList.setJsonItemData(&StenJsonDataList, &SystemJson.SOFT_VERSION, "Version:%d;%d", SOFT_VERSION, 0);
+    }
+    // USB 临时串口
+    CmdJsonObj.getString(&CmdJsonObj, "PathSwitch", CmdStr);
+    if (strcmp(CmdStr.Name._char, "MUBS") == 0) {
+        StenJsonDataList.setJsonItemData(&StenJsonDataList, &SystemJson.PathSwitch, "PathSwitch:%s;%d", "MUBS", 0);
+        SetLPTime.LPInitSetTimeTask(PathSwitch, SecTo250Ms(3), USB_To_Path_MUBS);
+    }
+    if (strcmp(CmdStr.Name._char, "RS4851") == 0) {
+        StenJsonDataList.setJsonItemData(&StenJsonDataList, &SystemJson.PathSwitch, "PathSwitch:%s;%d", "RS4851", 0);
+        SetLPTime.LPInitSetTimeTask(PathSwitch, SecTo250Ms(3), USB_To_Path_RS4851);
+    }
+    if (strcmp(CmdStr.Name._char, "RS4852") == 0) {
+        StenJsonDataList.setJsonItemData(&StenJsonDataList, &SystemJson.PathSwitch, "PathSwitch:%s;%d", "RS4852", 0);
+        SetLPTime.LPInitSetTimeTask(PathSwitch, SecTo250Ms(3), USB_To_Path_RS4852);
+    }
+    newString(BandStr, 15);
+    // 读取或设置固定波特率
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "MUBS_B") >= 0) {
+        CmdJsonObj.getString(&CmdJsonObj, "MUBS_B", CmdStr);
+        if (strcmp(CmdStr.Name._char, "Read") == 0) {
+            sprintf(BandStr.Name._char, "%d,%c,8,1;", MBUS_UART1_BaudRate, getBandModeParity(MBUS_UART1_Parity));
+            StenJsonDataList.setJsonItemData(&StenJsonDataList, &SystemJson.MUBS_B, "MUBS_B:%s;%d", "9600.n.8.1", 0);
+        } else {
+            Set_MBUS_Buad_Local_From_Buffer_To_AT256(MBUS_UART1_BaudRate, MBUS_UART1_Parity);
+        }
+    }
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "RS4851_B") >= 0) {
+        CmdJsonObj.getString(&CmdJsonObj, "RS4851_B", CmdStr);
+        if (strcmp(CmdStr.Name._char, "Read") == 0) {
+            sprintf(BandStr.Name._char, "%d,%c,8,1;", RS4851_UART4_BaudRate, getBandModeParity(RS4851_UART4_Parity));
+            StenJsonDataList.setJsonItemData(&StenJsonDataList, &SystemJson.MUBS_B, "MUBS_B:%s;%d", "9600.n.8.1", 0);
+        } else {
+            Set_RS4851_Buad_Local_From_Buffer_To_AT256(RS4851_UART4_BaudRate, RS4851_UART4_Parity);
+        }
+    }
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "RS4852_B") >= 0) {
+        CmdJsonObj.getString(&CmdJsonObj, "RS4852_B", CmdStr);
+        if (strcmp(CmdStr.Name._char, "Read") == 0) {
+            sprintf(BandStr.Name._char, "%d,%c,8,1;", RS4852_LPUART0_BaudRate, getBandModeParity(RS4852_LPUART0_Parity));
+            StenJsonDataList.setJsonItemData(&StenJsonDataList, &SystemJson.MUBS_B, "MUBS_B:%s;%d", "9600.n.8.1", 0);
+        } else {
+            Set_RS4852_Buad_Local_From_Buffer_To_AT256(RS4852_LPUART0_BaudRate, RS4852_LPUART0_Parity);
+        }
+    }
+    // 读取 MBUS 电流 ReadMA
+    if ((CmdJsonObj.isJsonNull(&CmdJsonObj, "ReadMA_MV") >= 0) && (CmdJsonObj.getBool(&CmdJsonObj, "ReadMA_MV"))) {
+        StenJsonDataList.setJsonItemData(&StenJsonDataList, &SystemJson.ReadMA, "ReadMA:%d;%d", Current_MBUS_MA_Value, 0);
+        StenJsonDataList.setJsonItemData(&StenJsonDataList, &SystemJson.ReadMV, "ReadMV:%d;%d", Current_MBUS_MV_Value, 0);
+    }
+    // 重启
+    if (CmdJsonObj.getBool(&CmdJsonObj, "Reboot")) {
+        Reboot.EC20_ReBoot_In_RTC_By_1Second(&Reboot, 3); // 重启
+    }
+    /************************************************/
+    AddCsToJsonAndPushJsonStr(&StenJsonDataList, Outbuff);
+    StenJsonDataList.OutPushJsonString(Outbuff, &StenJsonDataList);
+}
+// "{"SetCmd":"ReadBoard","PathSwitch":"MUBS",
+// "MUBS_B":"Read",
+// "RS4851_B":"9600",
+// "RS4852_B":"9600",
+// "ReadMA_MV":true,"Reboot":true}"
+
+// "{"Read":"AT24DataJSON"}"
+// "{"Write":"AT24DataJSON","XXX":XXX}"
+void Modfiy_Parameter_By_CH340(strnew CH340_CMD_Buff) {
+    memset((char *)&LPUART1Ddata.TxBuf, 0x00, LONG_UARTMAX);
+    LPUART1Ddata.TxLen = 0;
+    strnew SendTxStr = NEW_NAME(LPUART1Ddata.TxBuf);
+    if (DEFINE_Mode_SETUSB_ON != 1) {
+        return;
+    }
+    JsonObject CmdJsonObj = newJsonObjectByString(CH340_CMD_Buff);
+    // 通用功能，读 AT_json
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "Read") >= 0) {
+        newString(CmdStr, 15);
+        CmdJsonObj.getString(&CmdJsonObj, "Read", CmdStr);
+        if (strcmp(CmdStr.Name._char, "AT24DataJSON") == 0) {
+            Send_AT_JSON(SendTxStr);
+        } else {
+            // 其他定制指令
+        }
+    }
+    // 通用功能，设 AT_json
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "Write") >= 0) {
+        SendTxStr.Name._char = "OK";
+        newString(CmdStr, 15);
+        CmdJsonObj.getString(&CmdJsonObj, "Write", CmdStr);
+        if (strcmp(CmdStr.Name._char, "AT24DataJSON") == 0) {
+            Weite_AT_JSON(CmdJsonObj);
+        } else {
+            // 其他定制指令
+        }
+    }
+    if (CmdJsonObj.isJsonNull(&CmdJsonObj, "SetCmd") >= 0) {
+        SetSystem_JSON(CmdJsonObj, SendTxStr);
+    }
+    LPUart1Send((unsigned char *)SendTxStr.Name._char, SendTxStr.getStrlen(&SendTxStr));
+    return;
+}
+

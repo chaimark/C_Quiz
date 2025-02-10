@@ -6,7 +6,6 @@ struct AT24CXX_MANAGER_S * _AT24CXX_Manager_NET = NULL;
 AT24CXX_MANAGER_T AT24CXX_Manager_NET;
 #endif
 void AT24CXXLoader_Init(void) {
-    AT24CXX_Manager.SendManageObj.SendIntervalDay = MinToSec(HourToMin(6));
     _AT24CXX_Manager_NET = &AT24CXX_Manager;
     AT24CXX_Manager_NET.Time_Data.year = 0x2019;
     AT24CXX_Manager_NET.Time_Data.month = 0x01;

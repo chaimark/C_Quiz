@@ -20,11 +20,11 @@ void SendDebug(char InputBuf[], unsigned int Len) {
     NowLen = Len;
 }
 
-#define My_UART_Init            MF_LPUART0_Init
-#define My_UART_Interrupt_Init  MF_LPUART0_Interrupt_Init
-#define My_UART_Close           CloseLPUart0TTL
+#define My_UART_Init            __NOP
+#define My_UART_Interrupt_Init  __NOP
+#define My_UART_Close           __NOP
 
-#define isSendNull
+// #define isSendNull
 #ifdef isSendNull
 #define My_UART_isSend          isSend_LPUART0()
 #else

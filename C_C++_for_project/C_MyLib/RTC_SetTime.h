@@ -3,7 +3,7 @@
 #include "StrLib.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include "PublicLib_No_One.h"
+// #include "PublicLib_No_One.h"
 // 将小时转换为分钟
 #define HourToMin(x) (x*60)
 // 将分钟转换为秒
@@ -12,36 +12,40 @@
 #ifdef OPEN_AT_CMD_DEBUG
 typedef enum _RTCTaskName {
     ATDebug,
-    SendIntervalTask,
-    SendTimeOverTask,
-    DayOverCclkTask,
-    EEpromWriteTime,
-    EEpromWrite_Module_,
-    BatVoltge,          // 用于判断什么时候检测电池电压
-    InsideT,            // 用于判断什么时候检测内部温度
-    Read_EEprom,        // 用于判断什么时候读取 eeprom
-    Drive_Moved,        // 用于判断什么时候检测电机是否移动
     CheckNet,
+    Read_EEprom,
+    HourTaskOfColorShow,
+    MinTaskOfColorShow,
+    WriteTimeOfLocal,
+    AdjustSubDevTime,
+    MBUSUARTReboot,
+    ReadMainMeter,
+    ReadCopyMeter,
+    CloseLEDFlag,
+    TestVoltgeAndMA,
     PauseTimeOfLinkErr,
-    AgainSendData,
+    DayOverCclkTask,
+    GetRSSIBy4G,
 }RTCTaskName;
-#define RTCTimeTaskMAX 13
+#define RTCTimeTaskMAX 15
 #else
 typedef enum _RTCTaskName {
-    SendIntervalTask,
-    SendTimeOverTask,
-    DayOverCclkTask,
-    EEpromWriteTime,
-    EEpromWrite_Module_,
-    BatVoltge,          // 用于判断什么时候检测电池电压
-    InsideT,            // 用于判断什么时候检测内部温度
-    Read_EEprom,        // 用于判断什么时候读取 eeprom
-    Drive_Moved,        // 用于判断什么时候检测电机是否移动
     CheckNet,
+    Read_EEprom,
+    HourTaskOfColorShow,
+    MinTaskOfColorShow,
+    WriteTimeOfLocal,
+    AdjustSubDevTime,
+    MBUSUARTReboot,
+    ReadMainMeter,
+    ReadCopyMeter,
+    CloseLEDFlag,
+    TestVoltgeAndMA,
     PauseTimeOfLinkErr,
-    AgainSendData,
+    DayOverCclkTask,
+    GetRSSIBy4G,
 }RTCTaskName;
-#define RTCTimeTaskMAX 12
+#define RTCTimeTaskMAX 14
 #endif
 typedef struct _USER_SET_TASK {
     struct {

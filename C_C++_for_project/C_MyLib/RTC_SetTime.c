@@ -1,7 +1,7 @@
 #include "RTC_SetTime.h"
 
-static void _RTCCloseTask(int TaskAddr);
-static void _InitRTCTask(int TaskAddr, uint64_t SetMaxSecNum, void (*TaskFunc)(void));
+void _RTCCloseTask(int TaskAddr);
+void _InitRTCTask(int TaskAddr, uint64_t SetMaxSecNum, void (*TaskFunc)(void));
 
 USER_SET_TASK RTC_TASK = {
     .Task = {0},
@@ -10,7 +10,7 @@ USER_SET_TASK RTC_TASK = {
     .NumberOfTimeTask = RTCTimeTaskMAX, // 定时任务数量
 };
 
-static void _RTCCloseTask(int TaskAddr) {
+void _RTCCloseTask(int TaskAddr) {
     if ((TaskAddr < 0) || (TaskAddr >= RTCTimeTaskMAX)) {
         return;
     }
@@ -19,7 +19,7 @@ static void _RTCCloseTask(int TaskAddr) {
     RTC_TASK.Task[TaskAddr].CountNumOnceSec = 0; // 复位初始
     RTC_TASK.Task[TaskAddr].TaskFunc = NULL;
 }
-static void _InitRTCTask(int TaskAddr, uint64_t SetMaxSecNum, void (*TaskFunc)(void)) {
+void _InitRTCTask(int TaskAddr, uint64_t SetMaxSecNum, void (*TaskFunc)(void)) {
     if ((TaskAddr < 0) || (TaskAddr >= RTCTimeTaskMAX)) {
         return;
     }
