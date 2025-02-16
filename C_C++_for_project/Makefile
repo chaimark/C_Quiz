@@ -21,7 +21,7 @@ subMake:
 MyLib_a = $(wildcard C_MyLib/*.a)
 
 # 清理目标
-distclean:
+distclean distclear:
 	@echo "Cleaning up"
 	-rm -rf main.o
 	@-$(MAKE) distclean -C C_MyLib
