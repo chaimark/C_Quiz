@@ -59,10 +59,10 @@
 
 // IPstrToHexArray 函数定义
 void IPstrToHexArray(strnew IpHex, const char * Ipstr) { //IP字符串转16进制
-    char IP_String[] = {"255.255.255.255."};
-    memset(IP_String, 0, strlen("255.255.255.255."));
+    char IP_String[] = {"255.255.255.255.."};
+    memset(IP_String, 0, strlen("255.255.255.255.."));
     memcpy(IP_String, Ipstr, strlen(Ipstr));
-    catString(IP_String, ".", strlen("255.255.255.255."), 1); //字符串拼接
+    catString(IP_String, ".", strlen("255.255.255.255.."), 1); //字符串拼接
     char Str[4] = {0};
     char * P_piont = NULL;
     char * Head = IP_String;
@@ -83,11 +83,11 @@ void IPstrToHexArray(strnew IpHex, const char * Ipstr) { //IP字符串转16进�
 // 主函数
 //int main(int argc, char * argv[]) {
 int main(void) {
-    char NET_Remote_Url[] = "221.214.219.202\0";
+    unsigned char NET_Remote_Url[] = "221.214.219.202\0";
     newString(EEprom_IP, 4);
     IPstrToHexArray(EEprom_IP, NET_Remote_Url);
     for (int i = 0; i < 4; i++) {
-        printf("%x %d\n", EEprom_IP.Name._char[i], (unsigned int)EEprom_IP.Name._char[i]);
+        printf("%2x %d\n", (EEprom_IP.Name._char[i] & 0xff), (unsigned int)EEprom_IP.Name._char[i]);
     }
     return 0;
 }
