@@ -87,7 +87,7 @@ int main(void) {
     newString(EEprom_IP, 4);
     IPstrToHexArray(EEprom_IP, NET_Remote_Url);
     for (int i = 0; i < 4; i++) {
-        printf("%2x %d\n", (EEprom_IP.Name._char[i] & 0xff), (unsigned int)EEprom_IP.Name._char[i]);
+        printf("%2x %d\n", (EEprom_IP.Name._char[i] & 0xff), (unsigned char)(EEprom_IP.Name._char[i]));
     }
     return 0;
 }
