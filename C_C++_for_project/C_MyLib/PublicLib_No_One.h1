@@ -42,5 +42,9 @@ extern unsigned char get_CheckSum(unsigned char data[], int length);
 #ifdef TimeSpeedNum
 extern void TimeSpeed(void);
 #endif
+
+extern void BCD_To_String(strnew str, strnew bcd);
+extern void WGID_String_To_BCD(strnew bcd, strnew str);
+
 #endif
 

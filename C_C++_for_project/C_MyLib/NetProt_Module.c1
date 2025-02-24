@@ -6,8 +6,8 @@
 #include "SetTime.h"
 #include "RX8025T.h"
 #include "MQTT_JSON.h"
-#include "../C_MyLib/4G_ATCmd_FunctionSum.h"
-#include "../C_MyLib/NET_ATCmd_FunctionSum.h"
+#include "../Interflow/4G_ATCmd_FunctionSum.h"
+#include "../Interflow/NET_ATCmd_FunctionSum.h"
 /******************************/
 strnew UartBuff = {0};    // Uart接收缓冲区
 NetDevParameter Now_NetDevParameter;    // 网络状态标记与下行指令表
@@ -211,6 +211,12 @@ bool copyDataForUART(void) {
 #ifdef IsShortLinkModeFlag
         if (!Now_NetDevParameter.isGetDownCmd) { // 短链接，非主动获取的模式下，需要监控指令
             Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | copyComputerDownData());  // 检查是否有收到数据
+        } else {    // 短链接，主动获取的模式下，可能需要监控某种提示字段 +NNMI
+            if (Now_NetDevParameter.checkFlagStr != NULL) {
+                if (strstr(Now_NetDevParameter.NetDataBuff, Now_NetDevParameter.checkFlagStr) != NULL) {
+                    Now_NetDevParameter.isCmdResFlag = true;
+                }
+            }
         }
 #endif
         return true;
@@ -358,19 +364,37 @@ NetSubOver:
         }
 #ifdef IsShortLinkModeFlag
 #include "updata.h"
-        if (UpdataData.Sign == 0xB2) {
-            for (int i = 0; i < 6; i++) {
-                if (FindStr_WaitTime(NEW_NAME("+NNMI"), 1000) == true) {
-                    Now_NetDevParameter.GetDownCmd();
+        if (Now_NetDevParameter.CmdTable.NowListNum != 0) {
+            continue;
+        }
+        if (Now_NetDevParameter.isCmdResFlag) {
+            Now_NetDevParameter.GetDownCmd();
+            continue;
+        }
+        if ((unsigned char)UpdataData.Sign == 0xB2) {
+            for (int i = 0; i < 3; i++) {
+                ClearNetDataBuff();
+                if (Now_NetDevParameter.checkFlagStr != NULL) {
+                    if (FindStr_WaitTime(NEW_NAME(Now_NetDevParameter.checkFlagStr), 3000) == true) {
+                        Now_NetDevParameter.GetDownCmd();
+                        break;
+                    }
+                    if (i == 0) {
+                        Now_NetDevParameter.GetDownCmd();
+                        if (Now_NetDevParameter.CmdTable.NowListNum != 0) {
+                            continue;
+                        }
+                    }
+                } else {
+                    IncludeDelayMs(3000);
+                    Now_NetDevParameter.GetDownCmd();   // 没有监控字段，又需要主动获取的
                     break;
                 }
-                ClearNetDataBuff();
             }
         }
-        Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.CmdTable.NowListNum != 0 ? true : false); // 清除标志
         ClearNetDataBuff();
 #endif
-    } while (Now_NetDevParameter.isCmdResFlag);
+    } while (Now_NetDevParameter.CmdTable.NowListNum != 0);
 #ifdef IsShortLinkModeFlag
     if (Now_NetDevParameter.ShowdownNowDev != NULL) {
         Now_NetDevParameter.ShowdownNowDev();   // 短链接，需要关闭设备
@@ -459,11 +483,11 @@ void UserGetDownCmd(void) {
         }
         // 主动获取指令,并返回是否有指令已存入缓存区
         // if (UserGetDownCmd__XXX() == false) {
-        //     return;
+        //     break;
         // }
         IsGetDownCmd = copyComputerDownData();
-        Now_NetDevParameter.isCmdResFlag = (Now_NetDevParameter.isCmdResFlag | IsGetDownCmd);  // 检查是否有收到数据
     } while (IsGetDownCmd);
+    Now_NetDevParameter.isCmdResFlag = false;
 }
 bool UserSendData(void) {
     return true;
@@ -487,18 +511,19 @@ void UserDoneCmd(void) {
 void setNetArgumentInit(void (*UserShowdownNowDev)(void)) {
     // 初始化 Now_NetDevParameter
     Now_NetDevParameter.CheckOnlineFlag = setDataBit(Now_NetDevParameter.CheckOnlineFlag, 4, true); // 是否需要被动监控某个字段
-    Now_NetDevParameter.LineCheckTime = 5 * 60;  // 判断你是否处于连接状态
+    Now_NetDevParameter.LineCheckTime = 5 * 60;     // 判断你是否处于连接状态
     Now_NetDevParameter.ShowdownNowDev = UserShowdownNowDev;
     Now_NetDevParameter.SendData = UserSendData;    // 长连接不需要发送函数
     Now_NetDevParameter.DoneCmd = UserDoneCmd;      // 处理指令
     Now_NetDevParameter.GetDownCmd = UserGetDownCmd;// 获取下行指令
     Now_NetDevParameter.isGetDownCmd = false;       // 是否需要监控下行指令
+    Now_NetDevParameter.checkFlagStr = NULL;        // 主动获取指令时模组主动推出的提示字符串
     TableOfCmdTaskInit();                           // 指令表初始化
     UartBuff = NEW_NAME(UART_DATABUFF);             // 初始化缓存 UartBuff
 
     // 特殊定时任务
 #ifndef IsShortLinkModeFlag  
-        RTC_TASK.InitSetTimeTask(CheckNet, Now_NetDevParameter.LineCheckTime, check_time_task);
+    RTC_TASK.InitSetTimeTask(CheckNet, Now_NetDevParameter.LineCheckTime, check_time_task);
 #endif
     // 初始化 SetTime 任务
     // 初始化 SetLPTime 任务

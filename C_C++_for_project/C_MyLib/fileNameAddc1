@@ -1,0 +1,22 @@
+mv 4G_ATCmd_FunctionSum.c 4G_ATCmd_FunctionSum.c1
+mv 4G_ATCmd_FunctionSum.h 4G_ATCmd_FunctionSum.h1
+mv AT24CXXDataLoader.c AT24CXXDataLoader.c1
+mv AT24CXXDataLoader.h AT24CXXDataLoader.h1
+mv ATCmdDebug.c ATCmdDebug.c1
+mv ATCmdDebug.h ATCmdDebug.h1
+mv CH340_LPUart1.c CH340_LPUart1.c1
+mv CH340_LPUart1.h CH340_LPUart1.h1
+mv MQTT_JSON.c MQTT_JSON.c1
+mv MQTT_JSON.h MQTT_JSON.h1
+mv NET_ATCmd_FunctionSum.c NET_ATCmd_FunctionSum.c1
+mv NET_ATCmd_FunctionSum.h NET_ATCmd_FunctionSum.h1
+mv NetProt_Module.c NetProt_Module.c1
+mv NetProt_Module.h NetProt_Module.h1
+mv PublicLib_No_One.c PublicLib_No_One.c1
+mv PublicLib_No_One.h PublicLib_No_One.h1
+mv UpData.c UpData.c1
+mv UpData.h UpData.h1
+mv WIFI_Interaction.c WIFI_Interaction.c1
+mv WIFI_Interaction.h WIFI_Interaction.h1
+
+

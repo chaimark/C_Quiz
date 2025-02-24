@@ -1,13 +1,12 @@
 #ifndef _NET_ATCMD_FUNCTIONSUM_H
 // #define _NET_ATCMD_FUNCTIONSUM_H
-#include "PublicLib_No_One.h"
 
+#include "PublicLib_No_One.h"
 #ifdef _NET_ATCMD_FUNCTIONSUM_H
-#include <stdio.h>
 #include <stdint.h>
 #include "StrLib.h"
-#include "PublicLib_No_One.h"
 #include "NetProt_Module.h"
+
 extern void sendDataByNetProt(char * SendCmd, int SendCmdLen);
 #define IncludeUART0_NET_BAND UART0_BAND   // 需要引入外部变量或者常量
 // 所有 AT指令 《发送时》 需要的用于 《组织指令》 的函数名

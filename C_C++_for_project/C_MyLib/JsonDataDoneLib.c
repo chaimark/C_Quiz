@@ -39,49 +39,49 @@ void setJsonItemToArrayStr(strnew OutputStr, JsonItem * TempNowNode) {
     switch (TempNowNode->KeyType) {
         case 'd': // %d 或 %i：有符号十进制整数。
             if (strcmp(TempNowNode->key, "") != 0) {
-                sprintf(NowItemLine.Name._char, "\"%s\": %d", TempNowNode->key, TempNowNode->var.Dataint);
+                sprintf(NowItemLine.Name._char, "\"%s\":%d", TempNowNode->key, TempNowNode->var.Dataint);
             } else {
                 sprintf(NowItemLine.Name._char, "%d", TempNowNode->var.Dataint);
             }
             break;
         case 'D': // %ld：有符号十进制长整数。
             if (strcmp(TempNowNode->key, "") != 0) {
-                sprintf(NowItemLine.Name._char, "\"%s\": %ld", TempNowNode->key, TempNowNode->var.Datalong);
+                sprintf(NowItemLine.Name._char, "\"%s\":%ld", TempNowNode->key, TempNowNode->var.Datalong);
             } else {
                 sprintf(NowItemLine.Name._char, "%ld", TempNowNode->var.Datalong);
             }
             break;
         case 'f': // %f：浮点数。
             if (strcmp(TempNowNode->key, "") != 0) {
-                sprintf(NowItemLine.Name._char, "\"%s\": %f", TempNowNode->key, TempNowNode->var.Datafloat);
+                sprintf(NowItemLine.Name._char, "\"%s\":%f", TempNowNode->key, TempNowNode->var.Datafloat);
             } else {
                 sprintf(NowItemLine.Name._char, "%f", TempNowNode->var.Datafloat);
             }
             break;
         case 'F': // %lf：双精度浮点数。
             if (strcmp(TempNowNode->key, "") != 0) {
-                sprintf(NowItemLine.Name._char, "\"%s\": %lf", TempNowNode->key, TempNowNode->var.Datadouble);
+                sprintf(NowItemLine.Name._char, "\"%s\":%lf", TempNowNode->key, TempNowNode->var.Datadouble);
             } else {
                 sprintf(NowItemLine.Name._char, "%lf", TempNowNode->var.Datadouble);
             }
             break;
         case 'c': // %c：单个字符。
             if (strcmp(TempNowNode->key, "") != 0) {
-                sprintf(NowItemLine.Name._char, "\"%s\": \"%c\"", TempNowNode->key, TempNowNode->var.Datachar);
+                sprintf(NowItemLine.Name._char, "\"%s\":\"%c\"", TempNowNode->key, TempNowNode->var.Datachar);
             } else {
                 sprintf(NowItemLine.Name._char, "%c", TempNowNode->var.Datachar);
             }
             break;
         case 's': // %s：字符串。
             if (strcmp(TempNowNode->key, "") != 0) {
-                sprintf(NowItemLine.Name._char, "\"%s\": \"%s\"", TempNowNode->key, TempNowNode->var._char);
+                sprintf(NowItemLine.Name._char, "\"%s\":\"%s\"", TempNowNode->key, TempNowNode->var._char);
             } else {
                 sprintf(NowItemLine.Name._char, "%s", TempNowNode->var._char);
             }
             break;
         case 'S': // %ls：不含引号的字符串，如 bool:null、true、false。
             if (strcmp(TempNowNode->key, "") != 0) {
-                sprintf(NowItemLine.Name._char, "\"%s\": %s", TempNowNode->key, TempNowNode->var._char);
+                sprintf(NowItemLine.Name._char, "\"%s\":%s", TempNowNode->key, TempNowNode->var._char);
             } else {
                 sprintf(NowItemLine.Name._char, "%s", TempNowNode->var._char);
             }

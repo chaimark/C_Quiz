@@ -2,12 +2,12 @@
 #include "RTC.h"
 #include "UpData.h"
 #include "CH340_LPUart1.h"
-#include "../C_MyLib/NumberBaseLib.h"
-#include "../C_MyLib/StrLib.h"
-#include "../C_MyLib/NetProt_Module.h"
-#include "../C_MyLib/JsonDataAnalyzeLib.h"
-#include "../C_MyLib/AT24CXXDataLoader.h"
-#include "../C_MyLib/JsonDataDoneLib.h"
+#include "../Interflow/NumberBaseLib.h"
+#include "../Interflow/StrLib.h"
+#include "../Interflow/NetProt_Module.h"
+#include "../Interflow/JsonDataAnalyzeLib.h"
+#include "../Interflow/AT24CXXDataLoader.h"
+#include "../Interflow/JsonDataDoneLib.h"
 
 METERID_T Main_MeterId[20] = {0}; // 主表仪表号码缓存 20只
 METERID_T Copy_MeterId[20] = {0}; // 辅表仪表号码缓存 20只
@@ -476,7 +476,7 @@ int MQTT_JSON_Analysis(strnew JsonStr) {
         HYMqttJsonData.setJsonItemData(&HYMqttJsonData, &HY_MQTT_JSON.data.dataClassP, "data:%ls;%d", Now_NetDevParameter.NetDataBuff, 0);
     }
     HYMqttJsonData.OutPushJsonString(SendTxStr, &HYMqttJsonData);
-    memset(&Now_NetDevParameter.NetDataBuff, 0, CmdStrLenMax);
+    memset(Now_NetDevParameter.NetDataBuff, 0, CmdStrLenMax);
     for (int i = 0; i < 2; i++) {
         sendDataByTTLProt(SendTxStr.Name._char, SendTxStr.getStrlen(&SendTxStr));
         memset(SendTxStr.Name._char, 0, SendTxStr.MaxLen);

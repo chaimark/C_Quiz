@@ -87,11 +87,11 @@ void _LPInitSetTimeTask(int TaskAddr, uint64_t SetMax250MsNum, void (*TaskFunc)(
 // #include "mf_config.h"
 // 计数函数
 void LPCountSetTimeTask(void) {
-    /*****************************************************
-    if (!SetLPTime.Task[IWDTClS].TimeTask_Falge) {  // 8 分钟后没有返回主函数重新复位计数器，复位MCU
-        FL_IWDT_ReloadCounter(IWDT);    // 8 分钟之内 RTC 帮忙喂狗
-    }
-    *****************************************************/
+    /*****************************************************/
+    // if (!SetLPTime.Task[IWDTClS].TimeTask_Falge) {  // 8 分钟后没有返回主函数重新复位计数器，复位MCU
+    //     FL_IWDT_ReloadCounter(IWDT);    // 8 分钟之内 RTC 帮忙喂狗
+    // }
+    /*****************************************************/
     for (int TaskAddr = 0; TaskAddr < LPTIM_OPEN_AND_TASK_NUM; TaskAddr++) {
         if (SetLPTime.Task[TaskAddr].isTaskStart == false) {
             continue;

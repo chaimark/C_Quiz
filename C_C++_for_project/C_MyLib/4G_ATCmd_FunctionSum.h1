@@ -1,11 +1,10 @@
 #ifndef _4G_ATCMD_FUNCTIONSUM_H
 #define _4G_ATCMD_FUNCTIONSUM_H
-#include "PublicLib_No_One.h"
 
+#include "PublicLib_No_One.h"
 #ifdef _4G_ATCMD_FUNCTIONSUM_H
 #include <stdint.h>
 #include "StrLib.h"
-#include "PublicLib_No_One.h"
 #include "NetProt_Module.h"
 
 extern void sendDataBy4GProt(char * txBuffer, int length);

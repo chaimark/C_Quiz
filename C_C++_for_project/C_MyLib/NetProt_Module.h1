@@ -48,6 +48,7 @@ typedef struct _NetDevParameter {
     bool isWriteEEprom;                 // 是否写eeprom
     unsigned char isSendOk;             // 是否发送成功
     unsigned char isGetDownCmd;         // 是否主动获取指令
+    char * checkFlagStr;                // 主动获取指令时模组主动推出的提示字符串
 } NetDevParameter;
 extern NetDevParameter Now_NetDevParameter;
 extern bool checkUart(int MaxTimeMs);
@@ -93,8 +94,8 @@ extern bool _FindStr_WaitTime(strnew FindStr, int MaxTimeMs, char ** OutNote);
 #define GET_MACRO(_1, _2, _3, NAME, ...) NAME
 #define FindStr_WaitTime(...) GET_MACRO(__VA_ARGS__, _FindStr_WaitTime3, _FindStr_WaitTime2)(__VA_ARGS__)
 
-#include "../C_MyLib/4G_ATCmd_FunctionSum.h"
-#include "../C_MyLib/NET_ATCmd_FunctionSum.h"
+#include "../Interflow/4G_ATCmd_FunctionSum.h"
+#include "../Interflow/NET_ATCmd_FunctionSum.h"
 #endif
 
 

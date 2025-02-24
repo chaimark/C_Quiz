@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 #include "StrLib.h"
-#include "../C_MyLib/JsonDataAnalyzeLib.h"
-#include "../C_MyLib/JsonDataDoneLib.h"
-#include "../C_MyLib/JsonCheckFun.h"
+#include "../Interflow/JsonDataAnalyzeLib.h"
+#include "../Interflow/JsonDataDoneLib.h"
+#include "../Interflow/JsonCheckFun.h"
 
 extern void Send_AT_JSON(strnew Outbuff);
 extern void Weite_AT_JSON(JsonObject CmdJsonObj);

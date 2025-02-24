@@ -8,9 +8,9 @@
 #include "TimerCopyReading.h"
 #include "TimerMainReading.h"
 #include "ImmediatelyReading.h"
-#include "../C_MyLib/JsonDataDoneLib.h"
-#include "../C_MyLib/4G_ATCmd_FunctionSum.h"
-#include "../C_MyLib/NET_ATCmd_FunctionSum.h"
+#include "../Interflow/JsonDataDoneLib.h"
+#include "../Interflow/4G_ATCmd_FunctionSum.h"
+#include "../Interflow/NET_ATCmd_FunctionSum.h"
 
 typedef struct JSONNODE_S {
     const char * node;    // 节点信息

@@ -14,8 +14,8 @@
 // #define MyPrintf(...)  FL_DelayMs(10)
 
 #if (ISBootLoader == 0)
-#include "../C_MyLib/JsonDataAnalyzeLib.h"
-#include "../C_MyLib/NumberBaseLib.h"
+#include "../Interflow/JsonDataAnalyzeLib.h"
+#include "../Interflow/NumberBaseLib.h"
 #endif
 
 // PAGE_SIZE == 512

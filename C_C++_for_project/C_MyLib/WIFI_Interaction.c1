@@ -148,7 +148,7 @@ bool WIFI_TASK(void) {
     char WG_DATA_STR[100] = {0};
     int Nowlen = 0;
     if (strstr((char *)UART5Ddata.RxBuf, "GET WG DATA;") != NULL) {
-        memset(&UART5Ddata.RxBuf, 0x00, UARTMAX);
+        memset(UART5Ddata.RxBuf, 0x00, UARTMAX);
         UART5Ddata.RxLen = 0;
         sprintf(&WG_DATA_STR[Nowlen], "POST WG DATA;");
         Nowlen = strlen(WG_DATA_STR);

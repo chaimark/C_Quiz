@@ -1,5 +1,5 @@
-#include "../C_MyLib/PublicLib_No_One.h"
-#include "../C_MyLib/NumberBaseLib.h"
+#include "../Interflow/PublicLib_No_One.h"
+#include "../Interflow/NumberBaseLib.h"
 #include "../Src/BSTim.h"
 
 #ifdef TimeSpeedNum
@@ -37,10 +37,10 @@ void TimeSpeed(void) {
 #endif
 
 void IPstrToHexArray(strnew IpHex, const char * Ipstr) { //IP字符串转16进制
-    char IP_String[] = {"255.255.255.255."};
-    memset(IP_String, 0, strlen("255.255.255.255."));
+    char IP_String[] = {"255.255.255.255.."};
+    memset(IP_String, 0, strlen("255.255.255.255.."));
     memcpy(IP_String, Ipstr, strlen(Ipstr));
-    catString(IP_String, ".", strlen("255.255.255.255."), 1); //字符串拼接
+    catString(IP_String, ".", strlen("255.255.255.255.."), 1); //字符串拼接
     char Str[4] = {0};
     char * P_piont = NULL;
     char * Head = IP_String;
@@ -66,3 +66,27 @@ unsigned char get_CheckSum(unsigned char data[], int length) {
     }
     return ResCs;
 }
+// BCD网关数组转字符串 （bcd 必须沾满）
+void BCD_To_String(strnew str, strnew bcd) {
+    if (bcd.MaxLen * 2 >= str.MaxLen) {    // str 太小, 不够
+        return;
+    }
+    HEX2ToASCII(bcd.Name._char, bcd.MaxLen, str.Name._char, str.MaxLen);
+}
+// 字符串网关转BCD数组 String < 13
+void WGID_String_To_BCD(strnew bcd, strnew str) {
+    unsigned char Len = str.getStrlen(&str);
+    char change_char[13] = {0};
+    copyString(change_char, str.Name._char, ARR_SIZE(change_char), Len);
+    swapStr((char *)change_char, Len);
+    if ((Len % 2) != 0) {
+        change_char[strlen((char *)change_char)] = '0';
+        Len++;
+    }
+    swapStr((char *)change_char, Len);
+    ASCIIToHEX2((char *)change_char, strlen((char *)change_char), (char *)change_char, (Len / 2));
+    for (int i = 0; ((i < (Len / 2)) && (i < bcd.MaxLen)); i++) {
+        bcd.Name._char[i] = change_char[i];
+    }
+}
+

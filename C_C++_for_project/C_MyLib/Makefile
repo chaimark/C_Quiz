@@ -15,6 +15,12 @@ libMyLib.a: $(objs)
 	$(CC) -c $< -o $@
 
 # 清理目标
-.PHONY: distclean
+.PHONY: distclean fileclean
 distclean:
 	-rm -rf *.o libMyLib.a
+
+fileclean:
+	-rm -rf *.c1
+	-rm -rf *.h1
+	-rm -rf *.c
+	-rm -rf *.h

@@ -211,7 +211,7 @@ int UpData_Receive_Hex(JsonObject BinCode) {
     // 存在版本信息，准备升级，或重新升级
     if (BinCode.isJsonNull(&BinCode, "PackLen") >= 0) {
         updataInit();
-        if (UpdataData.Sign == 0) { // 第一次升级
+        if ((unsigned char)UpdataData.Sign == 0) { // 第一次升级
             UpdataData.PackLen = BinCode.getInt(&BinCode, "PackLen");
         } else {    // 重新升级
             UpdataData.PackLen = BinCode.getInt(&BinCode, "PackLen");
@@ -219,7 +219,7 @@ int UpData_Receive_Hex(JsonObject BinCode) {
         UpdataData.Sign = 0xB2;
         UpdataData.NowPageNum = 0;
         UpdataData.NowLen_Page8Buff = 0;
-        memset(&UpdataData.Page8Buff, 0xFF, PAGE_SIZE);
+        memset(UpdataData.Page8Buff, 0xFF, PAGE_SIZE);
         FlagCodeNum = 0;
         goto OverSub;
     }
