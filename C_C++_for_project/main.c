@@ -48,32 +48,41 @@
 //     return 0;
 // }
 
-// 主函数
-int main(int argc, char * argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <-f / -d> <number>\n", argv[0]);
-        return 1;
-    }
-    double number = doneAsciiToDouble(argv[2]);
-    newString(outBuff, sizeof(double));
+// // 主函数
+// int main(int argc, char * argv[]) {
+//     if (argc != 3) {
+//         fprintf(stderr, "Usage: %s <-f / -d> <number>\n", argv[0]);
+//         return 1;
+//     }
+//     double number = doneAsciiToDouble(argv[2]);
+//     newString(outBuff, sizeof(double));
 
-    int buffLen = 0;
-    if (strstr(argv[1], "-f") != NULL) {
-        DoubleOrFloatToBuff(outBuff, (float)number, false);
-        buffLen = 4;
-    } else if (strstr(argv[1], "-d") != NULL) {
-        DoubleOrFloatToBuff(outBuff, (double)number, true);
-        buffLen = 8;
-    } else {
-        fprintf(stderr, "Usage: %s <-f / -d> <number>\n", argv[0]);
-        return 1;
-    }
+//     int buffLen = 0;
+//     if (strstr(argv[1], "-f") != NULL) {
+//         DoubleOrFloatToBuff(outBuff, (float)number, false);
+//         buffLen = 4;
+//     } else if (strstr(argv[1], "-d") != NULL) {
+//         DoubleOrFloatToBuff(outBuff, (double)number, true);
+//         buffLen = 8;
+//     } else {
+//         fprintf(stderr, "Usage: %s <-f / -d> <number>\n", argv[0]);
+//         return 1;
+//     }
 
-    printf("%lf == ", number);
-    for (int i = 0; i < buffLen; i++) {
-        printf("%02x", (unsigned char)outBuff.Name._char[i] & 0xFF);
-    }
-    printf("\n");
+//     printf("%lf == ", number);
+//     for (int i = 0; i < buffLen; i++) {
+//         printf("%02x", (unsigned char)outBuff.Name._char[i] & 0xFF);
+//     }
+//     printf("\n");
 
-    return 0;
+//     return 0;
+// }
+
+int main(void) {
+    float insideT = 10.2;
+    unsigned char TempBuf[5] = {0};
+    sprintf(TempBuf, "%f", insideT);
+    for (int i = 0; i < 4; i++) {
+        printf("%c\n",TempBuf[i]);
+    }
 }
