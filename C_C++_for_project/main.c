@@ -79,10 +79,11 @@
 // }
 
 int main(int argc, char * argv[]) {
-	float insideT = doneAsciiStrToAnyBaseNumberData(argv[1], 16);
+	float insideT = doneAsciiToDouble(argv[1]);
 	int TempNum = (int) (insideT * 10);
-	printf("%f\n", insideT);
-	TempNum=abs(TempNum);
+	printf("input:%f\n", insideT);
+	TempNum = (TempNum > 0 ? TempNum : 0 - TempNum);
+	printf("ouput:");
 	if (insideT < 0) {
 		printf("-");
 	}
