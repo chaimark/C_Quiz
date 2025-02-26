@@ -78,11 +78,19 @@
 //     return 0;
 // }
 
-int main(void) {
-    float insideT = 10.2;
-    unsigned char TempBuf[5] = {0};
-    sprintf(TempBuf, "%f", insideT);
-    for (int i = 0; i < 4; i++) {
-        printf("%c\n",TempBuf[i]);
-    }
+int main(int argc, char * argv[]) {
+	float insideT = doneAsciiStrToAnyBaseNumberData(argv[1], 16);
+	int TempNum = (int) (insideT * 10);
+	printf("%f\n", insideT);
+	TempNum=abs(TempNum);
+	if (insideT < 0) {
+		printf("-");
+	}
+	if (TempNum < 100) {
+		printf(" ");
+	} else {
+		printf("%d", ((TempNum % 1000) / 100));
+	}
+	printf("%d", ((TempNum % 100) / 10));
+	printf("%d\n", ((TempNum % 10) / 1));
 }
