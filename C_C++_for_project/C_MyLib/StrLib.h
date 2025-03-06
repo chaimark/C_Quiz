@@ -10,13 +10,13 @@
 #define This (*this)
 #define ARR_SIZE(ArrName) sizeof(ArrName) / sizeof(ArrName[0]) // 计算数组元素个数
 /*
-数组类，包含数组指针和长度
+数组类, 包含数组指针和长度
 需要注意的是
 函数需要返回该类型时
 该指针指向的数组需要定义在全局空间
-该类型容易误认为是实体对象，需要注意
-可以定义一个全局空间，用于暂时存放 strnew 对象的数据
-或需要使用时直接定义数据，并作为参数传入
+该类型容易误认为是实体对象, 需要注意
+可以定义一个全局空间, 用于暂时存放 strnew 对象的数据
+或需要使用时直接定义数据, 并作为参数传入
 */
 // 类定义
 typedef struct New_Arr {
@@ -58,6 +58,7 @@ extern void swapChr(char * a, char * b);
 extern void swapStr(char * IntputStr, int StrLen);
 extern char swapLowHight_Of_Char(char InputCh);
 extern bool MoveDataOnBuff(strnew IntptBuff, int ShiftLen, bool IsLeft);
+extern void StringSlice(strnew OutStr, strnew Mather, int start, int end);
 
 #ifdef _Alignas 
 #define GET_TYPE(var) (_Generic((var), \

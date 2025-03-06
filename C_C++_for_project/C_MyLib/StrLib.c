@@ -16,6 +16,7 @@ void swapChr(char * a, char * b);
 void swapStr(char * IntputStr, int StrLen);
 char swapLowHight_Of_Char(char InputCh);
 bool MoveDataOnBuff(strnew IntptBuff, int ShiftLen, bool IsLeft);
+void StringSlice(strnew OutStr, strnew Mather, int start, int end);
 
 /*******************************************************************************************************************/
 /*******************************************************************************************************************/
@@ -119,7 +120,7 @@ char * myStrstr(char * MotherStr, char * SonStr, int MotherMaxSize) {
                     break;
                 }
             }
-            if (TempAdd >= MotherMaxSize) { // 数组遍历结束，没有找到子串
+            if (TempAdd >= MotherMaxSize) { // 数组遍历结束, 没有找到子串
                 return NULL;
             }
         }
@@ -134,7 +135,7 @@ char * myStrstrCont(char * MotherStr, char * SonStr, int MotherMaxSize, int Cont
     for (int Task_i = 0; Task_i < ContNum; Task_i++) {
         p_star = NULL;
         if ((p_star = myStrstr(MotherStr, SonStr, MotherMaxSize)) != NULL) {
-            MotherStr = p_star + 1; // 地址偏移，准备寻找第下一个
+            MotherStr = p_star + 1; // 地址偏移, 准备寻找第下一个
             MotherMaxSize = p_end - MotherStr;
         } else
             return NULL; // 没有这个字串
@@ -154,7 +155,7 @@ void swapStr(char * InputStr, int StrLen) {
     int start = 0;
     int end = StrLen - 1;
 
-    // 循环交换字符串首尾字符，直到中间
+    // 循环交换字符串首尾字符, 直到中间
     while (start < end) {
         swapChr(&InputStr[start], &InputStr[end]);
         start++;
@@ -192,4 +193,13 @@ bool MoveDataOnBuff(strnew IntptBuff, int ShiftLen, bool IsLeft) {
     }
     return true;
 }
-
+void StringSlice(strnew OutStr, strnew Mather, int start, int end) {
+    int NeedLen = (end >= start ? (end - start) : (start - end));
+    if ((NeedLen + start) > Mather.MaxLen) {
+        return;
+    }
+    if (NeedLen > OutStr.MaxLen) {
+        return;
+    }
+    memcpy(OutStr.Name._char, &Mather.Name._char[start], NeedLen);
+}
