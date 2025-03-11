@@ -286,6 +286,11 @@
     了解 zip, 压缩文件
     了解 unzip, 解压文件
 
+## 其他构建工具
+    
+    brandy 构建 uboot
+    buildroot 构建 rootfs and linux
+
 ## 需要安装的环境和工具
 
 ##### wsl 第一个addLeige.sh
