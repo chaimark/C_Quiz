@@ -6,7 +6,7 @@
 
 # 默认目标：生成可执行文件 main
 main: subMake main.o
-	gcc -o main main.o -L C_MyLib -lMyLib
+	gcc -o main main.o -L C_MyLib -l MyLib
 
 # 生成 main.o
 main.o: main.c

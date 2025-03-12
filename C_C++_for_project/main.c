@@ -13,85 +13,19 @@
 // #include "./mbedtls/token.h"
 #include <stdio.h>
 
-// // IPstrToHexArray 函数定义
-// void IPstrToHexArray(strnew IpHex, const char * Ipstr) { //IP字符串转16进制
-//     char IP_String[] = {"255.255.255.255.."};
-//     memset(IP_String, 0, strlen("255.255.255.255.."));
-//     memcpy(IP_String, Ipstr, strlen(Ipstr));
-//     catString(IP_String, ".", strlen("255.255.255.255.."), 1); //字符串拼接
-//     char Str[4] = {0};
-//     char * P_piont = NULL;
-//     char * Head = IP_String;
-//     int temp = 0;
-//     for (int i = 0; i < 4; i++) {
-//         memset(Str, 0, 3);
-//         if ((P_piont = strchr(Head, '.')) != NULL) {
-//             *P_piont = '\0';
-//             memcpy(Str, Head, strlen(Head));
-//             *P_piont = '.';
-//             Head = P_piont + 1;
-//             temp = doneAsciiStrToAnyBaseNumberData(Str, 16);  //字符串转任意进制数
-//             IpHex.Name._char[i] = (unsigned char)temp;
-//         }
-//     }
-// }
-
-// // 主函数
-// //int main(int argc, char * argv[]) {
-// int main(void) {
-//     unsigned char NET_Remote_Url[] = "221.214.219.202\0";
-//     newString(EEprom_IP, 4);
-//     IPstrToHexArray(EEprom_IP, NET_Remote_Url);
-//     for (int i = 0; i < 4; i++) {
-//         printf("%2x %d\n", (EEprom_IP.Name._char[i] & 0xff), (unsigned char)(EEprom_IP.Name._char[i]));
-//     }
-//     return 0;
-// }
-
-// // 主函数
-// int main(int argc, char * argv[]) {
-//     if (argc != 3) {
-//         fprintf(stderr, "Usage: %s <-f / -d> <number>\n", argv[0]);
-//         return 1;
-//     }
-//     double number = doneAsciiToDouble(argv[2]);
-//     newString(outBuff, sizeof(double));
-
-//     int buffLen = 0;
-//     if (strstr(argv[1], "-f") != NULL) {
-//         DoubleOrFloatToBuff(outBuff, (float)number, false);
-//         buffLen = 4;
-//     } else if (strstr(argv[1], "-d") != NULL) {
-//         DoubleOrFloatToBuff(outBuff, (double)number, true);
-//         buffLen = 8;
-//     } else {
-//         fprintf(stderr, "Usage: %s <-f / -d> <number>\n", argv[0]);
-//         return 1;
-//     }
-
-//     printf("%lf == ", number);
-//     for (int i = 0; i < buffLen; i++) {
-//         printf("%02x", (unsigned char)outBuff.Name._char[i] & 0xFF);
-//     }
-//     printf("\n");
-
-//     return 0;
-// }
-
+// {"NowPackNum":0,"Code":"11223344556677889900","CsCheckNum":114}
 int main(int argc, char * argv[]) {
-	float insideT = doneAsciiToDouble(argv[1]);
-	int TempNum = (int) (insideT * 10);
-	printf("input:%f\n", insideT);
-	TempNum = (TempNum > 0 ? TempNum : 0 - TempNum);
-	printf("ouput:");
-	if (insideT < 0) {
-		printf("-");
-	}
-	if (TempNum < 100) {
-		printf(" ");
-	} else {
-		printf("%d", ((TempNum % 1000) / 100));
-	}
-	printf("%d", ((TempNum % 100) / 10));
-	printf("%d\n", ((TempNum % 10) / 1));
+    char Head[1000] = {0};
+    memcpy(Head, argv[1], strlen(argv[1]));
+    int Len = strlen(Head);
+    uint8_t CsNum = 0;
+    for (int i = 0; i < Len; i++) {
+        CsNum += Head[i];
+    }
+    char CS_END[3] = {0};
+    sprintf(CS_END, "%02x", CsNum);
+    catString(Head, CS_END, 1000, strlen(CS_END));
+    catString(Head, "16", 1000, 2);
+    printf("\n=================================\nchar of SendBuff\n");
+    printf("%s \n", Head);
 }
