@@ -26,6 +26,7 @@ cd ~/work/longan/
 echo "构建 bootloader >>> ./build.sh coreB bootloader"
 echo "构建 rootfs.ext4 >>> ./build.sh coreB ubuntu"
 echo "构建 kernel >>> ./build.sh coreB Image"
+read -t 5 -p "正在打开 disp_lcd.c "
 
-
-
+vim kernel/linux-4.9/drivers/video/fbdev/sunxi/disp2/disp/de/disp_lcd.c +360
+vim kernel/linux-4.9/scripts/dtc/dtc-lexer.lex.c_shipped +634
