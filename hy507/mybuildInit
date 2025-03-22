@@ -1,7 +1,13 @@
 #!/bin/bash
-cd ~/zipClass
-sudo ./ubunt_env_install.sh
-sudo tar xvfj TQT507_coreB_linux_V1.1.tar.bz2 -C ~/work/
+
+read -t 5 -p "是否解压 T507 (5s 超时): " isTar 
+
+if ["isTar" == "y"]; then
+	cd ~/zipClass
+	sudo ./ubunt_env_install.sh
+	sudo tar xvfj TQT507_coreB_linux_V1.1.tar.bz2 -C ~/work/
+fi
+
 cd ~/work
 ~/myBin/change_chownUser leige ~/work
 mv ~/work/opt/EmbedSky/TQT507/longan ~/work/
