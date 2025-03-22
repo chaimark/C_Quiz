@@ -4,9 +4,9 @@ sudo ./ubunt_env_install.sh
 sudo tar xvfj TQT507_coreB_linux_V1.1.tar.bz2 -C ~/work/
 cd ~/work
 ~/myBin/change_chownUser leige ~/work
-mv ~work/opt/EmbedSky/TQT507/longan ~/work/
+mv ~/work/opt/EmbedSky/TQT507/longan ~/work/
 rm -rf ~/work/opt
-cd ~/work/longan
+cd ~/work/longan/
 NowWorkPath=$(pwd)
 cd brandy/brandy-2.0/u-boot-2018/configs/
 cp sun50iw9p1_spinand_ubifs_defconfig ../.config
@@ -15,11 +15,11 @@ cp sun50iw9p1_longan_defconfig ../.config
 cd ${NowWorkPath}/kernel/linux-4.9/arch/arm64/configs/
 cp sun50iw9p1smp_t507_dragonboard_defconfig ../defconfig
 
-cd ${NowWorkPath}/
+cd ~/work/longan/
 
-echo "构建 bootloader >> ./build.sh coreB bootloader"
-echo "构建 rootfs.ext4 >> ./build.sh coreB ubuntu"
-echo "构建 kernel >> ./build.sh coreB Image"
+echo "构建 bootloader >>> ./build.sh coreB bootloader"
+echo "构建 rootfs.ext4 >>> ./build.sh coreB ubuntu"
+echo "构建 kernel >>> ./build.sh coreB Image"
 
 
-
+
