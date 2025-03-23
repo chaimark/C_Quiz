@@ -21,16 +21,16 @@ fi
 sudo apt-get install mtd-utils > /dev/null
 
 # 创建文件系统镜像
-read -p "文件系统的大小(512M):" FLASH_SIZE_MB
-read -p "页面大小(4k):" PageSize
-read -p "可擦除块的单位大小(256k):" DeakSize 
+read -p "文件系统的大小(120M):" FLASH_SIZE_MB
+read -p "页面大小(2k):" PageSize
+read -p "可擦除块的单位大小(128k):" DeakSize 
 
 # 执行 mkfs.ubifs 命令创建文件系统
 sudo mkfs.ubifs -r ${RootfsPath} -m $((PageSize * 1024)) -e $(((DeakSize / PageSize - 2) * (PageSize * 1024))) -c $(((FLASH_SIZE_MB * 1024) / DeakSize)) -o ./rootfs.ubifs
 
 du -sh ./rootfs.ubifs
 
-read -p "请输入 ubifs 的最大容量(MB)：" UbiSize
+read -p "请输入 ubifs 的最大容量(MB): " UbiSize
 
 DEV_FLASH_IMG="rootfs.ubi"    # 模拟的闪存设备文件
 UBI_CFG="dev_flash.cfg"          # UBI 配置文件
