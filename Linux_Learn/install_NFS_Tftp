@@ -1,0 +1,18 @@
+#!/bin/bash
+
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install tftp-server
+sudo apt-get install tftpd-hpa
+sudo apt-get install nfs-kernel-server
+cd /srv
+sudo mkdir -p /srv/nfsroot
+sudo ~/myBin/change_chownUser leige tftp
+sudo ~/myBin/change_chownUser leige nfsroot
+
+sudo chmod 666 /srv/tftp
+sudo chmod 666 /srv/nfsroot
+sudo echo "/srv/nfsroot *(rw,sync,no_subtree_check,no_root_squash)" >> /etc/exports
+sudo systemctl restart nfs-kernel-server
+sudo systemctl restart tftpd-hpa
+
