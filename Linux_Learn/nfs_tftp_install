@@ -12,7 +12,11 @@ sudo ~/myBin/change_chownUser leige nfsroot
 
 sudo chmod 666 /srv/tftp
 sudo chmod 666 /srv/nfsroot
-sudo echo "/srv/nfsroot *(rw,sync,no_subtree_check,no_root_squash)" >> /etc/exports
+
+echo please add the string : /srv/nfsroot *(rw,sync,no_subtree_check,no_root_squash)
+echo sudo vim /etc/exports and enter after 5s
+read -t 5
+sudo vim /etc/exports
 sudo systemctl restart nfs-kernel-server
 sudo systemctl restart tftpd-hpa
 
