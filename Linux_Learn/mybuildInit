@@ -1,32 +1,49 @@
 #!/bin/bash
 
-read -t 5 -p "是否解压 T507 (5s 超时): " isTar 
+# 设置超时时间和提示信息
+read -t 5 -p "是否解压 T507 (5s 超时, 输入 y 确认): " isTar
 
-if ["isTar" == "y"]; then
-	cd ~/zipClass
-	sudo ./ubunt_env_install.sh
-	sudo tar xvfj TQT507_coreB_linux_V1.1.tar.bz2 -C ~/work/
+# 判断用户输入是否为 y
+if [ "$isTar" == "y" ]; then
+    # 进入 zipClass 目录
+    cd ~/zipClass || { echo "进入目录 ~/zipClass 失败"; exit 1; }
+    # 执行环境安装脚本
+    sudo ./ubunt_env_install.sh
+    # 解压 T507 文件到 ~/work 目录
+    sudo tar xvfj TQT507_coreB_linux_V1.1.tar.bz2 -C ~/work/ || { echo "解压文件失败"; exit 1; }
 fi
 
-cd ~/work
+# 进入 work 目录
+cd ~/work || { echo "进入目录 ~/work 失败"; exit 1; }
+# 修改文件所属用户
 ~/myBin/change_chownUser leige ~/work
-mv ~/work/opt/EmbedSky/TQT507/longan ~/work/
-rm -rf ~/work/opt
-cd ~/work/longan/
+# 移动文件夹并删除原文件夹
+mv ~/work/opt/EmbedSky/TQT507/longan ~/work/ && rm -rf ~/work/opt || { echo "移动或删除文件夹失败"; exit 1; }
+
+# 获取当前工作路径
 NowWorkPath=$(pwd)
-cd brandy/brandy-2.0/u-boot-2018/configs/
-cp sun50iw9p1_spinand_ubifs_defconfig ../.config
-cd ${NowWorkPath}/buildroot/buildroot-201902/configs/
-cp sun50iw9p1_longan_defconfig ../.config
-cd ${NowWorkPath}/kernel/linux-4.9/arch/arm64/configs/
-cp sun50iw9p1smp_t507_dragonboard_defconfig ../defconfig
 
-cd ~/work/longan/
+# 复制配置文件到对应目录
+cd brandy/brandy-2.0/u-boot-2018/configs/ || { echo "进入目录 brandy/brandy-2.0/u-boot-2018/configs/ 失败"; exit 1; }
+cp sun50iw9p1_spinand_ubifs_defconfig ../.config || { echo "复制 sun50iw9p1_spinand_ubifs_defconfig 文件失败"; exit 1; }
 
+cd ${NowWorkPath}/buildroot/buildroot-201902/configs/ || { echo "进入目录 buildroot/buildroot-201902/configs/ 失败"; exit 1; }
+cp sun50iw9p1_longan_defconfig ../.config || { echo "复制 sun50iw9p1_longan_defconfig 文件失败"; exit 1; }
+
+cd ${NowWorkPath}/kernel/linux-4.9/arch/arm64/configs/ || { echo "进入目录 kernel/linux-4.9/arch/arm64/configs/ 失败"; exit 1; }
+cp sun50iw9p1smp_t507_dragonboard_defconfig ../defconfig || { echo "复制 sun50iw9p1smp_t507_dragonboard_defconfig 文件失败"; exit 1; }
+
+# 返回 longan 目录
+cd ${NowWorkPath} || { echo "返回目录 ${NowWorkPath} 失败"; exit 1; }
+
+# 提示构建命令
 echo "构建 bootloader >>> ./build.sh coreB bootloader"
 echo "构建 rootfs.ext4 >>> ./build.sh coreB ubuntu"
 echo "构建 kernel >>> ./build.sh coreB Image"
-read -t 5 -p "正在打开 disp_lcd.c "
 
+# 提示并打开文件
+read -t 5 -p "正在打开 disp_lcd.c (5s 后自动继续) "
 vim kernel/linux-4.9/drivers/video/fbdev/sunxi/disp2/disp/de/disp_lcd.c +360
+
+read -t 5 -p "正在打开 dtc-lexer.lex.c_shipped (5s 后自动继续) "
 vim kernel/linux-4.9/scripts/dtc/dtc-lexer.lex.c_shipped +634
