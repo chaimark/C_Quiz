@@ -20,17 +20,17 @@ fi
 # 安装 mtd-utils
 sudo apt-get install mtd-utils > /dev/null
 
+echo ==============================================
+
+du -sh ${RootfsPath}
+
 # 创建文件系统镜像
-read -p "文件系统的大小(120M):" FLASH_SIZE_MB
-read -p "页面大小(2k):" PageSize
-read -p "可擦除块的单位大小(128k):" DeakSize 
+read -p "文件系统的总大小(rootfs size M):" FLASH_SIZE_MB
+read -p "页面大小(8k):" PageSize
+read -p "可擦除块的单位大小(1024k):" DeakSize 
 
 # 执行 mkfs.ubifs 命令创建文件系统
 sudo mkfs.ubifs -r ${RootfsPath} -m $((PageSize * 1024)) -e $(((DeakSize / PageSize - 2) * (PageSize * 1024))) -c $(((FLASH_SIZE_MB * 1024) / DeakSize)) -o ./rootfs.ubifs
-
-du -sh ./rootfs.ubifs
-
-read -p "请输入 ubifs 的最大容量(MB): " UbiSize
 
 DEV_FLASH_IMG="rootfs.ubi"    # 模拟的闪存设备文件
 UBI_CFG="dev_flash.cfg"          # UBI 配置文件
@@ -45,15 +45,18 @@ vol_type=dynamic
 vol_name=FriendlyARM-root
 vol_alignment=1MiB
 vol_flags=autoresize
-vol_size=${UbiSize}MiB
+vol_size=${FLASH_SIZE_MB}MiB
 EOF
-
+read -t 3 -p "请稍等..."
+echo
 # 将 UBI 卷映像加载到设备
-sudo ubinize -o ${DEV_FLASH_IMG} -m $((PageSize * 1024)) -p ${DeakSize}KiB ${UBI_CFG}
+sudo ubinize -o ${DEV_FLASH_IMG} -m $((PageSize * 1024)) -p $((DeakSize))KiB ${UBI_CFG}
 
 # 删除临时文件
 sudo rm -rf ${UBI_CFG}
 sudo rm -rf ./rootfs.ubifs
+
+du -sh ./rootfs.ubi
 
 # 完成，退出
 exit 0
