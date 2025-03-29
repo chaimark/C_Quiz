@@ -18,13 +18,14 @@ cd ~/work || { echo "进入目录 ~/work 失败"; exit 1; }
 # 修改文件所属用户
 ~/myBin/change_chownUser leige ~/work
 # 移动文件夹并删除原文件夹
-mv ~/work/opt/EmbedSky/TQT507/longan ~/work/ && rm -rf ~/work/opt || { echo "移动或删除文件夹失败"; exit 1; }
+mv ~/work/opt/EmbedSky/TQT507/longan ~/work/ && rm -rf ~/work/opt || { echo "移动或删除文件夹失败"; }
 
+cd ~/work/longan/
 # 获取当前工作路径
 NowWorkPath=$(pwd)
 
 # 复制配置文件到对应目录
-cd brandy/brandy-2.0/u-boot-2018/configs/ || { echo "进入目录 brandy/brandy-2.0/u-boot-2018/configs/ 失败"; exit 1; }
+cd ${NowWorkPath}/brandy/brandy-2.0/u-boot-2018/configs/ || { echo "进入目录 brandy/brandy-2.0/u-boot-2018/configs/ 失败"; exit 1; }
 cp sun50iw9p1_spinand_ubifs_defconfig ../.config || { echo "复制 sun50iw9p1_spinand_ubifs_defconfig 文件失败"; exit 1; }
 
 cd ${NowWorkPath}/buildroot/buildroot-201902/configs/ || { echo "进入目录 buildroot/buildroot-201902/configs/ 失败"; exit 1; }
@@ -44,6 +45,9 @@ echo "构建 kernel >>> ./build.sh coreB Image"
 # 提示并打开文件
 read -t 5 -p "正在打开 disp_lcd.c (5s 后自动继续) "
 vim kernel/linux-4.9/drivers/video/fbdev/sunxi/disp2/disp/de/disp_lcd.c +360
+echo
 
 read -t 5 -p "正在打开 dtc-lexer.lex.c_shipped (5s 后自动继续) "
 vim kernel/linux-4.9/scripts/dtc/dtc-lexer.lex.c_shipped +634
+echo
+
