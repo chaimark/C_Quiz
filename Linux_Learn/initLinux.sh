@@ -56,16 +56,17 @@ sudo apt-get install mtd-utils -y
 sudo apt-get install make -y
 sudo apt-get update
 sudo apt-get upgrade
-cd /home/leige/outputClass
-dd if=/dev/zero of=/home/leige/outputClass/rootfs.img bs=1M count=512
-mkfs.ext3 /home/leige/outputClass/rootfs.img
-resize2fs -M /home/leige/outputClass/rootfs.img
 sudo mkdir /mnt/tempPoint
-sudo mount -o loop /home/leige/outputClass/rootfs.img /mnt/tempPoint
 cd /home/leige/myBin
+
 read -p "是否添加gcc LIB: " UserCase_Var
 if [ ${UserCase_Var} == "y" ]; then
 	echo export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/opt/TuxamitoSoftToolchains/arm-arm1176jzfssf-linux-gnueabi/gcc-4.6.4/lib >> ~/.bashrc
+fi
+UserCase_Var = n
+
+read -p "是否添加 myBin Path: " UserCase_Var
+if [ ${UserCase_Var} == "y" ]; then
 	./AddPath $(pwd)
 fi
 
