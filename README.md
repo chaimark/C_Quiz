@@ -2,6 +2,8 @@
 sed -i 's/\r//' initLinux
 
 ### tar 常用命令
+tar zxvf XXX.tar.gz
+tar zvfj XXX.tar.bz2
 
 ### 下面是一些常用 git Cmd
 #### 设置用户名
