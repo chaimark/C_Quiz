@@ -13,7 +13,8 @@
         "winexcel.h": "c",
         "numberbaselib.h": "c",
         "at24cxxdataloader.h": "c",
-        "wifi_interaction.h": "c"
+        "wifi_interaction.h": "c",
+        "winexcelquiz.h": "c"
     },
     "C_Cpp.vcFormat.indent.preserveComments": false
 }

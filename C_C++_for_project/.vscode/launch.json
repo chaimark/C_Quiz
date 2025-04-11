@@ -11,7 +11,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "D:\\Program Files\\mingw64\\bin\\gdb.exe",
+            "miDebuggerPath": "/usr/bin/gdbus",
             "setupCommands": [
                 {
                     "description": "为 gdb 启用整齐打印",

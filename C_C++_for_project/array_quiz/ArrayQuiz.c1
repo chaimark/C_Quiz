@@ -1,7 +1,7 @@
 #include "../C_MyLib/StrLib.h"
 #include "ArrayQuiz.h"
 #include <stdio.h>
-#include <windows.h>
+// #include <windows.h>
 #include <time.h>
 
 int UserSrand() {
