@@ -13,19 +13,41 @@
 // #include "./mbedtls/token.h"
 #include <stdio.h>
 
-// {"NowPackNum":0,"Code":"11223344556677889900","CsCheckNum":114}
 int main(int argc, char * argv[]) {
-    char Head[1000] = {0};
-    memcpy(Head, argv[1], strlen(argv[1]));
-    int Len = strlen(Head);
-    uint8_t CsNum = 0;
-    for (int i = 0; i < Len; i++) {
-        CsNum += Head[i];
+    if (argc != 3) {
+        printf("please input : ./main float|double 12.35\n>:");
     }
-    char CS_END[3] = {0};
-    sprintf(CS_END, "%02x", CsNum);
-    catString(Head, CS_END, 1000, strlen(CS_END));
-    catString(Head, "16", 1000, 2);
-    printf("\n=================================\nchar of SendBuff\n");
-    printf("%s \n", Head);
+    newString(OutBuff, 8);
+    union DoubleOrFloat_T {
+        float NumberF;
+        double NumberD;
+    }Data_S;
+    double TempNum = 0;
+    if (strcmp(argv[1], "float") != 0) {
+        Data_S.NumberD = doneAsciiToDouble(argv[2]);
+        DoubleOrFloatToBuff(OutBuff, Data_S.NumberD, true);
+        printf("%s Buf = %02X %02X %02X %02X %02X %02X %02X %02X", argv[1],
+            (uint8_t)OutBuff.Name._char[0],
+            (uint8_t)OutBuff.Name._char[1],
+            (uint8_t)OutBuff.Name._char[2],
+            (uint8_t)OutBuff.Name._char[3],
+            (uint8_t)OutBuff.Name._char[4],
+            (uint8_t)OutBuff.Name._char[5],
+            (uint8_t)OutBuff.Name._char[6],
+            (uint8_t)OutBuff.Name._char[7]
+        );
+        BuffToFloatOrDouble(&TempNum, OutBuff, true);
+        printf("\n%lf\n", (double)TempNum);
+    } else {
+        Data_S.NumberF = (float)doneAsciiToDouble(argv[2]);
+        DoubleOrFloatToBuff(OutBuff, Data_S.NumberF, false);
+        printf("%s Buf = %02X %02X %02X %02X", argv[1],
+            (uint8_t)OutBuff.Name._char[0],
+            (uint8_t)OutBuff.Name._char[1],
+            (uint8_t)OutBuff.Name._char[2],
+            (uint8_t)OutBuff.Name._char[3]
+        );
+        BuffToFloatOrDouble(&TempNum, OutBuff, false);
+        printf("\n%f\n", (float)TempNum);
+    }
 }

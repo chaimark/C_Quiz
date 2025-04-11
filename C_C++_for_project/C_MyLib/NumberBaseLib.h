@@ -1,6 +1,6 @@
 /*
 XXXX_XXX <==> 宏定义
-Xxxx_Xxxx <==> 全局变量，对象名
+Xxxx_Xxxx <==> 全局变量, 对象名
 _Xxxx_Xxx <==> 类名
 XxxxXxxxx <==> 局部变量
 xxxxXxxx() <==> 函数
@@ -11,14 +11,16 @@ xxxxx_xxxx <==> typedef(数据类型)
 
 #include <stdint.h>
 #include "StrLib.h"
+// 将 uint8_t 数组 转换成 Double Or Float 
+extern void BuffToFloatOrDouble(void * OutData, strnew OutBuff, bool IsDouble);
 
-// 将 Double Or Float 存到 char 数组 中
+// 将 Double Or Float 存到 uint8_t 数组 中
 extern void DoubleOrFloatToBuff(strnew OutBuff, double Number, bool IsDouble);
 
-// 将数组串转字符串0x01 0x02 ==> 0x31 0x32  （可以原地转换，需要注意数组串的长度与字符串的长度，不是整个数组的长度）
+// 将数组串转字符串0x01 0x02 ==> 0x31 0x32  （可以原地转换, 需要注意数组串的长度与字符串的长度, 不是整个数组的长度）
 extern void numberArrayToStrArray(char StrArray[], char NumberArray[], int ArrayMinLen);
 
-// 将字符串转数组串 0x31 0x32 ==> 0x01 0x02 （可以原地转换，需要注意数组串的长度与字符串的长度，不是整个数组的长度）
+// 将字符串转数组串 0x31 0x32 ==> 0x01 0x02 （可以原地转换, 需要注意数组串的长度与字符串的长度, 不是整个数组的长度）
 extern void strArrayToNumberArray(char NumberArray[], char StrArray[], int ArrayMinLen);
 
 // 任意进制互转
@@ -58,7 +60,7 @@ extern uint64_t setDataBit(uint64_t InputNumber, int8_t BitNumber, bool Value);
 extern int HEX2ToASCII(char * hex, int hex_len, char * asc, int asc_len);
 extern int ASCIIToHEX2(char * asc, int asc_len, char * hex, int hex_len);
 
-// 该宏可以恢复原数组，如果不需要可直接调用原函数： ASCIIToHEX2
+// 该宏可以恢复原数组, 如果不需要可直接调用原函数： ASCIIToHEX2
 #define AsciiToHex(asc, asc_len, hex, hex_len) ASCIIToHEX2(asc, asc_len, hex, hex_len);\
     numberArrayToStrArray(asc, asc, asc_len)
 #endif

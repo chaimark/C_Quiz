@@ -1,31 +1,45 @@
 #include "NumberBaseLib.h"
 #include <stdlib.h>
 #include <stdio.h>
-
+void BuffToFloatOrDouble(void * OutData, strnew OutBuff, bool IsDouble) {
+    union {
+        double TempDouble;
+        float TempFloat;
+        uint8_t Buff[8];
+    } converter;
+    for (int i = 0; i < OutBuff.MaxLen; i++) {
+        converter.Buff[i] = OutBuff.Name._char[i];
+    }
+    if (IsDouble) {
+        *((double*)OutData) = converter.TempDouble;
+    } else {
+        *((float*)OutData) = converter.TempFloat;
+    }
+}
 void DoubleOrFloatToBuff(strnew OutBuff, double Number, bool IsDouble) {
-    // uint8_t BuffLen = 0;
-    // union {
-    //     double TempDouble;
-    //     float TempFloat;
-    //     uint64_t Buff8;
-    // } converter;
-    // if (IsDouble) {
-    //     if (OutBuff.MaxLen < 8) {
-    //         return;
-    //     }
-    //     converter.TempDouble = Number;
-    //     BuffLen = 8;
-    // } else {
-    //     if (OutBuff.MaxLen < 4) {
-    //         return;
-    //     }
-    //     converter.TempFloat = Number;
-    //     BuffLen = 4;
-    // }
-    // for (int i = 0; i < BuffLen; i++) {
-    //     OutBuff.Name._char[i] = (uint8_t)(converter.Buff8 >> (i * 8) & 0xFF);
-    // }
-    // swapStr(OutBuff.Name._char, BuffLen);
+    uint8_t BuffLen = 0;
+    union {
+        double TempDouble;
+        float TempFloat;
+        uint64_t Buff8;
+    } converter;
+    if (IsDouble) {
+        if (OutBuff.MaxLen < 8) {
+            return;
+        }
+        converter.TempDouble = Number;
+        BuffLen = 8;
+    } else {
+        if (OutBuff.MaxLen < 4) {
+            return;
+        }
+        converter.TempFloat = Number;
+        BuffLen = 4;
+    }
+    for (int i = 0; i < BuffLen; i++) {
+        OutBuff.Name._char[i] = (uint8_t)(converter.Buff8 >> (i * 8) & 0xFF);
+    }
+    swapStr(OutBuff.Name._char, BuffLen);
 }
 /*
 // 该库中提到的所有进制数全是直接表示, 比如
